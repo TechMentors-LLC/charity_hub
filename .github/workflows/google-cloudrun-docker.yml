@@ -37,7 +37,7 @@ on:
 
 env:
   PROJECT_ID: 'massive-petal-278513' # TODO: update to your Google Cloud project ID
-  REGION: 'us-central1' # TODO: update to your region
+  REGION: 'europe-west1' # TODO: update to your region
   SERVICE: 'charity-hub' # TODO: update to your service name
   WORKLOAD_IDENTITY_PROVIDER: 'projects/680966155554/locations/global/workloadIdentityPools/github/providers/my-repo' # TODO: update to your workload identity provider
 
