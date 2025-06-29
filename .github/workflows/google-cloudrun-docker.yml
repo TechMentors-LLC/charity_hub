@@ -86,7 +86,6 @@ jobs:
       # BEGIN - Docker auth and build
       #
 
-
       # If you already have a container image, you can omit these steps.
       - name: 'Docker Auth'
         uses: 'docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567' # docker/login-action@v3
