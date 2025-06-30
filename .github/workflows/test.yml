@@ -33,8 +33,8 @@ jobs:
       - name: 'Make gradlew executable'
         run: chmod +x ./gradlew
 
-      - name: 'Run tests with detailed output'
-        run: ./gradlew test --info --continue
+      - name: 'Run tests'
+        run: ./gradlew test --quiet --continue
 
       - name: 'Display test results summary'
         if: always()
@@ -42,8 +42,11 @@ jobs:
           echo "## Test Results Summary"
           if [ -f build/test-results/test/TEST-*.xml ]; then
             echo "✅ Tests completed"
-            grep -h "testcase" build/test-results/test/TEST-*.xml | wc -l | xargs echo "Total test cases:"
-            grep -h "failure\|error" build/test-results/test/TEST-*.xml | wc -l | xargs echo "Failed tests:"
+            total_tests=$(grep -h "tests=" build/test-results/test/TEST-*.xml | sed 's/.*tests="\([0-9]*\)".*/\1/' | awk '{sum += $1} END {print sum}')
+            failed_tests=$(grep -h "failures=" build/test-results/test/TEST-*.xml | sed 's/.*failures="\([0-9]*\)".*/\1/' | awk '{sum += $1} END {print sum}')
+            echo "Total tests: $total_tests"
+            echo "Failed tests: $failed_tests"
+            echo "Passed tests: $((total_tests - failed_tests))"
           else
             echo "❌ No test results found"
           fi
