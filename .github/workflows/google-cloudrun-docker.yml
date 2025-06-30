@@ -62,7 +62,7 @@ jobs:
           # Create the application.properties file from secrets
           cat <<EOF > src/main/resources/application.properties
           spring.application.name=charity_hub
-          server.port=8080
+          server.port=\${PORT:8080}
           spring.data.mongodb.uri=${{ secrets.MONGODB_URI }}
           auth.secretKey=${{ secrets.AUTH_SECRET_KEY }}
           accounts.admins=${{ secrets.ACCOUNTS_ADMINS }}
