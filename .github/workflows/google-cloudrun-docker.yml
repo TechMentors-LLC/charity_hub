@@ -90,12 +90,14 @@ jobs:
 
 
       # If you already have a container image, you can omit these steps.
-      - name: 'Docker Auth'
-        uses: 'docker/login-action@v3'
-        with:
-          username: 'oauth2accesstoken'
-          password: '${{ steps.auth.outputs.access_token }}'
-          registry: '${{ env.REGION }}-docker.pkg.dev'
+#      - name: 'Docker Auth'
+#        uses: 'docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567' # docker/login-action@v3
+#        with:
+#          username: 'oauth2accesstoken'
+#          password: '${{ steps.auth.outputs.auth_token }}'
+#          registry: '${{ env.REGION }}-docker.pkg.dev'
+      - name: 'Docker Configure'
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
 
 
       - name: 'Build and Push Container'
