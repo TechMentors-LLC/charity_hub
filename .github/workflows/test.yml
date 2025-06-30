@@ -33,14 +33,17 @@ jobs:
       - name: 'Make gradlew executable'
         run: chmod +x ./gradlew
 
-      - name: 'Run tests'
-        run: ./gradlew test -Dspring.profiles.active=test
+      - name: 'Run tests with detailed output'
+        run: ./gradlew test --info --continue
 
-      - name: 'Publish Test Results'
-        uses: 'dorny/test-reporter@v1'
+      - name: 'Display test results summary'
         if: always()
-        with:
-          name: 'Gradle Tests'
-          path: 'build/test-results/test/*.xml'
-          reporter: 'java-junit'
-          fail-on-error: true
+        run: |
+          echo "## Test Results Summary"
+          if [ -f build/test-results/test/TEST-*.xml ]; then
+            echo "✅ Tests completed"
+            grep -h "testcase" build/test-results/test/TEST-*.xml | wc -l | xargs echo "Total test cases:"
+            grep -h "failure\|error" build/test-results/test/TEST-*.xml | wc -l | xargs echo "Failed tests:"
+          else
+            echo "❌ No test results found"
+          fi
