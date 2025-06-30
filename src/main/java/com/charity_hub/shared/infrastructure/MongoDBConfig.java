@@ -47,6 +47,13 @@ public class MongoDBConfig {
                 .build();
 
         MongoClient mongoClient = MongoClients.create(settings);
-        return mongoClient.getDatabase(connectionString.getDatabase());
+
+        // Get database name from connection string, fallback to default if null
+        String databaseName = connectionString.getDatabase();
+        if (databaseName == null || databaseName.isEmpty()) {
+            databaseName = "charity_hub"; // Default database name
+        }
+
+        return mongoClient.getDatabase(databaseName);
     }
 }
