@@ -33,7 +33,6 @@ on:
   push:
     branches:
       - 'main'
-      - 'test-ci'
 
 env:
   PROJECT_ID: 'massive-petal-278513' # TODO: update to your Google Cloud project ID
