@@ -1,0 +1,48 @@
+name: 'Run Tests'
+
+on:
+  push:
+    branches: ['**']  # Runs on all branches
+  pull_request:
+    branches: ['**']  # Also runs on PRs
+
+jobs:
+  test:
+    runs-on: 'ubuntu-latest'
+    
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v4'
+
+      - name: 'Set up JDK 17'
+        uses: 'actions/setup-java@v4'
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 'Setup Gradle'
+        uses: 'gradle/actions/setup-gradle@v3'
+        with:
+          gradle-version: '8.7'
+
+      - name: 'Create test Firebase cert'
+        run: |
+          mkdir -p ./cert
+          echo '{"type": "service_account", "project_id": "test"}' > ./cert/adminsdk.json
+
+      - name: 'Run tests'
+        run: ./gradlew test -Dspring.profiles.active=test
+
+      - name: 'Upload test results'
+        uses: 'actions/upload-artifact@v4'
+        if: always()
+        with:
+          name: test-results
+          path: build/test-results/test/
+
+      - name: 'Upload test reports'
+        uses: 'actions/upload-artifact@v4'
+        if: always()
+        with:
+          name: test-reports
+          path: build/reports/tests/test/
