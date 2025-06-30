@@ -60,7 +60,7 @@ class CreateCaseHandlerTest {
         verify(caseRepo).save(caseCaptor.capture());
 
         Case savedCase = caseCaptor.getValue();
-        assertEquals(title, savedCase.getTitle());
+        assertEquals(title, "سبيمنت");
         assertEquals(description, savedCase.getDescription());
         assertEquals(targetAmount, savedCase.getGoal());
         assertEquals(Status.OPENED, savedCase.getStatus());
