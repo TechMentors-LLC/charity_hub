@@ -57,7 +57,7 @@ jobs:
         run: |
           # Create the Firebase service account key file from a secret
           mkdir -p ./cert
-          echo "${{ secrets.ADMINSDK }}" > ./cert/adminsdk.json
+          echo '${{ secrets.ADMINSDK }}' > ./cert/adminsdk.json
 
           # Create the application.properties file from secrets
           cat <<EOF > src/main/resources/application.properties
