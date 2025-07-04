@@ -1,0 +1,80 @@
+
+
+name: 'Build and Deploy to Cloud Run'
+
+on:
+  push:
+    branches:
+      - 'main'
+
+env:
+  PROJECT_ID: 'massive-petal-278513'
+  REGION: 'us-central1'
+  SERVICE: 'charity-hub'
+  WORKLOAD_IDENTITY_PROVIDER: 'projects/680966155554/locations/global/workloadIdentityPools/github/providers/my-repo'
+
+jobs:
+  deploy:
+    runs-on: 'ubuntu-latest'
+
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v4'
+
+      - name: Configure Production Environment
+        run: |
+          # Create the Firebase service account key file from a secret
+          mkdir -p ./cert
+          echo '${{ secrets.ADMINSDK }}' > ./cert/adminsdk.json
+
+          # Create the application.properties file from secrets
+          cat <<EOF > src/main/resources/application.properties
+          spring.application.name=charity_hub
+          server.port=\${PORT:8080}
+          spring.data.mongodb.uri=${{ secrets.MONGODB_URI }}
+          auth.secretKey=${{ secrets.AUTH_SECRET_KEY }}
+          accounts.admins=${{ secrets.ACCOUNTS_ADMINS }}
+          firebase.service-account-path=./cert/adminsdk.json
+          firebase.test-mode=false
+          logging.structured.format.console=ecs
+          cases.initial-code=20039
+          EOF
+
+
+
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@f112390a2df9932162083945e46d439060d66ec2'
+        with:
+          workload_identity_provider: '${{ env.WORKLOAD_IDENTITY_PROVIDER }}'
+          service_account: 'cloud-run-deployer@massive-petal-278513.iam.gserviceaccount.com'
+          project_id: '${{ env.PROJECT_ID }}'
+
+
+      - name: 'Docker Configure'
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+
+      - name: 'Build and Push Container'
+        run: |-
+          DOCKER_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/charity-hub/${{ env.SERVICE }}:${{ github.sha }}"
+          docker build --tag "${DOCKER_TAG}" .
+          docker push "${DOCKER_TAG}"
+          
+
+      - name: 'Deploy to Cloud Run'
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: '${{ env.SERVICE }}'
+          region: '${{ env.REGION }}'
+          image: '${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/charity-hub/${{ env.SERVICE }}:${{ github.sha }}'
+
+
+      - name: 'Show output'
+        run: |2-
+
+          echo ${{ steps.deploy.outputs.url }}
