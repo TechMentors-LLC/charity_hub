@@ -8,7 +8,6 @@ on:
       - 'main'
       - 'testing'
 
-
 env:
   PROJECT_ID: 'massive-petal-278513'
   REGION: 'us-central1'
