@@ -40,7 +40,7 @@ jobs:
           auth.secretKey=${{ secrets.AUTH_SECRET_KEY }}
           accounts.admins=${{ secrets.ACCOUNTS_ADMINS }}
           firebase.service-account-path=./cert/adminsdk.json
-          firebase.test-mode=false
+          firebase.test-mode=true
           logging.structured.format.console=ecs
           cases.initial-code=20039
           EOF
