@@ -25,6 +25,7 @@ public class Account extends AggregateRoot<AccountId> {
     private final Date joinedDate;
     private final List<Device> devices;
     private boolean blocked;
+    private final Connection connections;
 
     public Account(
             AccountId id,
@@ -34,7 +35,7 @@ public class Account extends AggregateRoot<AccountId> {
             FullName fullName,
             PhotoUrl photoUrl,
             boolean blocked,
-            Date joinedDate
+            Date joinedDate, Connection connections
     ) {
         super(id);
         this.mobileNumber = mobileNumber;
@@ -45,27 +46,31 @@ public class Account extends AggregateRoot<AccountId> {
         this.photoUrl = photoUrl;
         this.blocked = blocked;
         this.joinedDate = joinedDate != null ? joinedDate : new Date();
+        this.connections = connections != null ? connections : new Connection(null, null); 
     }
 
     public static Account newAccount(
+            AccountId id,
             String aMobileNumber,
             String deviceId,
             String deviceType,
-            boolean isAdmin
+            boolean isAdmin,
+            Connection connections
     ) {
         MobileNumber mobileNumber = MobileNumber.create(aMobileNumber);
         Device device = Device.createNew(deviceId, deviceType);
         Permission userPermission = isAdmin ? Permission.FULL_ACCESS : Permission.VIEW;
 
         Account account = new Account(
-                AccountId.generate(),
+                id,
                 mobileNumber,
                 new ArrayList<>(Collections.singletonList(device)),
                 new ArrayList<>(Collections.singletonList(userPermission)),
                 null,
                 null,
                 false,
-                new Date()
+                new Date(),
+                connections
         );
 
         account.raiseEvent(AccountCreated.from(account));

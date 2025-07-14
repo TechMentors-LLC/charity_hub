@@ -3,10 +3,12 @@ package com.charity_hub.accounts.internal.shell.repositories.mappers;
 import com.charity_hub.accounts.internal.core.model.account.*;
 import com.charity_hub.accounts.internal.core.model.device.Device;
 import com.charity_hub.accounts.internal.shell.db.AccountEntity;
+import com.charity_hub.accounts.internal.shell.db.ConnectionEntity;
 import com.charity_hub.accounts.internal.shell.db.DeviceEntity;
 import com.charity_hub.shared.domain.model.Permission;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -30,11 +32,24 @@ public class DomainAccountMapper {
                     entity.photoUrl() != null ?
                             PhotoUrl.create(entity.photoUrl()) : null,
                     entity.blocked(),
-                    new Date(entity.joinedDate())
+                    new Date(entity.joinedDate()),
+                    entity.connections() != null ?
+                            fromConnectionEntity(entity.connections()) : new Connection(null, null)
             );
         } catch (Exception exc) {
             throw new RuntimeException("Could not map identity from the database - " + exc.getMessage());
         }
+    }
+
+    private Connection fromConnectionEntity(ConnectionEntity connections) {
+        return new Connection(
+                connections.parent() != null ? new AccountId(UUID.fromString(connections.parent())) : null,
+                connections.children() != null
+                        ? connections.children().stream()
+                        .map(id -> new AccountId(UUID.fromString(id)))
+                        .collect(Collectors.toList())
+                        : new ArrayList<>()
+        );
     }
 
     private Device fromDeviceEntity(DeviceEntity entity) {
@@ -61,7 +76,9 @@ public class DomainAccountMapper {
                         .collect(Collectors.toList()),
                 domain.getDevices().stream()
                         .map(this::toDeviceEntity)
-                        .collect(Collectors.toList())
+                        .collect(Collectors.toList()),
+                toConnectionEntity(domain.getConnections())
+
         );
     }
 
@@ -73,5 +90,10 @@ public class DomainAccountMapper {
                 domain.getFcmToken() != null ? domain.getFcmToken().getValue() : null,
                 domain.getLastAccessTime().getTime()
         );
+    }
+
+    private ConnectionEntity toConnectionEntity(Connection domain){
+        return new ConnectionEntity(domain.getParent().value().toString(),domain.getChildren().stream().map(childId -> childId.value().toString())
+                .collect(Collectors.toList()));
     }
 }

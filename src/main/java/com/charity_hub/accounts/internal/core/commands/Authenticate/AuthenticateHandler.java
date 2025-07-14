@@ -5,12 +5,15 @@ import com.charity_hub.accounts.internal.core.contracts.IAuthProvider;
 import com.charity_hub.accounts.internal.core.contracts.IInvitationRepo;
 import com.charity_hub.accounts.internal.core.contracts.IJWTGenerator;
 import com.charity_hub.accounts.internal.core.model.account.Account;
+import com.charity_hub.accounts.internal.core.model.account.AccountId;
+import com.charity_hub.accounts.internal.core.model.account.Connection;
 import com.charity_hub.shared.abstractions.CommandHandler;
 import com.charity_hub.shared.exceptions.BusinessRuleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -81,11 +84,31 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
             throw new BusinessRuleException("Account not invited to use the App");
         }
 
+        AccountId newAccountId = AccountId.generate();
+
+        Connection connection = new Connection(null, new ArrayList<>());
+
+        var invitation = invitationRepo.get(mobileNumber).join();
+
+        if (invitation != null && invitation.inviterId() != null) {
+        // Set parent for the new account
+        connection.setParent(new AccountId(invitation.inviterId()));
+
+        // Add this account as a child to the inviter
+        Account inviter = accountRepo.getById(invitation.inviterId()).join();
+        if (inviter != null) {
+            inviter.getConnections().addChild(newAccountId);
+            accountRepo.save(inviter);
+        }
+    }
+
         return Account.newAccount(
+                newAccountId,
                 mobileNumber,
                 request.deviceId(),
                 request.deviceType(),
-                isAdmin
+                isAdmin,
+                connection
         );
     }
 }
