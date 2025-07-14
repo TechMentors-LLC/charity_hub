@@ -13,7 +13,7 @@ public class DTOAccountMapper {
         return new AccountDTO(
                 entity.accountId(),
                 entity.mobileNumber(),
-                entity.fullName() != null ? entity.fullName() : "بدون إسم",
+                entity.fullName() != null ? entity.fullName() : "No Name",
                 entity.photoUrl() != null ? entity.photoUrl() : "",
                 entity.devices().stream().map(DeviceEntity::fcmToken).collect(Collectors.toList())
         );

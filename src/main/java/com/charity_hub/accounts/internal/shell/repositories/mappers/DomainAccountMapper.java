@@ -93,7 +93,10 @@ public class DomainAccountMapper {
     }
 
     private ConnectionEntity toConnectionEntity(Connection domain){
-        return new ConnectionEntity(domain.getParent().value().toString(),domain.getChildren().stream().map(childId -> childId.value().toString())
-                .collect(Collectors.toList()));
+        return new ConnectionEntity(
+                domain.getParent() != null ? domain.getParent().value().toString() : null,
+                domain.getChildren().stream().map(childId -> childId.value().toString())
+                        .collect(Collectors.toList())
+        );
     }
 }

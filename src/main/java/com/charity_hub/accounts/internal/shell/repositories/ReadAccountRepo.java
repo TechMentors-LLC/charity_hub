@@ -25,12 +25,12 @@ public class ReadAccountRepo {
 
     public CompletableFuture<AccountEntity> getById(UUID id) {
         return CompletableFuture.supplyAsync(() ->
-                collection.find(eq("id", id.toString())).first()
+                collection.find(eq("accountId", id.toString())).first()
         );
     }
 
     public CompletableFuture<List<AccountEntity>> getAccountsByIds(List<UUID> ids) {
-        return CompletableFuture.supplyAsync(() -> collection.find(in("id", ids)).into(new ArrayList<>())
+        return CompletableFuture.supplyAsync(() -> collection.find(in("accountId", ids.stream().map(UUID::toString).toList())).into(new ArrayList<>())
         );
     }
 }

@@ -12,8 +12,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import static com.mongodb.client.model.Filters.eq;
 

@@ -8,15 +8,18 @@ import org.springframework.web.context.request.async.DeferredResult;
 
 import com.charity_hub.accounts.internal.core.queriers.GetConnectionsQuery;
 import com.charity_hub.accounts.internal.core.queriers.GetConnectionsHandler;
+import com.charity_hub.accounts.internal.shell.api.mappers.ConnectionsResponseMapper;
 import com.charity_hub.shared.api.DeferredResults;
 import com.charity_hub.shared.auth.AccessTokenPayload;
 
 @RestController
 public class GetConnectionsController {
     private final GetConnectionsHandler getConnectionsHandler;
+    private final ConnectionsResponseMapper connectionsResponseMapper;
 
-    public GetConnectionsController(GetConnectionsHandler getConnectionsHandler) {
+    public GetConnectionsController(GetConnectionsHandler getConnectionsHandler, ConnectionsResponseMapper connectionsResponseMapper) {
         this.getConnectionsHandler = getConnectionsHandler;
+        this.connectionsResponseMapper = connectionsResponseMapper;
     }
 
     @GetMapping("/v1/accounts/connections")
@@ -24,6 +27,7 @@ public class GetConnectionsController {
         GetConnectionsQuery command = new GetConnectionsQuery(accessTokenPayload.getUserId());
         return DeferredResults.from(
                 getConnectionsHandler.handle(command)
-                        .thenApply(ResponseEntity::ok));
+                        .thenApply(connectionsInfo -> 
+                            ResponseEntity.ok(connectionsResponseMapper.toResponse(connectionsInfo))));
     }
 }

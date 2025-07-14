@@ -3,6 +3,8 @@ package com.charity_hub.accounts.internal.shell.repositories;
 import com.charity_hub.accounts.internal.core.contracts.IAccountRepo;
 import com.charity_hub.accounts.internal.core.events.AccountEvent;
 import com.charity_hub.accounts.internal.core.model.account.Account;
+import com.charity_hub.accounts.internal.core.model.account.AccountId;
+import com.charity_hub.accounts.internal.core.model.account.ConnectionsInfo;
 import com.charity_hub.accounts.internal.shell.repositories.mappers.AccountEventsMapper;
 import com.charity_hub.accounts.internal.shell.repositories.mappers.DomainAccountMapper;
 import com.charity_hub.accounts.internal.shell.db.AccountEntity;
@@ -53,12 +55,50 @@ public class AccountRepo implements IAccountRepo {
     }
 
     @Override
-    public CompletableFuture<List<Account>> getConnections(UUID id) {
-        return CompletableFuture.supplyAsync(() ->
-                collection.find(eq("connections.userId", id.toString()))
-                        .map(domainAccountMapper::toDomain)
-                        .into(new ArrayList<>())
-        );
+    public CompletableFuture<ConnectionsInfo> getConnections(UUID id) {
+        return CompletableFuture.supplyAsync(() -> {
+            AccountEntity accountEntity = collection.find(eq("accountId", id.toString())).first();
+            if (accountEntity == null || accountEntity.connections() == null) {
+                return new ConnectionsInfo(null, List.of());
+            }
+
+            // Parent
+            ConnectionsInfo.MinimalAccount parent = null;
+            String parentId = accountEntity.connections().parent();
+            if (parentId != null && !parentId.isEmpty()) {
+                AccountEntity parentEntity = collection.find(eq("accountId", parentId)).first();
+                if (parentEntity != null) {
+                    String parentFullName = parentEntity.fullName() != null && !parentEntity.fullName().isEmpty()
+                        ? parentEntity.fullName() : "No Name"; // Default fallback
+                    parent = new ConnectionsInfo.MinimalAccount(
+                        new AccountId(UUID.fromString(parentEntity.accountId())),
+                        parentEntity.mobileNumber(),
+                        parentFullName
+                    );
+                }
+            }
+
+            // Children (batch query for efficiency)
+            List<String> childrenIds = accountEntity.connections().children() != null
+                    ? accountEntity.connections().children()
+                    : List.of();
+            List<ConnectionsInfo.MinimalAccount> children = new ArrayList<>();
+            if (!childrenIds.isEmpty()) {
+                // Batch query for all children
+                for (AccountEntity childEntity : collection.find(in("accountId", childrenIds))) {
+                    if (childEntity == null) continue;
+                    String childFullName = childEntity.fullName() != null && !childEntity.fullName().isEmpty()
+                        ? childEntity.fullName() : "No Name"; // Default fallback
+                    children.add(new ConnectionsInfo.MinimalAccount(
+                        new AccountId(UUID.fromString(childEntity.accountId())),
+                        childEntity.mobileNumber(),
+                        childFullName
+                    ));
+                }
+            }
+
+            return new ConnectionsInfo(parent, children);
+        });
     }
 
     @Override
