@@ -7,6 +7,7 @@ import com.charity_hub.shared.abstractions.CommandHandler;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @Service
 public class InviteAccountHandler extends CommandHandler<InvitationAccount, Void> {
@@ -30,7 +31,7 @@ public class InviteAccountHandler extends CommandHandler<InvitationAccount, Void
                 );
 
                 invitationRepo.save(newInvitation);
-            } catch (Exception e) {
+            } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
             }
         });
