@@ -1,5 +1,6 @@
 package com.charity_hub.shared.exceptions;
 
+import com.charity_hub.accounts.internal.core.exceptions.AlreadyInvitedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -40,5 +41,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Object> handleNotFoundException(Exception ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.emptyMap());
+    }
+
+    @ExceptionHandler(AlreadyInvitedException.class)
+    public ResponseEntity<Map<String, String>> handleAlreadyInvited(AlreadyInvitedException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("description", "This user has already been invited.");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 }
