@@ -9,7 +9,7 @@ Content-Type: application/json
 {
   "idToken": "+201260032632",
   "deviceId": "91235778sd412qwwtest",
-  "deviceType": "android"
+   "deviceType": "android"
 }
 
 > {%
@@ -18,6 +18,13 @@ Content-Type: application/json
     client.global.set("refreshToken", response.body.refreshToken)
 
 %}
+
+
+### Refresh Token
+POST {{host}}/v1/accounts/refresh-token
+Content-Type: application/json
+Authorization: Bearer {{refreshToken}}
+
 
 ### Register FCM Token
 
@@ -88,7 +95,7 @@ Authorization: Bearer {{accessToken}}
 
 {
   "fullName": "Hassan Ibrahim",
-  "photoUrl": "http://photo.com"
+  "photoUrl": ""
 }
 > {%
     client.assert(response.status === 200)
@@ -213,12 +220,12 @@ Authorization: Bearer {{accessToken}}
 
 ### Search cases
 
-GET {{host}}/v1/cases?offset=0&limit=20
+GET {{host}}/v1/cases?limit=20&offset=0&onlyZakat=false
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "test": "test"
+
 }
 > {%
     client.assert(response.status === 200)
@@ -327,3 +334,4 @@ Authorization: Bearer {{accessToken}}
 > {%
     client.assert(response.status === 200)
 %}
+
