@@ -1,6 +1,5 @@
 package com.charity_hub.shared.exceptions;
 
-import com.charity_hub.accounts.internal.core.exceptions.AlreadyInvitedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -18,7 +17,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleAppException(Exception ex, WebRequest request) {
         HttpStatus status;
-        
+
         if (ex instanceof BusinessRuleException) {
             status = HttpStatus.CONFLICT;
         } else if (ex instanceof BadRequestException) {
@@ -33,7 +32,7 @@ public class GlobalExceptionHandler {
 
         Map<String, String> body = new HashMap<>();
         body.put("description", ex.getMessage());
-        
+
         return ResponseEntity.status(status).body(body);
     }
 
@@ -43,10 +42,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.emptyMap());
     }
 
-    @ExceptionHandler(AlreadyInvitedException.class)
-    public ResponseEntity<Map<String, String>> handleAlreadyInvited(AlreadyInvitedException ex) {
+    @ExceptionHandler(BusinessRuleException.class)
+    public ResponseEntity<Map<String, String>> handleBusinessRule(BusinessRuleException ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("description", "This user has already been invited.");
+        error.put("description", ex.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 }
