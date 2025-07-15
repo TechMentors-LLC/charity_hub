@@ -78,7 +78,7 @@ public class CaseRepo implements ICaseRepo {
                 List<com.mongodb.client.model.ReplaceOneModel<ContributionEntity>> updates = 
                     caseContributions.stream()
                         .map(contribution -> new com.mongodb.client.model.ReplaceOneModel<>(
-                            new org.bson.Document("_id", contribution.getId().toString()),
+                            new org.bson.Document("_id", contribution.getId().value().toString()),
                             contributionMapper.toDB(contribution),
                             new ReplaceOptions().upsert(true)
                         ))
@@ -115,7 +115,7 @@ public class CaseRepo implements ICaseRepo {
     public CompletableFuture<Void> save(Contribution contribution) {
         return CompletableFuture.runAsync(() -> {
             contributions.replaceOne(
-                new org.bson.Document("_id", contribution.getId().toString()),
+                new org.bson.Document("_id", contribution.getId().value().toString()),
                 contributionMapper.toDB(contribution),
                 new ReplaceOptions().upsert(true)
             );
