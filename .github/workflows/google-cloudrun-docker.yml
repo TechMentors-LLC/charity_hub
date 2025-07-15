@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - 'main'
-      - 'test-contribution-flow'
 
 env:
   PROJECT_ID: 'massive-petal-278513'
