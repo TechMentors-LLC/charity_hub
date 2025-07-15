@@ -28,7 +28,7 @@ public class MembersNetworkRepo implements IMembersNetworkRepo {
     @Override
     public CompletableFuture<Member> getById(UUID id) {
         return CompletableFuture.supplyAsync(() -> {
-            MemberEntity entity = collection.find(eq("id", id.toString())).first();
+            MemberEntity entity = collection.find(eq("_id", id.toString())).first();
             return entity != null ? MemberMapper.toDomain(entity) : null;
         });
     }
@@ -36,7 +36,7 @@ public class MembersNetworkRepo implements IMembersNetworkRepo {
     @Override
     public CompletableFuture<Void> delete(MemberId id) {
         return CompletableFuture.runAsync(() -> {
-            collection.deleteOne(eq("id", id.value().toString()));
+            collection.deleteOne(eq("_id", id.value().toString()));
         });
     }
 
@@ -45,7 +45,7 @@ public class MembersNetworkRepo implements IMembersNetworkRepo {
         return CompletableFuture.runAsync(() -> {
             MemberEntity entity = MemberMapper.toDB(member);
             collection.replaceOne(
-                eq("id", entity._id()),
+                eq("_id", entity._id()),
                 entity,
                 new ReplaceOptions().upsert(true)
             );
