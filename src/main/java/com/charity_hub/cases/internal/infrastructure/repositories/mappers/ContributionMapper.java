@@ -13,7 +13,7 @@ public class ContributionMapper {
 
     public ContributionEntity toDB(Contribution domain) {
         return new ContributionEntity(
-                domain.getId().toString(),
+                domain.getId().value().toString(),
                 domain.getContributorId().toString(),
                 domain.getCaseId().value(),
                 domain.getMoneyValue().value(),
