@@ -20,17 +20,18 @@ public class ChangeContributionStatusController {
         this.contributionStatusHandler = contributionStatusHandler;
     }
 
-    @PostMapping("/v1/contributions/{contributionId}/pay")
-    public DeferredResult<ResponseEntity<?>> pay(@PathVariable UUID contributionId) {
-        return DeferredResults.from(contributionStatusHandler
-                .handle(new ChangeContributionStatus(contributionId, true))
-                .thenApply(ResponseEntity::ok));
-    }
 
     @PostMapping("/v1/contributions/{contributionId}/confirm")
     public DeferredResult<ResponseEntity<?>> confirm(@PathVariable UUID contributionId) {
         return DeferredResults.from(contributionStatusHandler
                 .handle(new ChangeContributionStatus(contributionId, false))
+                .thenApply(ResponseEntity::ok));
+    }
+
+    @PostMapping("/v1/contributions/{contributionId}/pay")
+    public DeferredResult<ResponseEntity<?>> pay(@PathVariable UUID contributionId) {
+        return DeferredResults.from(contributionStatusHandler
+                .handle(new ChangeContributionStatus(contributionId, true))
                 .thenApply(ResponseEntity::ok));
     }
 }
