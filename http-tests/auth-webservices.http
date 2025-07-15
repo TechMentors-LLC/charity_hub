@@ -58,7 +58,7 @@ Authorization: Bearer {{accessToken}}
 %}
 ### Get connections
 
-GET {{host}}/v1/accounts/85f494a5-b208-4274-b0ad-b4ec282ed555/connections
+GET {{host}}/v1/accounts/e5c2135c-ebc2-427c-87b6-48055ce4872a/connections
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -98,7 +98,7 @@ Authorization: Bearer {{accessToken}}
 
 ###
 
-POST {{host}}/v1/accounts/f793947f-8ebf-450a-a73a-bfc47f7cd016/block
+POST {{host}}/v1/accounts/e5c2135c-ebc2-427c-87b6-48055ce4872a/block
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -109,7 +109,7 @@ Authorization: Bearer {{accessToken}}
 ###
 
 
-POST {{host}}/v1/accounts/f793947f-8ebf-450a-a73a-bfc47f7cd016/un-block
+POST {{host}}/v1/accounts/e5c2135c-ebc2-427c-87b6-48055ce4872a/un-block
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -120,7 +120,7 @@ Authorization: Bearer {{accessToken}}
 
 ### Add permission
 
-POST {{host}}/v1/accounts/f793947f-8ebf-450a-a73a-bfc47f7cd016/permissions
+POST {{host}}/v1/accounts/e5c2135c-ebc2-427c-87b6-48055ce4872a/add-permission
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -136,7 +136,7 @@ Authorization: Bearer {{accessToken}}
 
 ### Remove permission
 
-DELETE {{host}}/v1/accounts/f793947f-8ebf-450a-a73a-bfc47f7cd016/permissions
+POST {{host}}/v1/accounts/e5c2135c-ebc2-427c-87b6-48055ce4872a/remove-permission
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -320,7 +320,7 @@ Authorization: Bearer {{accessToken}}
 
 ### Ledger summary
 
-GET {{host}}/v1/ledger/85f494a5-b208-4274-b0ad-b4ec282ed555
+GET {{host}}/v1/ledger/f36f86ae-d685-4b0c-8f86-e56ae2fb8cdb
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
