@@ -41,4 +41,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleNotFoundException(Exception ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.emptyMap());
     }
+
+    @ExceptionHandler(BusinessRuleException.class)
+    public ResponseEntity<Map<String, String>> handleBusinessRule(BusinessRuleException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("description", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
 }

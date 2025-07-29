@@ -64,7 +64,7 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
     }
 
     private Account existingAccountOrNewAccount(String mobileNumber, Authenticate request) {
-        logger.info("get the account by mobile number");
+        logger.info("get the account by mobile number: {}" , mobileNumber);
         Account existingAccount = accountRepo.getByMobileNumber(mobileNumber).join();
         if (existingAccount != null) {
             return existingAccount;
