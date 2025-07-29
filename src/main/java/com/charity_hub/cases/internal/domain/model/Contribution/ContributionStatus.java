@@ -10,7 +10,7 @@ public enum ContributionStatus {
     }
 
     boolean isConfirmed() {
-        return this != PAID;
+        return this == CONFIRMED;
     }
 
     boolean isNotPledged() {

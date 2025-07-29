@@ -94,7 +94,10 @@ public class Contribution extends AggregateRoot<ContributionId> {
 
     public void confirm() {
         if (contributionStatus.isConfirmed()) {
-            throw new BusinessRuleException("The Contribution either not paid or still pledged");
+            throw new BusinessRuleException("The Contribution is already confirmed");
+        }
+        if (contributionStatus != ContributionStatus.PAID) {
+            throw new BusinessRuleException("The Contribution must be paid before it can be confirmed");
         }
         contributionStatus = ContributionStatus.CONFIRMED;
         raiseEvent(ContributionConfirmed.from(this));
