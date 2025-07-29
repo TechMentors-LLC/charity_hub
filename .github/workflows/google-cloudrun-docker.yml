@@ -39,10 +39,8 @@ jobs:
           auth.secretKey=${{ secrets.AUTH_SECRET_KEY }}
           accounts.admins=${{ secrets.ACCOUNTS_ADMINS }}
           firebase.service-account-path=./cert/adminsdk.json
-          firebase.test-mode=false
-          logging.structured.format.console=ecs
-          cases.initial-code=20039
-          EOF
+
+          firebase.test-mode=true
 
 
 
@@ -64,7 +62,6 @@ jobs:
           DOCKER_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/charity-hub/${{ env.SERVICE }}:${{ github.sha }}"
           docker build --tag "${DOCKER_TAG}" .
           docker push "${DOCKER_TAG}"
-          
 
       - name: 'Deploy to Cloud Run'
         uses: 'google-github-actions/deploy-cloudrun@v2'
@@ -77,4 +74,6 @@ jobs:
       - name: 'Show output'
         run: |2-
 
+
           echo ${{ steps.deploy.outputs.url }}
+
