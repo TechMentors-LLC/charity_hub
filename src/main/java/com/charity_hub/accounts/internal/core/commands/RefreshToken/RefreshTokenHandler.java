@@ -24,10 +24,13 @@ public class RefreshTokenHandler extends CommandHandler<RefreshToken, String> {
 
     public CompletableFuture<String> handle(RefreshToken command) {
         return CompletableFuture.supplyAsync(() -> {
-            logger.info("here " + command.encodedRefreshToken());
+            logger.info("RefreshTokenHandler: Processing command: " + command);
+            logger.info("RefreshTokenHandler: UserId: " + command.userId());
+            logger.info("RefreshTokenHandler: DeviceId: " + command.deviceId());
 
             var account = accountRepo.getById(command.userId()).join();
             if (account == null) {
+                logger.error("RefreshTokenHandler: Account not found for userId: " + command.userId());
                 throw new UnAuthorized("Unauthorized access.");
             }
 
