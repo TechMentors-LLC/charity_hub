@@ -1,4 +1,5 @@
 <configuration>
+    <!-- Existing Console appender -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>
@@ -6,10 +7,32 @@
             </pattern>
         </encoder>
     </appender>
-    <logger name="org.springframework.security" level="trace" additivity="false">
-        <appender-ref ref="Console" />
+
+    <!-- Add a new File appender -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/application.log</file>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+            </pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Daily rollover -->
+            <fileNamePattern>logs/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- Keep 30 days of history -->
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Fix the case in the appender reference (Console -> CONSOLE) -->
+    <logger name="org.springframework.security" level="error" additivity="false">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" /> <!-- Add file logging for security logger -->
     </logger>
+
     <root level="info">
         <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" /> <!-- Add file logging for all other loggers -->
     </root>
 </configuration>

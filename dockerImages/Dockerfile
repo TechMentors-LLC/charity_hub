@@ -1,6 +1,6 @@
 FROM gradle:8.7-jdk17-alpine AS build
 WORKDIR /home/gradle/src
-COPY --chown=gradle:gradle . .
+COPY  .. .
 RUN gradle build --no-daemon
 
 

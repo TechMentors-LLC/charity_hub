@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: charity-hub
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: charity-hub
+  template:
+    metadata:
+      labels:
+        app: charity-hub
+    spec:
+      containers:
+        - name: charity-hub
+          image: charity-hub:latest
+          ports:
+            - containerPort: 8080
+          env:
+            # Spring Boot automatically converts these env vars to properties
+            - name: SPRING_DATA_MONGODB_HOST
+              value: "charity-db"  # This points to the service name of your MongoDB
+            - name: SPRING_DATA_MONGODB_PORT
+              value: "27017"
+            - name: SPRING_DATA_MONGODB_USERNAME
+              value: "admin"
+            - name: SPRING_DATA_MONGODB_PASSWORD
+              value: "charity_password"
+            - name: SPRING_DATA_MONGODB_DATABASE
+              value: "charity_db"
+            - name: SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE
+              value: "admin"
+          volumeMounts:
+            - name: cert-volume
+              mountPath: /app/cert/
+      volumes:
+        - name: cert-volume
+          configMap:
+            name: adminsdk-cert
+            items:
+              - key: adminsdk.json
+                path: adminsdk.json

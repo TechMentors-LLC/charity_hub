@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: charity-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: charity-db
+  template:
+    metadata:
+      labels:
+        app: charity-db
+    spec:
+      containers:
+        - name: charity-db
+          image: charity-db:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: "admin"
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: "charity_password"
+            - name: MONGO_INITDB_DATABASE
+              value: "charity_db"
+          resources:
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+            requests:
+              cpu: "100m"
+              memory: "500Mi"

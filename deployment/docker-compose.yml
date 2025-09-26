@@ -1,0 +1,24 @@
+services:
+  charity-db:
+    build: mongodb
+    container_name: charity-db
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=charity_password
+      - MONGO_INITDB_DATABASE=charity_db
+  charity-hub:
+    build: ..
+    container_name: charity-hub
+    platform: linux/amd64
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./cert:/app/cert:ro
+      - charity-logs:/app/logs
+    depends_on:
+      - charity-db
+
+volumes:
+  charity-logs:

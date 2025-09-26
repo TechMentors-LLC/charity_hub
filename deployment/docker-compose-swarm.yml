@@ -1,0 +1,43 @@
+services:
+  charity-db:
+    image: charity-db
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=charity_password
+      - MONGO_INITDB_DATABASE=charity_db
+    deploy:
+      replicas: 1
+      restart_policy: { condition: on-failure, max_attempts: 3, window: 120s }
+      update_config:
+        order: start-first
+        parallelism: 1
+        delay: 10s
+
+  charity-hub:
+    image: charity-hub
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../cert:/app/cert:ro
+      - charity-logs:/app/logs
+    depends_on:
+      - charity-db
+    deploy:
+      replicas: 2
+      restart_policy: { condition: on-failure, max_attempts: 3 }
+      update_config:
+        order: start-first
+        parallelism: 1
+        delay: 10s
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+        reservations:
+          cpus: ".5"
+          memory: 512M
+
+volumes:
+  charity-logs:

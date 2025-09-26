@@ -59,7 +59,7 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
                 accountRepo.save(account);
                 logger.info("Authentication successful for account: {}", account.getMobileNumber());
 
-                return new AuthenticateResponse(tokens.first, tokens.second);
+                return new AuthenticateResponse(tokens.first, tokens.second,"Welcome from Swarm!");
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
