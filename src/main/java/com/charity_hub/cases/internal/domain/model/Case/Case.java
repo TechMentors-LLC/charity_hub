@@ -81,7 +81,7 @@ public class Case extends AggregateRoot<CaseCode> {
         this.details = this.details.update(title, description, goal, acceptZakat);
         this.documents = this.documents.update(documentUrls);
         this.lastUpdated = new Date();
-        raiseEvent(new CaseUpdated(this));
+//        raiseEvent(new CaseUpdated(this));
     }
 
     public void delete(ICaseRepo caseRepo) {
