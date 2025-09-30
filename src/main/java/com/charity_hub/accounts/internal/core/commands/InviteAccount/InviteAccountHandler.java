@@ -18,21 +18,18 @@ public class InviteAccountHandler extends CommandHandler<InvitationAccount, Void
 
     @Override
     public CompletableFuture<Void> handle(InvitationAccount command) {
-        return CompletableFuture.runAsync(() -> {
-            try {
-                if (invitationRepo.hasInvitation(command.mobileNumber()).get()) {
-                    throw new AlreadyInvitedException("already invited");
-                }
+        return invitationRepo.hasInvitation(command.mobileNumber())
+                .thenCompose(hasInvitation -> {
+                    if (hasInvitation) {
+                        return CompletableFuture.failedFuture(new AlreadyInvitedException("already invited"));
+                    }
 
-                Invitation newInvitation = Invitation.of(
-                        command.mobileNumber(),  // invitedMobileNumber
-                        command.inviterId()      // inviterId
-                );
+                    Invitation newInvitation = Invitation.of(
+                            command.mobileNumber(),
+                            command.inviterId()
+                    );
 
-                invitationRepo.save(newInvitation);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+                    return invitationRepo.save(newInvitation);
+                });
     }
 }

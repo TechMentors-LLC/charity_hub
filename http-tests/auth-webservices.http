@@ -19,6 +19,13 @@ Content-Type: application/json
 
 %}
 
+
+### Refresh Token
+POST {{host}}/v1/accounts/refresh-token
+Content-Type: application/json
+Authorization: Bearer {{refreshToken}}
+
+
 ### Register FCM Token
 
 POST {{host}}/v1/accounts/register-fcm-token
@@ -88,7 +95,7 @@ Authorization: Bearer {{accessToken}}
 
 {
   "fullName": "Hassan Ibrahim",
-  "photoUrl": "http://photo.com"
+  "photoUrl": ""
 }
 > {%
     client.assert(response.status === 200)
@@ -213,12 +220,12 @@ Authorization: Bearer {{accessToken}}
 
 ### Search cases
 
-GET {{host}}/v1/cases?offset=0&limit=20
+GET {{host}}/v1/cases?limit=20&offset=0&onlyZakat=false
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "test": "test"
+
 }
 > {%
     client.assert(response.status === 200)
@@ -327,3 +334,4 @@ Authorization: Bearer {{accessToken}}
 > {%
     client.assert(response.status === 200)
 %}
+
