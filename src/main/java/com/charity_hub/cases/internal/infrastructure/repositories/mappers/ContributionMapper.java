@@ -13,7 +13,7 @@ public class ContributionMapper {
 
     public ContributionEntity toDB(Contribution domain) {
         return new ContributionEntity(
-                domain.getId().toString(),
+                domain.getId().value().toString(),
                 domain.getContributorId().toString(),
                 domain.getCaseId().value(),
                 domain.getMoneyValue().value(),
@@ -24,6 +24,7 @@ public class ContributionMapper {
 
     public Contribution toDomain(ContributionEntity entity) {
         return Contribution.create(
+                UUID.fromString(entity._id()),
                 UUID.fromString(entity.contributorId()),
                 entity.caseCode(),
                 entity.amount(),
@@ -40,7 +41,7 @@ public class ContributionMapper {
         };
     }
 
-    private int getContributionStatusCode(ContributionStatus status) {
+    public int getContributionStatusCode(ContributionStatus status) {
         return switch (status) {
             case PLEDGED -> ContributionEntity.STATUS_PLEDGED;
             case PAID -> ContributionEntity.STATUS_PAID;
