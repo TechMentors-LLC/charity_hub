@@ -121,11 +121,16 @@ public class CaseRepo implements ICaseRepo {
             if (contribution.getContributionStatus() == ContributionStatus.PAID || 
                 contribution.getContributionStatus() == ContributionStatus.CONFIRMED) {
                 // Only update the status field instead of replacing the entire document
-                contributions.updateOne(
+                var updateResult = contributions.updateOne(
                     new org.bson.Document("_id", contribution.getId().value().toString()),
                     Updates.set("status", contributionMapper.getContributionStatusCode(contribution.getContributionStatus())),
                     new UpdateOptions().upsert(false)
                 );
+                
+                // Check if the update modified any documents
+                if (updateResult.getModifiedCount() == 0) {
+                    throw new IllegalStateException("Failed to update contribution status: Contribution does not exist.");
+                }
             } else {
                 // For other operations, replace the entire document
                 contributions.replaceOne(
