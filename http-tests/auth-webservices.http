@@ -9,7 +9,7 @@ Content-Type: application/json
 {
   "idToken": "+201260032632",
   "deviceId": "91235778sd412qwwtest",
-   "deviceType": "android"
+  "deviceType": "android"
 }
 
 > {%
