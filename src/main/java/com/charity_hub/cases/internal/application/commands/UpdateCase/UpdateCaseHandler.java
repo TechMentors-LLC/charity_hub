@@ -39,6 +39,5 @@ public class UpdateCaseHandler extends CommandHandler<UpdateCase, Void> {
                 command.documents()
         );
         return caseRepo.save(case_);
-
     }
 }
