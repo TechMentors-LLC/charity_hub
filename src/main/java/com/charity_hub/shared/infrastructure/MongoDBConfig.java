@@ -7,6 +7,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import org.bson.UuidRepresentation;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,7 +57,8 @@ public class MongoDBConfig {
                         .build())
         );
 
-        settingsBuilder.codecRegistry(pojoCodecRegistry)
+        settingsBuilder.uuidRepresentation(UuidRepresentation.STANDARD)
+                .codecRegistry(pojoCodecRegistry)
                 .applyToConnectionPoolSettings(builder ->
                         builder.maxSize(4)
                                 .minSize(1)
