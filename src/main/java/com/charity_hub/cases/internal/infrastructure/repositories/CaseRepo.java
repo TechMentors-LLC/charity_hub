@@ -152,13 +152,6 @@ public class CaseRepo implements ICaseRepo {
                 new org.bson.Document("_id", id.toString())
             ).first();
             
-            if (entity == null) {
-                // Try with the old format for backward compatibility
-                entity = contributions.find(
-                    new org.bson.Document("_id", "ContributionId[value=" + id + "]")
-                ).first();
-            }
-            
             return entity != null ? contributionMapper.toDomain(entity) : null;
         });
     }

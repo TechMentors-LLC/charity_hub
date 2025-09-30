@@ -23,24 +23,8 @@ public class ContributionMapper {
     }
 
     public Contribution toDomain(ContributionEntity entity) {
-        UUID id;
-        try {
-            // Try to parse the ID as a UUID
-            id = UUID.fromString(entity._id());
-        } catch (IllegalArgumentException e) {
-            // If it's in the old format "ContributionId[value=...]" extract the UUID
-            String idStr = entity._id();
-            if (idStr.startsWith("ContributionId[value=") && idStr.endsWith("]")) {
-                String uuidStr = idStr.substring("ContributionId[value=".length(), idStr.length() - 1);
-                id = UUID.fromString(uuidStr);
-            } else {
-                // Generate a new ID as fallback
-                id = UUID.randomUUID();
-            }
-        }
-        
         return Contribution.create(
-                id,
+                UUID.fromString(entity._id()),
                 UUID.fromString(entity.contributorId()),
                 entity.caseCode(),
                 entity.amount(),
