@@ -17,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -45,15 +46,28 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
 
             var claims = jwtVerifier.verify(token);
-            log.info("Token verified successfully");
+            String tokenType = claims.get("type", String.class);
+            log.info("Token type: {}", tokenType);
 
-            var payload = AccessTokenPayload.fromPayload(claims);
+            Object payload;
+            if ("refreshToken".equals(tokenType)) {
+                log.info("Creating RefreshTokenPayload");
+                log.info("Claims: {}", claims);
+                payload = RefreshTokenPayload.fromPayload(claims);
+                log.info("RefreshTokenPayload created successfully: {}", payload);
+            } else {
+                log.info("Creating AccessTokenPayload");
+                payload = AccessTokenPayload.fromPayload(claims);
+            }
+
             var authentication = new UsernamePasswordAuthenticationToken(
                 payload,
                 null,
-                payload.getPermissions().stream()
-                    .map(SimpleGrantedAuthority::new)
-                    .collect(Collectors.toList())
+                payload instanceof AccessTokenPayload ? 
+                    ((AccessTokenPayload) payload).getPermissions().stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList()) : 
+                    List.of()
             );
             
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

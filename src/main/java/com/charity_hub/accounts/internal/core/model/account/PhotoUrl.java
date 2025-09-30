@@ -9,9 +9,11 @@ public record PhotoUrl(String value) {
             "https?://(www\\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)"
     );
 
+
     public PhotoUrl {
-        ValueValidator.assertNotEmpty(value, getClass());
-        ValueValidator.assertValidFormat(value, URL_PATTERN, getClass());
+        if (value != null && !value.trim().isEmpty()) {
+            ValueValidator.assertValidFormat(value, URL_PATTERN, getClass());
+        }
     }
 
     public static PhotoUrl create(String value) {

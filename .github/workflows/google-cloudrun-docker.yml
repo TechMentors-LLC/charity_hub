@@ -46,6 +46,7 @@ jobs:
 
 
 
+
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@f112390a2df9932162083945e46d439060d66ec2'
@@ -64,7 +65,6 @@ jobs:
           DOCKER_TAG="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/charity-hub/${{ env.SERVICE }}:${{ github.sha }}"
           docker build --tag "${DOCKER_TAG}" .
           docker push "${DOCKER_TAG}"
-          
 
       - name: 'Deploy to Cloud Run'
         uses: 'google-github-actions/deploy-cloudrun@v2'
@@ -77,4 +77,6 @@ jobs:
       - name: 'Show output'
         run: |2-
 
+
           echo ${{ steps.deploy.outputs.url }}
+
