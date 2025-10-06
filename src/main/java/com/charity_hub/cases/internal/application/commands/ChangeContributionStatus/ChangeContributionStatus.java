@@ -4,5 +4,5 @@ import com.charity_hub.shared.abstractions.Command;
 
 import java.util.UUID;
 
-public record ChangeContributionStatus(UUID contributionId, boolean isPay) implements Command {
+public record ChangeContributionStatus(UUID contributionId,String proofUrl, boolean isPay) implements Command {
 }
