@@ -120,15 +120,23 @@ public class CaseRepo implements ICaseRepo {
             // Check if this is a status change (pay or confirm operation)
             if (contribution.getContributionStatus() == ContributionStatus.PAID || 
                 contribution.getContributionStatus() == ContributionStatus.CONFIRMED) {
-                // Only update the status field instead of replacing the entire document
+                // Update status and proofUrl if provided
+                var updates = new ArrayList<org.bson.conversions.Bson>();
+                updates.add(Updates.set("status", contributionMapper.getContributionStatusCode(contribution.getContributionStatus())));
+                
+                // If proofUrl is provided, update it as well
+                if (contribution.getProofUrl() != null) {
+                    updates.add(Updates.set("proofUrl", contribution.getProofUrl()));
+                }
+                
                 var updateResult = contributions.updateOne(
                     new org.bson.Document("_id", contribution.getId().value().toString()),
-                    Updates.set("status", contributionMapper.getContributionStatusCode(contribution.getContributionStatus())),
+                    Updates.combine(updates),
                     new UpdateOptions().upsert(false)
                 );
                 
                 // Check if the update modified any documents
-                if (updateResult.getModifiedCount() == 0) {
+                if (updateResult.getModifiedCount() == 0 && updateResult.getMatchedCount() == 0) {
                     throw new IllegalStateException("Failed to update contribution status: Contribution does not exist.");
                 }
             } else {

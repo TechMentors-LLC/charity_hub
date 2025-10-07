@@ -23,8 +23,11 @@ public class ChangeContributionStatusController {
     }
 
     @PostMapping("/v1/contributions/{contributionId}/pay")
-    public DeferredResult<ResponseEntity<?>> pay(@PathVariable UUID contributionId, @RequestBody PayRequest request) {
-        ChangeContributionStatus command = new ChangeContributionStatus(contributionId,request.proofUrl(),true);
+    public DeferredResult<ResponseEntity<?>> pay(
+            @PathVariable UUID contributionId, 
+            @RequestBody(required = false) PayRequest request) {
+        String proofUrl = request != null ? request.proofUrl() : null;
+        ChangeContributionStatus command = new ChangeContributionStatus(contributionId, proofUrl, true);
         return DeferredResults.from(contributionStatusHandler
                 .handle(command)
                 .thenApply(ResponseEntity::ok));
@@ -33,7 +36,7 @@ public class ChangeContributionStatusController {
     @PostMapping("/v1/contributions/{contributionId}/confirm")
     public DeferredResult<ResponseEntity<?>> confirm(@PathVariable UUID contributionId) {
         return DeferredResults.from(contributionStatusHandler
-                .handle(new ChangeContributionStatus(contributionId, false))
+                .handle(new ChangeContributionStatus(contributionId, null, false))
                 .thenApply(ResponseEntity::ok));
     }
 }

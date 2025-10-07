@@ -14,7 +14,8 @@ public class DTOContributionMapper {
             entity.caseCode(),
             entity.amount(),
             entity.status(),
-            entity.contributionDate()
+            entity.contributionDate(),
+            entity.proofUrl()
         );
     }
 }

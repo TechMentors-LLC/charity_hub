@@ -5,5 +5,6 @@ public record ContributionDTO(String id,
                               int caseCode,
                               int amount,
                               int status,
-                              long contributionDate) {
+                              long contributionDate,
+                              String proofUrl) {
 }

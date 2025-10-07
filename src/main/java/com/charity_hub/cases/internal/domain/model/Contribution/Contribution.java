@@ -17,6 +17,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
     private ContributionStatus contributionStatus;
     private final MoneyValue moneyValue;
     private final Date contributionDate;
+    private String proofUrl; // Optional proof URL for payment
 
     public Contribution(
             ContributionId id,
@@ -24,7 +25,8 @@ public class Contribution extends AggregateRoot<ContributionId> {
             CaseCode caseCode,
             MoneyValue moneyValue,
             ContributionStatus contributionStatus,
-            Date contributionDate
+            Date contributionDate,
+            String proofUrl
     ) {
         super(id);
         this.contributorId = contributorId;
@@ -32,6 +34,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
         this.moneyValue = moneyValue;
         this.contributionStatus = contributionStatus;
         this.contributionDate = contributionDate;
+        this.proofUrl = proofUrl;
     }
 
     public static Contribution new_(
@@ -45,7 +48,8 @@ public class Contribution extends AggregateRoot<ContributionId> {
                 new CaseCode(caseCode),
                 MoneyValue.of(amount),
                 ContributionStatus.PLEDGED,
-                new Date()
+                new Date(),
+                null // No proof URL for new contributions
         );
     }
 
@@ -62,7 +66,8 @@ public class Contribution extends AggregateRoot<ContributionId> {
                 caseCode,
                 amount,
                 contributionStatus,
-                contributionDate
+                contributionDate,
+                null // Default to no proof URL
         );
     }
 
@@ -74,21 +79,43 @@ public class Contribution extends AggregateRoot<ContributionId> {
             ContributionStatus contributionStatus,
             Date contributionDate
     ) {
+        return create(
+                id,
+                contributorId,
+                caseCode,
+                amount,
+                contributionStatus,
+                contributionDate,
+                null // Default to no proof URL
+        );
+    }
+
+    public static Contribution create(
+            UUID id,
+            UUID contributorId,
+            int caseCode,
+            int amount,
+            ContributionStatus contributionStatus,
+            Date contributionDate,
+            String proofUrl
+    ) {
         return new Contribution(
                 new ContributionId(id),
                 contributorId,
                 new CaseCode(caseCode),
                 MoneyValue.of(amount),
                 contributionStatus,
-                contributionDate != null ? contributionDate : new Date()
+                contributionDate != null ? contributionDate : new Date(),
+                proofUrl
         );
     }
 
-    public void pay() {
+    public void pay(String proofUrl) {
         if (contributionStatus.isNotPledged()) {
             throw new BusinessRuleException("The Contribution has been paid already");
         }
         contributionStatus = ContributionStatus.PAID;
+        this.proofUrl = proofUrl; // Set proof URL if provided
         raiseEvent(ContributionPaid.from(this));
     }
 

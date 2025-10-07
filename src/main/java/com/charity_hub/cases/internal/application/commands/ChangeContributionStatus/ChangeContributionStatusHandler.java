@@ -29,7 +29,7 @@ public class ChangeContributionStatusHandler extends CommandHandler<ChangeContri
             }
 
             if (command.isPay()) {
-                contribution.pay();
+                contribution.pay(command.proofUrl()); // Pass proofUrl to pay method
                 caseRepo.save(contribution);
                 logger.info("Contribution paid and saved with ID {} ", command.contributionId());
                 return;
