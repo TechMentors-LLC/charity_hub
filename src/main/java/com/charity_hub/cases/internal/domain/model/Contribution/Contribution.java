@@ -112,7 +112,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
     }
 
     /**
-    * @param paymentProof Optional .
+    * @param paymentProof Optional. The payment proof document or reference, may be null if not provided.
     * */
 
     public void pay(@Nullable String paymentProof) {

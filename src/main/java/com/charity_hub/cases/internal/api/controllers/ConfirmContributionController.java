@@ -15,7 +15,7 @@ import java.util.UUID;
 public class ConfirmContributionController {
     private final ConfirmContributionHandler confirmContributionHandler;
 
-    ConfirmContributionController(ConfirmContributionHandler confirmContributionHandler){
+    public ConfirmContributionController(ConfirmContributionHandler confirmContributionHandler){
         this.confirmContributionHandler = confirmContributionHandler;
     }
 
