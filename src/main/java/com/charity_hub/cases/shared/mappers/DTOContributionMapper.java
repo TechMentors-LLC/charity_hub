@@ -15,7 +15,7 @@ public class DTOContributionMapper {
             entity.amount(),
             entity.status(),
             entity.contributionDate(),
-            entity.proofUrl()
+            entity.paymentProof()
         );
     }
 }

@@ -120,13 +120,13 @@ public class CaseRepo implements ICaseRepo {
             // Check if this is a status change (pay or confirm operation)
             if (contribution.getContributionStatus() == ContributionStatus.PAID || 
                 contribution.getContributionStatus() == ContributionStatus.CONFIRMED) {
-                // Update status and proofUrl if provided
+                // Update status and paymentProof if provided
                 var updates = new ArrayList<org.bson.conversions.Bson>();
                 updates.add(Updates.set("status", contributionMapper.getContributionStatusCode(contribution.getContributionStatus())));
                 
-                // If proofUrl is provided, update it as well
-                if (contribution.getProofUrl() != null) {
-                    updates.add(Updates.set("proofUrl", contribution.getProofUrl()));
+                // If paymentProof is provided, update it as well
+                if (contribution.getPaymentProof() != null) {
+                    updates.add(Updates.set("paymentProof", contribution.getPaymentProof()));
                 }
                 
                 var updateResult = contributions.updateOne(

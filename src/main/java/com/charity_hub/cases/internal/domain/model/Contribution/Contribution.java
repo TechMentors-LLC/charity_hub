@@ -6,6 +6,7 @@ import com.charity_hub.cases.internal.domain.model.Case.CaseCode;
 import com.charity_hub.shared.domain.model.AggregateRoot;
 import com.charity_hub.shared.exceptions.BusinessRuleException;
 import lombok.Getter;
+import org.springframework.lang.Nullable;
 
 import java.util.Date;
 import java.util.UUID;
@@ -17,7 +18,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
     private ContributionStatus contributionStatus;
     private final MoneyValue moneyValue;
     private final Date contributionDate;
-    private String proofUrl; // Optional proof URL for payment
+    private String paymentProof;
 
     public Contribution(
             ContributionId id,
@@ -26,7 +27,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
             MoneyValue moneyValue,
             ContributionStatus contributionStatus,
             Date contributionDate,
-            String proofUrl
+            String paymentProof
     ) {
         super(id);
         this.contributorId = contributorId;
@@ -34,7 +35,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
         this.moneyValue = moneyValue;
         this.contributionStatus = contributionStatus;
         this.contributionDate = contributionDate;
-        this.proofUrl = proofUrl;
+        this.paymentProof = paymentProof;
     }
 
     public static Contribution new_(
@@ -49,7 +50,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
                 MoneyValue.of(amount),
                 ContributionStatus.PLEDGED,
                 new Date(),
-                null // No proof URL for new contributions
+                null
         );
     }
 
@@ -67,7 +68,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
                 amount,
                 contributionStatus,
                 contributionDate,
-                null // Default to no proof URL
+                null
         );
     }
 
@@ -86,7 +87,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
                 amount,
                 contributionStatus,
                 contributionDate,
-                null // Default to no proof URL
+                null
         );
     }
 
@@ -97,7 +98,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
             int amount,
             ContributionStatus contributionStatus,
             Date contributionDate,
-            String proofUrl
+            String paymentProof
     ) {
         return new Contribution(
                 new ContributionId(id),
@@ -106,16 +107,20 @@ public class Contribution extends AggregateRoot<ContributionId> {
                 MoneyValue.of(amount),
                 contributionStatus,
                 contributionDate != null ? contributionDate : new Date(),
-                proofUrl
+                paymentProof
         );
     }
 
-    public void pay(String proofUrl) {
+    /**
+    * @param paymentProof Optional .
+    * */
+
+    public void pay(@Nullable String paymentProof) {
         if (contributionStatus.isNotPledged()) {
             throw new BusinessRuleException("The Contribution has been paid already");
         }
         contributionStatus = ContributionStatus.PAID;
-        this.proofUrl = proofUrl; // Set proof URL if provided
+        this.paymentProof = paymentProof;
         raiseEvent(ContributionPaid.from(this));
     }
 

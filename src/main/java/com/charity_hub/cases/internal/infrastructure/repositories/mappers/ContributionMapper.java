@@ -19,7 +19,7 @@ public class ContributionMapper {
                 domain.getMoneyValue().value(),
                 getContributionStatusCode(domain.getContributionStatus()),
                 domain.getContributionDate().getTime(),
-                domain.getProofUrl() // Include proof URL
+                domain.getPaymentProof()
         );
     }
 
@@ -31,7 +31,7 @@ public class ContributionMapper {
                 entity.amount(),
                 getContributionStatus(entity.status()),
                 new Date(entity.contributionDate()),
-                entity.proofUrl() // Include proof URL
+                entity.paymentProof()
         );
     }
 
