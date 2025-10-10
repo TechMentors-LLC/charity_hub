@@ -6,6 +6,7 @@ import com.charity_hub.cases.internal.domain.model.Case.CaseCode;
 import com.charity_hub.shared.domain.model.AggregateRoot;
 import com.charity_hub.shared.exceptions.BusinessRuleException;
 import lombok.Getter;
+import org.springframework.lang.Nullable;
 
 import java.util.Date;
 import java.util.UUID;
@@ -17,6 +18,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
     private ContributionStatus contributionStatus;
     private final MoneyValue moneyValue;
     private final Date contributionDate;
+    private String paymentProof;
 
     public Contribution(
             ContributionId id,
@@ -24,7 +26,8 @@ public class Contribution extends AggregateRoot<ContributionId> {
             CaseCode caseCode,
             MoneyValue moneyValue,
             ContributionStatus contributionStatus,
-            Date contributionDate
+            Date contributionDate,
+            String paymentProof
     ) {
         super(id);
         this.contributorId = contributorId;
@@ -32,6 +35,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
         this.moneyValue = moneyValue;
         this.contributionStatus = contributionStatus;
         this.contributionDate = contributionDate;
+        this.paymentProof = paymentProof;
     }
 
     public static Contribution new_(
@@ -45,7 +49,8 @@ public class Contribution extends AggregateRoot<ContributionId> {
                 new CaseCode(caseCode),
                 MoneyValue.of(amount),
                 ContributionStatus.PLEDGED,
-                new Date()
+                new Date(),
+                null
         );
     }
 
@@ -62,7 +67,8 @@ public class Contribution extends AggregateRoot<ContributionId> {
                 caseCode,
                 amount,
                 contributionStatus,
-                contributionDate
+                contributionDate,
+                null
         );
     }
 
@@ -74,21 +80,47 @@ public class Contribution extends AggregateRoot<ContributionId> {
             ContributionStatus contributionStatus,
             Date contributionDate
     ) {
+        return create(
+                id,
+                contributorId,
+                caseCode,
+                amount,
+                contributionStatus,
+                contributionDate,
+                null
+        );
+    }
+
+    public static Contribution create(
+            UUID id,
+            UUID contributorId,
+            int caseCode,
+            int amount,
+            ContributionStatus contributionStatus,
+            Date contributionDate,
+            String paymentProof
+    ) {
         return new Contribution(
                 new ContributionId(id),
                 contributorId,
                 new CaseCode(caseCode),
                 MoneyValue.of(amount),
                 contributionStatus,
-                contributionDate != null ? contributionDate : new Date()
+                contributionDate != null ? contributionDate : new Date(),
+                paymentProof
         );
     }
 
-    public void pay() {
+    /**
+    * @param paymentProof Optional. The payment proof document or reference, may be null if not provided.
+    * */
+
+    public void pay(@Nullable String paymentProof) {
         if (contributionStatus.isNotPledged()) {
             throw new BusinessRuleException("The Contribution has been paid already");
         }
         contributionStatus = ContributionStatus.PAID;
+        this.paymentProof = paymentProof;
         raiseEvent(ContributionPaid.from(this));
     }
 

@@ -18,7 +18,8 @@ public class ContributionMapper {
                 domain.getCaseId().value(),
                 domain.getMoneyValue().value(),
                 getContributionStatusCode(domain.getContributionStatus()),
-                domain.getContributionDate().getTime()
+                domain.getContributionDate().getTime(),
+                domain.getPaymentProof()
         );
     }
 
@@ -29,7 +30,8 @@ public class ContributionMapper {
                 entity.caseCode(),
                 entity.amount(),
                 getContributionStatus(entity.status()),
-                new Date(entity.contributionDate())
+                new Date(entity.contributionDate()),
+                entity.paymentProof()
         );
     }
 
