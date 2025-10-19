@@ -3,33 +3,37 @@ package com.charity_hub.ledger.internal.api;
 import com.charity_hub.ledger.internal.application.queries.GetLedger.GetLedger;
 import com.charity_hub.ledger.internal.application.queries.GetLedger.GetLedgerHandler;
 import com.charity_hub.shared.api.DeferredResults;
+import com.charity_hub.shared.auth.AccessTokenPayload;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.UUID;
 
 @RestController
-public class GetLedgerController {
+public class GetOwnLedgerController {
     private final GetLedgerHandler getLedgerHandler;
 
-    public GetLedgerController(GetLedgerHandler getLedgerHandler) {
+    public GetOwnLedgerController(GetLedgerHandler getLedgerHandler) {
         this.getLedgerHandler = getLedgerHandler;
     }
 
-    // Admin endpoint - can view any user's ledger
-    @PreAuthorize("hasAuthority('FULL_ACCESS')")
-    @GetMapping("/v1/ledger/{userId}")
-    public DeferredResult<ResponseEntity<?>> handle(@PathVariable UUID userId) {
+    // User endpoint - can only view their own ledger
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/v1/ledger/me")
+    public DeferredResult<ResponseEntity<?>> handle(
+            @AuthenticationPrincipal AccessTokenPayload payload
+    ) {
+        // Automatically get userId from JWT token
+        UUID userId = UUID.fromString(payload.getUuid());
         GetLedger command = new GetLedger(userId);
 
         return DeferredResults.from(
                 getLedgerHandler.handle(command)
                         .thenApply(ResponseEntity::ok)
         );
-
     }
 }
