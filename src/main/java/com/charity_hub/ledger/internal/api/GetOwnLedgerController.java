@@ -21,13 +21,11 @@ public class GetOwnLedgerController {
         this.getLedgerHandler = getLedgerHandler;
     }
 
-    // User endpoint - can only view their own ledger
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/v1/ledger/me")
     public DeferredResult<ResponseEntity<?>> handle(
             @AuthenticationPrincipal AccessTokenPayload payload
     ) {
-        // Automatically get userId from JWT token
         UUID userId = UUID.fromString(payload.getUuid());
         GetLedger command = new GetLedger(userId);
 

@@ -20,7 +20,6 @@ public class GetLedgerController {
         this.getLedgerHandler = getLedgerHandler;
     }
 
-    // Admin endpoint - can view any user's ledger
     @PreAuthorize("hasAuthority('FULL_ACCESS')")
     @GetMapping("/v1/ledger/{userId}")
     public DeferredResult<ResponseEntity<?>> handle(@PathVariable UUID userId) {
