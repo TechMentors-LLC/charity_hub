@@ -22,7 +22,7 @@ public class GetOwnLedgerController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/v1/ledger/me")
+    @GetMapping("/v1/ledger")
     public DeferredResult<ResponseEntity<?>> handle(
             @AuthenticationPrincipal AccessTokenPayload payload
     ) {
