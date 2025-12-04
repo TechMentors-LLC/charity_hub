@@ -39,6 +39,7 @@ public class SecurityConfig {
             try {
                 auth
                     .requestMatchers(new AntPathRequestMatcher("/actuator")).permitAll()
+                    .requestMatchers("/actuator/**").hasRole("ADMIN")
                     .requestMatchers(new AntPathRequestMatcher("/v1/accounts/authenticate")).permitAll()
                     .requestMatchers(new AntPathRequestMatcher("/error")).permitAll()
                     .anyRequest().authenticated();

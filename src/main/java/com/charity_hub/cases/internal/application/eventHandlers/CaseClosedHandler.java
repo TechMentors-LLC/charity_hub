@@ -4,9 +4,9 @@ import com.charity_hub.cases.shared.dtos.CaseClosedDTO;
 import com.charity_hub.cases.internal.domain.contracts.INotificationService;
 import com.charity_hub.cases.internal.application.eventHandlers.loggers.CaseClosedLogger;
 import com.charity_hub.shared.domain.IEventBus;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -21,15 +21,13 @@ public class CaseClosedHandler {
         this.logger = logger;
     }
 
-    @Bean("CaseClosedListener")
-    public CompletableFuture<Void> start() {
+    @PostConstruct
+    public void start() {
         logger.handlerRegistered();
         eventBus.subscribe(this, CaseClosedDTO.class, this::handle);
-        return CompletableFuture.completedFuture(null);
     }
 
-    private CompletableFuture<Void> handle(CaseClosedDTO case_) {
-        return CompletableFuture.runAsync(() -> {
+    private void handle(CaseClosedDTO case_) {
             logger.processingEvent(case_);
 
             try {
@@ -38,6 +36,5 @@ public class CaseClosedHandler {
             } catch (Exception e) {
                 logger.notificationFailed(case_.caseCode(), e);
             }
-        });
     }
 } 

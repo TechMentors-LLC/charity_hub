@@ -6,8 +6,7 @@ import com.charity_hub.cases.internal.domain.model.Case.CaseCode;
 import com.charity_hub.shared.abstractions.CommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.CompletableFuture;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UpdateCaseHandler extends CommandHandler<UpdateCase, Void> {
@@ -18,19 +17,16 @@ public class UpdateCaseHandler extends CommandHandler<UpdateCase, Void> {
     }
 
     @Override
-    public CompletableFuture<Void> handle(UpdateCase command) {
-        return caseRepo.getByCode(new CaseCode(command.caseCode()))
-                .thenCompose(case_ -> {
-                    if (case_ == null) {
-                        return CompletableFuture.failedFuture(
-                                new NotFoundException("This case is not found")
-                        );
-                    }
-                    return updateAndSaveCase(case_, command);
-                });
+    @Transactional
+    public Void handle(UpdateCase command) {
+        var case_ =  caseRepo.getByCode(new CaseCode(command.caseCode()))
+                .orElseThrow(() -> new NotFoundException("This case is not found"));
+
+        updateAndSaveCase(case_, command);
+        return null;
     }
 
-    private CompletableFuture<Void> updateAndSaveCase(Case case_, UpdateCase command) {
+    private void updateAndSaveCase(Case case_, UpdateCase command) {
         case_.update(
                 command.title(),
                 command.description(),
@@ -38,6 +34,6 @@ public class UpdateCaseHandler extends CommandHandler<UpdateCase, Void> {
                 command.acceptZakat(),
                 command.documents()
         );
-        return caseRepo.save(case_);
+        caseRepo.save(case_);
     }
 }

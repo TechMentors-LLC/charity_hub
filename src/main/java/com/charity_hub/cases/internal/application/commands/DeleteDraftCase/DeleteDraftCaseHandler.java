@@ -5,8 +5,7 @@ import com.charity_hub.cases.internal.domain.model.Case.CaseCode;
 import com.charity_hub.shared.abstractions.CommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.CompletableFuture;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DeleteDraftCaseHandler extends CommandHandler<DeleteDraftCase, Void> {
@@ -17,14 +16,13 @@ public class DeleteDraftCaseHandler extends CommandHandler<DeleteDraftCase, Void
     }
 
     @Override
-    public CompletableFuture<Void> handle(DeleteDraftCase command) {
-        return CompletableFuture.runAsync(() -> {
-            var case_ = caseRepo.getByCode(new CaseCode(command.caseCode())).join();
-            if (case_ == null) {
-                throw new NotFoundException("This case is not found");
-            }
-            
-            case_.delete(caseRepo);
-        });
+    @Transactional
+    public Void handle(DeleteDraftCase command) {
+
+        var case_ = caseRepo.getByCode(new CaseCode(command.caseCode()))
+                .orElseThrow(() -> new NotFoundException("This case is not found"));
+
+        case_.delete(caseRepo);
+        return null;
     }
 }

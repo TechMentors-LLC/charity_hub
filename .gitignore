@@ -39,3 +39,6 @@ out/
 ### Kotlin ###
 .kotlin
 /node_modules/
+
+secrets.properties
+cert/adminsdk.json

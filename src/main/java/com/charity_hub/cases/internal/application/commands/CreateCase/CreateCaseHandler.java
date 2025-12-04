@@ -6,8 +6,7 @@ import com.charity_hub.cases.internal.domain.model.Case.NewCaseProbs;
 import com.charity_hub.cases.internal.domain.model.Case.Status;
 import com.charity_hub.shared.abstractions.CommandHandler;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.CompletableFuture;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class CreateCaseHandler extends CommandHandler<CreateCase, CaseResponse> {
@@ -18,23 +17,23 @@ public class CreateCaseHandler extends CommandHandler<CreateCase, CaseResponse> 
     }
 
     @Override
-    public CompletableFuture<CaseResponse> handle(CreateCase command) {
-        return CompletableFuture.supplyAsync(() -> {
+    @Transactional
+    public CaseResponse handle(CreateCase command) {
 
-            var newCase = Case.newCase(
-                    new NewCaseProbs(
-                            caseRepo.nextCaseCode().join(),
-                            command.title(),
-                            command.description(),
-                            command.goal(),
-                            command.publish() ? Status.OPENED : Status.DRAFT,
-                            command.acceptZakat(),
-                            command.documents()
-                    )
-            );
+        var newCase = Case.newCase(
+                new NewCaseProbs(
+                        caseRepo.nextCaseCode()
+                                .orElseThrow(() -> new IllegalStateException("Failed to Get the New Case code")),
+                        command.title(),
+                        command.description(),
+                        command.goal(),
+                        command.publish() ? Status.OPENED : Status.DRAFT,
+                        command.acceptZakat(),
+                        command.documents()
+                )
+        );
 
-            caseRepo.save(newCase);
-            return new CaseResponse(newCase.getCaseCode().value());
-        });
+        caseRepo.save(newCase);
+        return new CaseResponse(newCase.getCaseCode().value());
     }
 }

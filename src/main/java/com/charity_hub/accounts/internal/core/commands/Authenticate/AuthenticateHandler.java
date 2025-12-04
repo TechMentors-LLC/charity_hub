@@ -7,11 +7,13 @@ import com.charity_hub.accounts.internal.core.contracts.IJWTGenerator;
 import com.charity_hub.accounts.internal.core.model.account.Account;
 import com.charity_hub.shared.abstractions.CommandHandler;
 import com.charity_hub.shared.exceptions.BusinessRuleException;
+
+import io.micrometer.observation.annotation.Observed;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.CompletableFuture;
 
 @Service
 public class AuthenticateHandler extends CommandHandler<Authenticate, AuthenticateResponse> {
@@ -35,12 +37,13 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
     }
 
     @Override
-    public CompletableFuture<AuthenticateResponse> handle(Authenticate command) {
-        return CompletableFuture.supplyAsync(() -> {
+    @Observed(name = "AuthenticateHandler.handle",contextualName = "handle-authenticate-command")
+    public AuthenticateResponse handle(Authenticate command) {
+
             try {
                 logger.info("Handling authentication for idToken: {}", command.idToken());
 
-                String mobileNumber = authProvider.getVerifiedMobileNumber(command.idToken()).join();
+                String mobileNumber = authProvider.getVerifiedMobileNumber(command.idToken());
 
                 logger.info("check for account: {}", command);
 
@@ -60,11 +63,10 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        });
     }
 
     private Account existingAccountOrNewAccount(String mobileNumber, Authenticate request) {
-        Account existingAccount = accountRepo.getByMobileNumber(mobileNumber).join();
+        Account existingAccount = accountRepo.getByMobileNumber(mobileNumber).get();
         if (existingAccount != null) {
             return existingAccount;
         }
@@ -72,8 +74,8 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
     }
 
     private Account authenticateNewAccount(String mobileNumber, Authenticate request) {
-        boolean isAdmin = accountRepo.isAdmin(mobileNumber).join();
-        boolean hasNoInvitations = !invitationRepo.hasInvitation(mobileNumber).join();
+        boolean isAdmin = accountRepo.isAdmin(mobileNumber);
+        boolean hasNoInvitations = !invitationRepo.hasInvitation(mobileNumber);
 
         if (!isAdmin && hasNoInvitations) {
             logger.warn("Account not invited: {}", mobileNumber);

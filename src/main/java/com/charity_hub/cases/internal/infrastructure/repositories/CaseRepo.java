@@ -21,6 +21,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -50,7 +51,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
-    public CompletableFuture<Integer> nextCaseCode() {
+    public Optional<Integer> nextCaseCode() {
         return CompletableFuture.supplyAsync(() -> {
             CaseEntity lastCase = cases.find()
                     .sort(new org.bson.Document("code", -1))
@@ -61,7 +62,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
-    public CompletableFuture<Case> getByCode(CaseCode caseCode) {
+    public Optional<Case> getByCode(CaseCode caseCode) {
         return CompletableFuture.supplyAsync(() -> {
             CaseEntity entity = cases.find(new org.bson.Document("code", caseCode.value()))
                     .first();
@@ -154,7 +155,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
-    public CompletableFuture<Contribution> getContributionById(UUID id) {
+    public Optional<Contribution> getContributionById(UUID id) {
         return CompletableFuture.supplyAsync(() -> {
             ContributionEntity entity = contributions.find(
                 new org.bson.Document("_id", id.toString())

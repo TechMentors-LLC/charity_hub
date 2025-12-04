@@ -2,11 +2,14 @@ package com.charity_hub.accounts.shared;
 
 import com.charity_hub.accounts.internal.shell.repositories.InvitationRepo;
 import com.charity_hub.accounts.internal.shell.repositories.ReadAccountRepo;
+
+import io.micrometer.observation.annotation.Observed;
+
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Component
@@ -22,26 +25,26 @@ public class AccountsAPIs implements IAccountsAPI {
     }
 
     @Override
-    public CompletableFuture<InvitationResponse> getInvitationByMobileNumber(String mobileNumber) {
+    @Observed(name = "AccountsAPIs.getInvitationByMobileNumber",contextualName = "get-invitation-by-mobile-number")
+    public Optional<InvitationResponse> getInvitationByMobileNumber(String mobileNumber) {
+   
         return invitationRepo.get(mobileNumber)
-                .thenApply(invitation -> {
-                    if (invitation == null) return null;
-                    return new InvitationResponse(invitation.invitedMobileNumber().value(), invitation.inviterId());
-                });
+                .map(invitation -> new InvitationResponse(invitation.invitedMobileNumber().value(), invitation.inviterId()));
     }
 
-    public CompletableFuture<AccountDTO> getById(UUID id) {
-        return CompletableFuture.supplyAsync(() ->
-                dtoAccountMapper.toDTO(readAccountRepo.getById(id).join())
-        );
+    @Override
+    @Observed(name = "AccountsAPIs.getById",contextualName = "get-account-by-id")
+    public Optional<AccountDTO> getById(UUID id) {
+        return readAccountRepo.getById(id)
+                .map(dtoAccountMapper::toDTO);
     }
 
-    public CompletableFuture<List<AccountDTO>> getAccountsByIds(List<UUID> ids) {
-        return CompletableFuture.supplyAsync(() ->
-                readAccountRepo.getAccountsByIds(ids).join()
+    @Override
+    @Observed(name = "AccountsAPIs.getAccountsByIds",contextualName = "get-accounts-by-ids")
+    public List<AccountDTO> getAccountsByIds(List<UUID> ids) {
+               return readAccountRepo.getAccountsByIds(ids)
                         .stream()
                         .map(dtoAccountMapper::toDTO)
-                        .collect(Collectors.toList())
-        );
+                        .collect(Collectors.toList());    
     }
 }

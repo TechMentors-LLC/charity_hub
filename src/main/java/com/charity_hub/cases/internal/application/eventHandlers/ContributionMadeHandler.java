@@ -7,6 +7,7 @@ import com.charity_hub.shared.domain.IEventBus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -21,11 +22,10 @@ public class ContributionMadeHandler {
         this.logger = logger;
     }
 
-    @Bean("ContributionMadeListener")
-    public CompletableFuture<Void> start() {
+    @PostConstruct
+    public void start() {
         logger.handlerRegistered();
         eventBus.subscribe(this, ContributionMadeDTO.class, this::handle);
-        return CompletableFuture.completedFuture(null);
     }
 
     private CompletableFuture<Void> handle(ContributionMadeDTO contribution) {

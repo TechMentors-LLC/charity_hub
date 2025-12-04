@@ -4,11 +4,10 @@ import com.charity_hub.cases.internal.domain.contracts.ICaseRepo;
 import com.charity_hub.cases.internal.domain.model.Case.CaseCode;
 import com.charity_hub.shared.abstractions.CommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.concurrent.CompletableFuture;
-
-@Component
+@Service
 public class ChangeCaseStatusHandler extends CommandHandler<ChangeCaseStatus, Void> {
     private final ICaseRepo caseRepo;
 
@@ -17,20 +16,19 @@ public class ChangeCaseStatusHandler extends CommandHandler<ChangeCaseStatus, Vo
     }
 
     @Override
-    public CompletableFuture<Void> handle(ChangeCaseStatus command) {
-        return CompletableFuture.runAsync(() -> {
-            var case_ = caseRepo.getByCode(new CaseCode(command.caseCode())).join();
-            if (case_ == null) {
-                throw new NotFoundException("This case is not found");
-            }
+    @Transactional
+    public Void handle(ChangeCaseStatus command) {
 
-            if (command.isActionOpen()) {
-                case_.open();
-            } else {
-                case_.close();
-            }
+        var case_ = caseRepo.getByCode(new CaseCode(command.caseCode()))
+                .orElseThrow(() -> new NotFoundException("Case not found with code: " + command.caseCode()));
 
-            caseRepo.save(case_);
-        });
+        if (command.isActionOpen()) {
+            case_.open();
+        } else {
+            case_.close();
+        }
+
+        caseRepo.save(case_);
+        return null;
     }
 }
