@@ -4,9 +4,9 @@ import com.charity_hub.accounts.internal.core.contracts.IAccountRepo;
 import com.charity_hub.shared.abstractions.CommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 public class BlockAccountHandler extends CommandHandler<BlockAccount, Void> {
@@ -17,24 +17,20 @@ public class BlockAccountHandler extends CommandHandler<BlockAccount, Void> {
     }
 
     @Override
-    public CompletableFuture<Void> handle(BlockAccount command) {
-        return CompletableFuture.runAsync(() -> {
-            try {
-                var identity = accountRepo.getById(UUID.fromString(command.userId())).join();
-                if (identity == null) {
-                    throw new NotFoundException("User with Id " + command.userId() + " not found");
-                }
+    @Transactional
+    public Void handle(BlockAccount command) {
 
-                if (command.isUnblock()) {
-                    identity.unBlock();
-                } else {
-                    identity.block();
-                }
+        var identity = accountRepo.getById(UUID.fromString(command.userId()))
+                .orElseThrow(() -> new NotFoundException("User with Id " + command.userId() + " not found"));
 
-                accountRepo.save(identity);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+        if (command.isUnblock()) {
+            identity.unBlock();
+        } else {
+            identity.block();
+        }
+
+        accountRepo.save(identity);
+
+        return null;
     }
 }

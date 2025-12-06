@@ -6,8 +6,6 @@ import com.charity_hub.accounts.internal.core.model.invitation.Invitation;
 import com.charity_hub.shared.abstractions.CommandHandler;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.CompletableFuture;
-
 @Service
 public class InviteAccountHandler extends CommandHandler<InvitationAccount, Void> {
     private final IInvitationRepo invitationRepo;
@@ -17,19 +15,20 @@ public class InviteAccountHandler extends CommandHandler<InvitationAccount, Void
     }
 
     @Override
-    public CompletableFuture<Void> handle(InvitationAccount command) {
-        return invitationRepo.hasInvitation(command.mobileNumber())
-                .thenCompose(hasInvitation -> {
-                    if (hasInvitation) {
-                        return CompletableFuture.failedFuture(new AlreadyInvitedException("already invited"));
-                    }
+    public Void handle(InvitationAccount command) {
+        boolean hasInvitation = invitationRepo.hasInvitation(command.mobileNumber());
 
-                    Invitation newInvitation = Invitation.of(
-                            command.mobileNumber(),
-                            command.inviterId()
-                    );
+        if (hasInvitation) {
+            throw new AlreadyInvitedException("already invited");
+        }
 
-                    return invitationRepo.save(newInvitation);
-                });
+        Invitation newInvitation = Invitation.of(
+                command.mobileNumber(),
+                command.inviterId()
+        );
+
+        invitationRepo.save(newInvitation);
+
+        return null;
     }
 }

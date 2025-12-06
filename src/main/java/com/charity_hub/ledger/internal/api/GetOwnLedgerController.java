@@ -2,6 +2,7 @@ package com.charity_hub.ledger.internal.api;
 
 import com.charity_hub.ledger.internal.application.queries.GetLedger.GetLedger;
 import com.charity_hub.ledger.internal.application.queries.GetLedger.GetLedgerHandler;
+import com.charity_hub.ledger.internal.application.queries.GetLedger.LedgerResponse;
 import com.charity_hub.shared.api.DeferredResults;
 import com.charity_hub.shared.auth.AccessTokenPayload;
 import org.springframework.http.ResponseEntity;
@@ -23,15 +24,13 @@ public class GetOwnLedgerController {
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/v1/ledger")
-    public DeferredResult<ResponseEntity<?>> handle(
+    public ResponseEntity<LedgerResponse> handle(
             @AuthenticationPrincipal AccessTokenPayload payload
     ) {
         UUID userId = UUID.fromString(payload.getUuid());
         GetLedger command = new GetLedger(userId);
 
-        return DeferredResults.from(
-                getLedgerHandler.handle(command)
-                        .thenApply(ResponseEntity::ok)
-        );
+        LedgerResponse response = getLedgerHandler.handle(command);
+        return ResponseEntity.ok(response);
     }
 }

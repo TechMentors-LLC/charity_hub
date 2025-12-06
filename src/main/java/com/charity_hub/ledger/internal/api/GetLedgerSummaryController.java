@@ -2,6 +2,7 @@ package com.charity_hub.ledger.internal.api;
 
 import com.charity_hub.ledger.internal.application.queries.GetLedgerSummary.GetLedgerSummary;
 import com.charity_hub.ledger.internal.application.queries.GetLedgerSummary.GetLedgerSummaryHandler;
+import com.charity_hub.ledger.internal.application.queries.GetLedgerSummary.LedgerSummaryDefaultResponse;
 import com.charity_hub.shared.api.DeferredResults;
 import com.charity_hub.shared.auth.AccessTokenPayload;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +20,10 @@ public class GetLedgerSummaryController {
     }
 
     @GetMapping("/v1/ledger/summary")
-    public DeferredResult<ResponseEntity<?>> handle(@AuthenticationPrincipal AccessTokenPayload accessTokenPayload){
+    public ResponseEntity<LedgerSummaryDefaultResponse> handle(@AuthenticationPrincipal AccessTokenPayload accessTokenPayload) {
         GetLedgerSummary command = new GetLedgerSummary(accessTokenPayload.getUserId());
 
-        return DeferredResults.from(
-                getLedgerSummaryHandler.handle(command)
-                        .thenApply(ResponseEntity::ok)
-        );
+        LedgerSummaryDefaultResponse response = getLedgerSummaryHandler.handle(command);
+        return ResponseEntity.ok(response);
     }
 }

@@ -1,7 +1,6 @@
 package com.charity_hub.cases.internal.api.controllers;
 
 import com.charity_hub.cases.internal.application.queries.GetCase.GetCaseQuery;
-import com.charity_hub.cases.internal.application.queries.GetCase.IGetCaseHandler;
 import com.charity_hub.shared.api.DeferredResults;
 import com.charity_hub.shared.auth.AccessTokenPayload;
 import org.springframework.http.HttpStatus;

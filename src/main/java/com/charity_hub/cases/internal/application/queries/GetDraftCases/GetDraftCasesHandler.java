@@ -17,7 +17,7 @@ public class GetDraftCasesHandler implements QueryHandler<GetDraftCases, GetDraf
     }
 
     @Override
-    public CompletableFuture<GetDraftCasesResponse> handle(GetDraftCases query) {
+    public GetDraftCasesResponse handle(GetDraftCases query) {
         List<GetDraftCasesResponse.DraftCase> draftCases = caseRepo.getDraftCases().join()
                 .stream()
                 .map(it -> new GetDraftCasesResponse.DraftCase(
@@ -31,6 +31,6 @@ public class GetDraftCasesHandler implements QueryHandler<GetDraftCases, GetDraf
                 ))
                 .collect(Collectors.toList());
 
-        return CompletableFuture.completedFuture(new GetDraftCasesResponse(draftCases));
+        return new GetDraftCasesResponse(draftCases);
     }
 }

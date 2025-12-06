@@ -20,9 +20,9 @@ public class BlockAccountController {
 
     @PostMapping("/v1/accounts/{userId}/block")
     @PreAuthorize("hasAnyAuthority('FULL_ACCESS')")
-    public DeferredResult<ResponseEntity<?>> handle(@PathVariable String userId) {
-        return DeferredResults.from(blockAccountHandler
-                .handle(new BlockAccount(userId, false))
-                .thenApply(ResponseEntity::ok));
+    public ResponseEntity<Void> handle(@PathVariable String userId) {
+        blockAccountHandler
+                .handle(new BlockAccount(userId, false));
+        return ResponseEntity.ok().build();
     }
 }

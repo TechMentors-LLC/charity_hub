@@ -16,13 +16,10 @@ public class ChangePermissionHandler extends CommandHandler<ChangePermission, Vo
     }
 
     @Override
-    public CompletableFuture<Void> handle(ChangePermission command) {
-        return CompletableFuture.runAsync(() -> {
-            try {
-                var identity = accountRepo.getById(command.userId()).join();
-                if (identity == null) {
-                    throw new NotFoundException("User with Id " + command.userId() + " not found");
-                }
+    public Void handle(ChangePermission command) {
+
+                var identity = accountRepo.getById(command.userId())
+                        .orElseThrow(()-> new NotFoundException("User with Id " + command.userId() + " not found"));
 
                 if (command.shouldAdd()) {
                     identity.addPermission(command.permission());
@@ -31,9 +28,6 @@ public class ChangePermissionHandler extends CommandHandler<ChangePermission, Vo
                 }
 
                 accountRepo.save(identity);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+        return null;
     }
 }

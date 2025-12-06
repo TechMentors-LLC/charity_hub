@@ -24,39 +24,36 @@ public class CasesAPI implements ICasesAPI {
         this.caseMapper = caseMapper;
     }
 
-    public CompletableFuture<List<ContributionDTO>> getUsersContributions(UUID userId) {
-        return readCaseRepo.getContributions(userId)
-                .thenApply(contributions ->
-                        contributions.stream()
-                                .map(contributionMapper::toDTO)
-                                .collect(Collectors.toList())
-                );
+    public List<ContributionDTO> getUsersContributions(UUID userId) {
+        var contributions = readCaseRepo.getContributions(userId);
+        return contributions.stream()
+                .map(contributionMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
-    public CompletableFuture<List<ContributionDTO>> getNotConfirmedContributions(UUID userId) {
-        return readCaseRepo.getNotConfirmedContributions(userId)
-                .thenApply(contributions ->
-                        contributions.stream()
-                                .map(contributionMapper::toDTO)
-                                .collect(Collectors.toList())
-                );
+    public List<ContributionDTO> getNotConfirmedContributions(UUID userId) {
+        var contributions = readCaseRepo.getNotConfirmedContributions(userId);
+
+        return contributions.stream()
+                .map(contributionMapper::toDTO)
+                .collect(Collectors.toList());
+
     }
 
-    public CompletableFuture<List<ContributionDTO>> getUsersContributions(List<UUID> usersIds) {
-        return readCaseRepo.getContributions(usersIds)
-                .thenApply(contributions ->
-                        contributions.stream()
-                                .map(contributionMapper::toDTO)
-                                .collect(Collectors.toList())
-                );
+    public List<ContributionDTO> getUsersContributions(List<UUID> usersIds) {
+        var contributions = readCaseRepo.getContributions(usersIds);
+
+        contributions.stream()
+                .map(contributionMapper::toDTO)
+                .collect(Collectors.toList());
+
     }
 
-    public CompletableFuture<List<CaseDTO>> getCasesByCodes(List<Integer> casesCodes) {
-        return readCaseRepo.getByCodes(casesCodes)
-                .thenApply(cases ->
-                        cases.stream()
-                                .map(caseMapper::toDTO)
-                                .collect(Collectors.toList())
-                );
+    public List<CaseDTO> getCasesByCodes(List<Integer> casesCodes) {
+        var cases = readCaseRepo.getByCodes(casesCodes);
+
+        return cases.stream()
+                .map(caseMapper::toDTO)
+                .collect(Collectors.toList());
     }
 }

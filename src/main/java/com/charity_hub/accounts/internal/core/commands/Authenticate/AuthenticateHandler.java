@@ -40,7 +40,6 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
     @Observed(name = "AuthenticateHandler.handle",contextualName = "handle-authenticate-command")
     public AuthenticateResponse handle(Authenticate command) {
 
-            try {
                 logger.info("Handling authentication for idToken: {}", command.idToken());
 
                 String mobileNumber = authProvider.getVerifiedMobileNumber(command.idToken());
@@ -60,17 +59,13 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
                 logger.info("Authentication successful for account: {}", account.getMobileNumber());
 
                 return new AuthenticateResponse(tokens.first, tokens.second);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+
     }
 
     private Account existingAccountOrNewAccount(String mobileNumber, Authenticate request) {
-        Account existingAccount = accountRepo.getByMobileNumber(mobileNumber).get();
-        if (existingAccount != null) {
-            return existingAccount;
-        }
-        return authenticateNewAccount(mobileNumber, request);
+
+        return accountRepo.getByMobileNumber(mobileNumber)
+                .orElseGet(()->authenticateNewAccount(mobileNumber, request));
     }
 
     private Account authenticateNewAccount(String mobileNumber, Authenticate request) {

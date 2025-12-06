@@ -19,9 +19,8 @@ public class GetLedgerHandler implements QueryHandler<GetLedger,LedgerResponse> 
         this.casesGateway = casesGateway;
     }
 
-    public CompletableFuture<LedgerResponse> handle(GetLedger command) {
-        return CompletableFuture.supplyAsync(() -> {
-            var contributions = casesGateway.getContributions(command.userId()).join();
+    public LedgerResponse handle(GetLedger command) {
+            var contributions = casesGateway.getContributions(command.userId());
             contributions.sort(Comparator.comparingInt(ContributionDTO::status));
 
             var caseCodes = contributions
@@ -29,7 +28,7 @@ public class GetLedgerHandler implements QueryHandler<GetLedger,LedgerResponse> 
                     .map(ContributionDTO::caseCode)
                     .toList();
 
-            var cases = casesGateway.getCasesByIds(caseCodes).join();
+            var cases = casesGateway.getCasesByIds(caseCodes);
 
             var contributionsResponse = contributions.stream()
                     .map(contribution -> new Contribution(
@@ -44,7 +43,6 @@ public class GetLedgerHandler implements QueryHandler<GetLedger,LedgerResponse> 
                     .collect(Collectors.toList());
 
             return new LedgerResponse(contributionsResponse);
-        });
     }
 
     private String getCaseName(List<CaseDTO> cases, int code) {

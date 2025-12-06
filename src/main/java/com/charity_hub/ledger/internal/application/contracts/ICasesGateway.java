@@ -8,11 +8,11 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public interface ICasesGateway {
-    CompletableFuture<List<ContributionDTO>> getContributions(UUID userId);
+    List<ContributionDTO> getContributions(UUID userId);
 
-    CompletableFuture<List<CaseDTO>> getCasesByIds(List<Integer> casesCodes);
+    List<CaseDTO> getCasesByIds(List<Integer> casesCodes);
 
-    CompletableFuture<List<ContributionDTO>> getNotConfirmedContributions(UUID userId);
+    List<ContributionDTO> getNotConfirmedContributions(UUID userId);
 
-    CompletableFuture<List<ContributionDTO>> getContributions(List<UUID> usersIds);
+    List<ContributionDTO> getContributions(List<UUID> usersIds);
 }
