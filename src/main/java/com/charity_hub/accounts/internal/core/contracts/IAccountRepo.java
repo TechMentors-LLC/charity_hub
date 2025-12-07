@@ -5,26 +5,19 @@ import com.charity_hub.accounts.internal.core.model.account.Account;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public interface IAccountRepo {
-    Optional<Account> getByIdTemp(UUID id);
+    Optional<Account> getById(UUID id);
 
-    CompletableFuture<Account> getById(UUID id);
+    List<Account> getConnections(UUID id);
 
-    CompletableFuture<List<Account>> getConnections(UUID id);
+    Optional<Account> getByMobileNumber(String mobileNumber);
 
-    Optional<Account> getByMobileNumberTemp(String mobileNumber);
-    CompletableFuture<Account> getByMobileNumber(String mobileNumber);
+    void save(Account account);
 
-    void saveTemp(Account account);
-    CompletableFuture<Void> save(Account account);
+    boolean isAdmin(String mobileNumber);
 
-    boolean isAdminTemp(String mobileNumber);
+    void revoke(UUID uuid);
 
-    CompletableFuture<Boolean> isAdmin(String mobileNumber);
-
-    CompletableFuture<Void> revoke(UUID uuid);
-
-    CompletableFuture<Boolean> isRevoked(UUID id, long tokenIssueDate);
+    boolean isRevoked(UUID id, long tokenIssueDate);
 }

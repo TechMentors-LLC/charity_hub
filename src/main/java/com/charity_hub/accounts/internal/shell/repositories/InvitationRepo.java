@@ -12,7 +12,6 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -29,50 +28,28 @@ public class InvitationRepo implements IInvitationRepo {
     }
 
     @Override
-    public CompletableFuture<Void> save(Invitation invitation) {
-        return CompletableFuture.supplyAsync(() -> {
-            InvitationEntity entity = invitationMapper.toEntity(invitation);
-            collection.replaceOne(
-                    eq("inviterId", entity.inviterId()), // assuming getId() returns the document ID
-                    entity,
-                    new ReplaceOptions().upsert(true)
-            );
-            return null;
-        });
-    }
-    @Override
-    public void saveTemp(Invitation invitation) {
-            InvitationEntity entity = invitationMapper.toEntity(invitation);
-            collection.replaceOne(
-                    eq("inviterId", entity.inviterId()), // assuming getId() returns the document ID
-                    entity,
-                    new ReplaceOptions().upsert(true)
-            );
-    }
-
-    @Override
-    public CompletableFuture<Invitation> get(String mobileNumber) {
-        return CompletableFuture.supplyAsync(() ->
-                Optional.ofNullable(collection.find(eq("mobileNumber", mobileNumber)).first())
-                        .map(invitationMapper::fromEntity)
-                        .orElse(null)
+    public void save(Invitation invitation) {
+        InvitationEntity entity = invitationMapper.toEntity(invitation);
+        collection.replaceOne(
+                eq("inviterId", entity.inviterId()),
+                entity,
+                new ReplaceOptions().upsert(true)
         );
     }
 
     @Override
-    public CompletableFuture<Boolean> hasInvitation(String mobileNumber) {
-        return CompletableFuture.supplyAsync(() ->
-                collection.find(eq("mobileNumber", mobileNumber)).first() != null
-        );
-    }
-    @Override
-    public boolean hasInvitationTemp(String mobileNumber) {
-              return  collection.find(eq("mobileNumber", mobileNumber)).first() != null;
+    public Invitation get(String mobileNumber) {
+        return Optional.ofNullable(collection.find(eq("mobileNumber", mobileNumber)).first())
+                .map(invitationMapper::fromEntity)
+                .orElse(null);
     }
 
-    public CompletableFuture<List<InvitationEntity>> getAll() {
-        return CompletableFuture.supplyAsync(() ->
-                collection.find().into(new ArrayList<>())
-        );
+    @Override
+    public boolean hasInvitation(String mobileNumber) {
+        return collection.find(eq("mobileNumber", mobileNumber)).first() != null;
+    }
+
+    public List<InvitationEntity> getAll() {
+        return collection.find().into(new ArrayList<>());
     }
 }

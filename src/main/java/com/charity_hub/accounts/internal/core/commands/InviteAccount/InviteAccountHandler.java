@@ -3,11 +3,8 @@ package com.charity_hub.accounts.internal.core.commands.InviteAccount;
 import com.charity_hub.accounts.internal.core.contracts.IInvitationRepo;
 import com.charity_hub.accounts.internal.core.exceptions.AlreadyInvitedException;
 import com.charity_hub.accounts.internal.core.model.invitation.Invitation;
-import com.charity_hub.shared.abstractions.CommandHandler;
 import com.charity_hub.shared.abstractions.VoidCommandHandler;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.CompletableFuture;
 
 @Service
 public class InviteAccountHandler extends VoidCommandHandler<InvitationAccount> {
@@ -19,7 +16,7 @@ public class InviteAccountHandler extends VoidCommandHandler<InvitationAccount> 
 
     @Override
     public void handle(InvitationAccount command) {
-        boolean hasInvitation = invitationRepo.hasInvitationTemp(command.mobileNumber());
+        boolean hasInvitation = invitationRepo.hasInvitation(command.mobileNumber());
 
         if (hasInvitation) {
             throw new AlreadyInvitedException("already invited");
@@ -30,6 +27,6 @@ public class InviteAccountHandler extends VoidCommandHandler<InvitationAccount> 
                 command.inviterId()
         );
 
-        invitationRepo.saveTemp(newInvitation);
+        invitationRepo.save(newInvitation);
     }
 }

@@ -5,7 +5,7 @@ import com.charity_hub.accounts.internal.core.contracts.IAuthProvider;
 import com.charity_hub.accounts.internal.core.contracts.IInvitationRepo;
 import com.charity_hub.accounts.internal.core.contracts.IJWTGenerator;
 import com.charity_hub.accounts.internal.core.model.account.Account;
-import com.charity_hub.shared.abstractions.CommandHandlerTemp;
+import com.charity_hub.shared.abstractions.CommandHandler;
 import com.charity_hub.shared.exceptions.BusinessRuleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 
 @Service
-public class AuthenticateHandler extends CommandHandlerTemp<Authenticate, AuthenticateResponse> {
+public class AuthenticateHandler extends CommandHandler<Authenticate, AuthenticateResponse> {
     private final IAccountRepo accountRepo;
     private final IInvitationRepo invitationRepo;
     private final IAuthProvider authProvider;
@@ -38,7 +38,7 @@ public class AuthenticateHandler extends CommandHandlerTemp<Authenticate, Authen
 
         logger.info("Handling authentication for idToken: {}", command.idToken());
 
-        String mobileNumber = authProvider.getVerifiedMobileNumberTemp(command.idToken());
+        String mobileNumber = authProvider.getVerifiedMobileNumber(command.idToken());
 
         logger.info("check for account: {}", command);
 
@@ -60,13 +60,13 @@ public class AuthenticateHandler extends CommandHandlerTemp<Authenticate, Authen
 
     private Account existingAccountOrNewAccount(String mobileNumber, Authenticate request) {
 
-        return accountRepo.getByMobileNumberTemp(mobileNumber)
+        return accountRepo.getByMobileNumber(mobileNumber)
                 .orElseGet(()->authenticateNewAccount(mobileNumber, request));
     }
 
     private Account authenticateNewAccount(String mobileNumber, Authenticate request) {
-        boolean isAdmin = accountRepo.isAdminTemp(mobileNumber);
-        boolean hasNoInvitations = !invitationRepo.hasInvitationTemp(mobileNumber);
+        boolean isAdmin = accountRepo.isAdmin(mobileNumber);
+        boolean hasNoInvitations = !invitationRepo.hasInvitation(mobileNumber);
 
         if (!isAdmin && hasNoInvitations) {
             logger.warn("Account not invited: {}", mobileNumber);

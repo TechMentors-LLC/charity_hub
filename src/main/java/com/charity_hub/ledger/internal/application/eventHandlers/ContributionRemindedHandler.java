@@ -7,8 +7,6 @@ import com.charity_hub.shared.domain.IEventBus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.CompletableFuture;
-
 @Service
 public class ContributionRemindedHandler {
     private final IEventBus eventBus;
@@ -26,22 +24,19 @@ public class ContributionRemindedHandler {
     }
 
     @Bean("ContributionRemindedListener")
-    public CompletableFuture<Void> start() {
+    public void start() {
         logger.handlerRegistered();
         eventBus.subscribe(this, ContributionRemindedDTO.class, this::handle);
-        return CompletableFuture.completedFuture(null);
     }
 
-    private CompletableFuture<Void> handle(ContributionRemindedDTO contribution) {
-        return CompletableFuture.runAsync(() -> {
-            logger.processingEvent(contribution);
-            
-            try {
-                notificationService.notifyContributorToPay(contribution).join();
-                logger.notificationSent(contribution.id(), contribution.contributorId());
-            } catch (Exception e) {
-                logger.notificationFailed(contribution.id(), contribution.contributorId(), e);
-            }
-        });
+    private void handle(ContributionRemindedDTO contribution) {
+        logger.processingEvent(contribution);
+        
+        try {
+            notificationService.notifyContributorToPay(contribution);
+            logger.notificationSent(contribution.id(), contribution.contributorId());
+        } catch (Exception e) {
+            logger.notificationFailed(contribution.id(), contribution.contributorId(), e);
+        }
     }
 }

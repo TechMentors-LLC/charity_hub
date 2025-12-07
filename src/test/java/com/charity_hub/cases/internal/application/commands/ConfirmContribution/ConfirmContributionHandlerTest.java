@@ -11,8 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
@@ -45,12 +45,10 @@ class ConfirmContributionHandlerTest {
         ConfirmContribution command = new ConfirmContribution(contributionId);
 
         when(caseRepo.getContributionById(contributionId))
-                .thenReturn(CompletableFuture.completedFuture(contribution));
-        when(caseRepo.save(contribution))
-                .thenReturn(CompletableFuture.completedFuture(null));
+                .thenReturn(Optional.of(contribution));
 
         // When
-        handler.handle(command).join();
+        handler.handle(command);
 
         // Then
         verify(contribution).confirm();
@@ -66,11 +64,11 @@ class ConfirmContributionHandlerTest {
         ConfirmContribution command = new ConfirmContribution(contributionId);
 
         when(caseRepo.getContributionById(contributionId))
-                .thenReturn(CompletableFuture.completedFuture(null));
+                .thenReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> handler.handle(command).join())
-                .hasCauseInstanceOf(NotFoundException.class)
+        assertThatThrownBy(() -> handler.handle(command))
+                .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("Contribution not found with ID " + contributionId);
 
         verify(caseRepo).getContributionById(contributionId);
@@ -87,11 +85,11 @@ class ConfirmContributionHandlerTest {
         ConfirmContribution command = new ConfirmContribution(contributionId);
 
         when(caseRepo.getContributionById(contributionId))
-                .thenReturn(CompletableFuture.failedFuture(new RuntimeException("Database error")));
+                .thenThrow(new RuntimeException("Database error"));
 
         // When & Then
-        assertThatThrownBy(() -> handler.handle(command).join())
-                .hasCauseInstanceOf(RuntimeException.class)
+        assertThatThrownBy(() -> handler.handle(command))
+                .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Database error");
 
         verify(contribution, never()).confirm();

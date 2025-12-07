@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
@@ -23,18 +22,11 @@ public class ReadAccountRepo {
         this.collection = mongoDatabase.getCollection(ACCOUNTS_COLLECTION, AccountEntity.class);
     }
 
-    public CompletableFuture<AccountEntity> getById(UUID id) {
-        return CompletableFuture.supplyAsync(() ->
-                collection.find(eq("accountId", id.toString())).first()
-        );
+    public AccountEntity getById(UUID id) {
+        return collection.find(eq("accountId", id.toString())).first();
     }
 
-    public CompletableFuture<List<AccountEntity>> getAccountsByIds(List<UUID> ids) {
-        return CompletableFuture.supplyAsync(() -> collection.find(in("accountId", ids)).into(new ArrayList<>())
-        );
-    }
-
-    public List<AccountEntity> getAccountsByIdsTemp(List<UUID> ids) {
+    public List<AccountEntity> getAccountsByIds(List<UUID> ids) {
         return collection.find(in("accountId", ids)).into(new ArrayList<>());
     }
 }

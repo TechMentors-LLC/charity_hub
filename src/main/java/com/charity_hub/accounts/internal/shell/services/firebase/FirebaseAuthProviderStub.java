@@ -6,8 +6,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.CompletableFuture;
-
 @Component
 @Primary
 @ConditionalOnProperty(
@@ -24,20 +22,11 @@ public class FirebaseAuthProviderStub implements IAuthProvider {
     }
 
     @Override
-    public CompletableFuture<String> getVerifiedMobileNumber(String idToken) {
+    public String getVerifiedMobileNumber(String idToken) {
         try {
-            return CompletableFuture.completedFuture(MobileNumber.create(idToken).value());
+            return MobileNumber.create(idToken).value();
         } catch (Exception e) {
             return firebaseAuthProvider.getVerifiedMobileNumber(idToken);
         }
     }
-    @Override
-    public String getVerifiedMobileNumberTemp(String idToken) {
-        try {
-            return MobileNumber.create(idToken).value();
-        } catch (Exception e) {
-            return firebaseAuthProvider.getVerifiedMobileNumberTemp(idToken);
-        }
-    }
-
 }

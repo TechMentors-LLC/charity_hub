@@ -2,13 +2,11 @@ package com.charity_hub.cases.internal.api.controllers;
 
 import com.charity_hub.cases.internal.application.commands.ChangeCaseStatus.ChangeCaseStatus;
 import com.charity_hub.cases.internal.application.commands.ChangeCaseStatus.ChangeCaseStatusHandler;
-import com.charity_hub.shared.api.DeferredResults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.async.DeferredResult;
 
 @RestController
 public class ChangeCaseStatusController {

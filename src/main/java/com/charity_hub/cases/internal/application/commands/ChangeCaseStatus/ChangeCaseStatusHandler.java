@@ -2,12 +2,9 @@ package com.charity_hub.cases.internal.application.commands.ChangeCaseStatus;
 
 import com.charity_hub.cases.internal.domain.contracts.ICaseRepo;
 import com.charity_hub.cases.internal.domain.model.Case.CaseCode;
-import com.charity_hub.shared.abstractions.CommandHandler;
 import com.charity_hub.shared.abstractions.VoidCommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.CompletableFuture;
 
 @Component
 public class ChangeCaseStatusHandler extends VoidCommandHandler<ChangeCaseStatus> {
@@ -19,7 +16,7 @@ public class ChangeCaseStatusHandler extends VoidCommandHandler<ChangeCaseStatus
 
     @Override
     public void handle(ChangeCaseStatus command) {
-            var case_ = caseRepo.getByCodeTemp(new CaseCode(command.caseCode()))
+            var case_ = caseRepo.getByCode(new CaseCode(command.caseCode()))
                     .orElseThrow(() -> new NotFoundException("This case is not found"));
 
             if (command.isActionOpen()) {
@@ -28,7 +25,7 @@ public class ChangeCaseStatusHandler extends VoidCommandHandler<ChangeCaseStatus
                 case_.close();
             }
 
-            caseRepo.saveTemp(case_);
+            caseRepo.save(case_);
 
     }
 }

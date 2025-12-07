@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Repository
@@ -51,7 +50,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
-    public int nextCaseCodeTemp() {
+    public int nextCaseCode() {
         CaseEntity lastCase = cases.find()
                 .sort(new org.bson.Document("code", -1))
                 .limit(1)
@@ -60,104 +59,46 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
-    public CompletableFuture<Integer> nextCaseCode() {
-        return CompletableFuture.supplyAsync(() -> {
-            CaseEntity lastCase = cases.find()
-                    .sort(new org.bson.Document("code", -1))
-                    .limit(1)
-                    .first();
-            return (lastCase != null ? lastCase.code() : 20039) + 1;
-        });
+    public Optional<Case> getByCode(CaseCode caseCode) {
+        CaseEntity entity = cases.find(new org.bson.Document("code", caseCode.value()))
+                .first();
+        if (entity == null) return Optional.empty();
+        return Optional.of(caseMapper.toDomain(
+            entity,
+            getContributionsByCaseCode(new CaseCode(entity.code()))
+        ));
     }
 
     @Override
-    public CompletableFuture<Case> getByCode(CaseCode caseCode) {
-        return CompletableFuture.supplyAsync(() -> {
-            CaseEntity entity = cases.find(new org.bson.Document("code", caseCode.value()))
-                    .first();
-            if (entity == null) return null;
-            return caseMapper.toDomain(
-                entity, 
-                getContributionsByCaseCode(new CaseCode(entity.code()))
-            );
-        });
-    }
-    @Override
-    public Optional<Case> getByCodeTemp(CaseCode caseCode) {
-            CaseEntity entity = cases.find(new org.bson.Document("code", caseCode.value()))
-                    .first();
-            if (entity == null) return Optional.empty();
-            return Optional.of(caseMapper.toDomain(
-                entity,
-                getContributionsByCaseCode(new CaseCode(entity.code()))
-            ));
-    }
+    public void save(Case case_) {
+        List<Contribution> caseContributions = case_.getContributions();
+        if (!caseContributions.isEmpty()) {
+            List<com.mongodb.client.model.ReplaceOneModel<ContributionEntity>> updates =
+                caseContributions.stream()
+                    .map(contribution -> new com.mongodb.client.model.ReplaceOneModel<>(
+                        new org.bson.Document("_id", contribution.getId().value().toString()),
+                        contributionMapper.toDB(contribution),
+                        new ReplaceOptions().upsert(true)
+                    ))
+                    .collect(Collectors.toList());
 
-    @Override
-    public CompletableFuture<Void> save(Case case_) {
-        return CompletableFuture.runAsync(() -> {
-            List<Contribution> caseContributions = case_.getContributions();
-            if (!caseContributions.isEmpty()) {
-                List<com.mongodb.client.model.ReplaceOneModel<ContributionEntity>> updates = 
-                    caseContributions.stream()
-                        .map(contribution -> new com.mongodb.client.model.ReplaceOneModel<>(
-                            new org.bson.Document("_id", contribution.getId().value().toString()),
-                            contributionMapper.toDB(contribution),
-                            new ReplaceOptions().upsert(true)
-                        ))
-                        .collect(Collectors.toList());
-                
-                contributions.bulkWrite(updates);
-            }
+            contributions.bulkWrite(updates);
+        }
 
-            cases.replaceOne(
-                new org.bson.Document("code", case_.getCaseCode().value()),
-                caseMapper.toDB(case_),
-                new ReplaceOptions().upsert(true)
-            );
-
-            case_.occurredEvents().stream()
-                .map(event -> CaseEventsMapper.map((CaseEvent) event))
-                .forEach(eventBus::push);
-        });
-    }
-    @Override
-    public void saveTemp(Case case_) {
-            List<Contribution> caseContributions = case_.getContributions();
-            if (!caseContributions.isEmpty()) {
-                List<com.mongodb.client.model.ReplaceOneModel<ContributionEntity>> updates =
-                    caseContributions.stream()
-                        .map(contribution -> new com.mongodb.client.model.ReplaceOneModel<>(
-                            new org.bson.Document("_id", contribution.getId().value().toString()),
-                            contributionMapper.toDB(contribution),
-                            new ReplaceOptions().upsert(true)
-                        ))
-                        .collect(Collectors.toList());
-
-                contributions.bulkWrite(updates);
-            }
-
-            cases.replaceOne(
-                new org.bson.Document("code", case_.getCaseCode().value()),
-                caseMapper.toDB(case_),
-                new ReplaceOptions().upsert(true)
-            );
-
-            case_.occurredEvents().stream()
-                .map(event -> CaseEventsMapper.map((CaseEvent) event))
-                .forEach(eventBus::push);
-    }
-
-    @Override
-    public void deleteTemp(CaseCode caseCode) {
-        cases.deleteOne(new org.bson.Document("code", caseCode.value()));
-    }
-
-    @Override
-    public CompletableFuture<Void> delete(CaseCode caseCode) {
-        return CompletableFuture.runAsync(() -> 
-            cases.deleteOne(new org.bson.Document("code", caseCode.value()))
+        cases.replaceOne(
+            new org.bson.Document("code", case_.getCaseCode().value()),
+            caseMapper.toDB(case_),
+            new ReplaceOptions().upsert(true)
         );
+
+        case_.occurredEvents().stream()
+            .map(event -> CaseEventsMapper.map((CaseEvent) event))
+            .forEach(eventBus::push);
+    }
+
+    @Override
+    public void delete(CaseCode caseCode) {
+        cases.deleteOne(new org.bson.Document("code", caseCode.value()));
     }
 
     private List<ContributionEntity> getContributionsByCaseCode(CaseCode caseCode) {
@@ -166,95 +107,47 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
-    public CompletableFuture<Void> save(Contribution contribution) {
-        return CompletableFuture.runAsync(() -> {
-            // Check if this is a status change (pay or confirm operation)
-            if (contribution.getContributionStatus() == ContributionStatus.PAID || 
-                contribution.getContributionStatus() == ContributionStatus.CONFIRMED) {
-                // Update status and paymentProof if provided
-                var updates = new ArrayList<org.bson.conversions.Bson>();
-                updates.add(Updates.set("status", contributionMapper.getContributionStatusCode(contribution.getContributionStatus())));
-                
-                // If paymentProof is provided, update it as well
-                if (contribution.getPaymentProof() != null) {
-                    updates.add(Updates.set("paymentProof", contribution.getPaymentProof()));
-                }
-                
-                var updateResult = contributions.updateOne(
-                    new org.bson.Document("_id", contribution.getId().value().toString()),
-                    Updates.combine(updates),
-                    new UpdateOptions().upsert(false)
-                );
-                
-                // Check if the update modified any documents
-                if (updateResult.getModifiedCount() == 0 && updateResult.getMatchedCount() == 0) {
-                    throw new IllegalStateException("Failed to update contribution status: Contribution does not exist.");
-                }
-            } else {
-                // For other operations, replace the entire document
-                contributions.replaceOne(
-                    new org.bson.Document("_id", contribution.getId().value().toString()),
-                    contributionMapper.toDB(contribution),
-                    new ReplaceOptions().upsert(true)
-                );
-            }
-            
-            contribution.occurredEvents()
-                .forEach(eventBus::push);
-        });
-    }
-    @Override
-    public void saveTemp(Contribution contribution) {
-            // Check if this is a status change (pay or confirm operation)
-            if (contribution.getContributionStatus() == ContributionStatus.PAID ||
-                contribution.getContributionStatus() == ContributionStatus.CONFIRMED) {
-                // Update status and paymentProof if provided
-                var updates = new ArrayList<org.bson.conversions.Bson>();
-                updates.add(Updates.set("status", contributionMapper.getContributionStatusCode(contribution.getContributionStatus())));
+    public void save(Contribution contribution) {
+        // Check if this is a status change (pay or confirm operation)
+        if (contribution.getContributionStatus() == ContributionStatus.PAID ||
+            contribution.getContributionStatus() == ContributionStatus.CONFIRMED) {
+            // Update status and paymentProof if provided
+            var updates = new ArrayList<org.bson.conversions.Bson>();
+            updates.add(Updates.set("status", contributionMapper.getContributionStatusCode(contribution.getContributionStatus())));
 
-                // If paymentProof is provided, update it as well
-                if (contribution.getPaymentProof() != null) {
-                    updates.add(Updates.set("paymentProof", contribution.getPaymentProof()));
-                }
-
-                var updateResult = contributions.updateOne(
-                    new org.bson.Document("_id", contribution.getId().value().toString()),
-                    Updates.combine(updates),
-                    new UpdateOptions().upsert(false)
-                );
-
-                // Check if the update modified any documents
-                if (updateResult.getModifiedCount() == 0 && updateResult.getMatchedCount() == 0) {
-                    throw new IllegalStateException("Failed to update contribution status: Contribution does not exist.");
-                }
-            } else {
-                // For other operations, replace the entire document
-                contributions.replaceOne(
-                    new org.bson.Document("_id", contribution.getId().value().toString()),
-                    contributionMapper.toDB(contribution),
-                    new ReplaceOptions().upsert(true)
-                );
+            // If paymentProof is provided, update it as well
+            if (contribution.getPaymentProof() != null) {
+                updates.add(Updates.set("paymentProof", contribution.getPaymentProof()));
             }
 
-            contribution.occurredEvents()
-                .forEach(eventBus::push);
+            var updateResult = contributions.updateOne(
+                new org.bson.Document("_id", contribution.getId().value().toString()),
+                Updates.combine(updates),
+                new UpdateOptions().upsert(false)
+            );
+
+            // Check if the update modified any documents
+            if (updateResult.getModifiedCount() == 0 && updateResult.getMatchedCount() == 0) {
+                throw new IllegalStateException("Failed to update contribution status: Contribution does not exist.");
+            }
+        } else {
+            // For other operations, replace the entire document
+            contributions.replaceOne(
+                new org.bson.Document("_id", contribution.getId().value().toString()),
+                contributionMapper.toDB(contribution),
+                new ReplaceOptions().upsert(true)
+            );
+        }
+
+        contribution.occurredEvents()
+            .forEach(eventBus::push);
     }
 
     @Override
-    public CompletableFuture<Contribution> getContributionById(UUID id) {
-        return CompletableFuture.supplyAsync(() -> {
-            ContributionEntity entity = contributions.find(
-                new org.bson.Document("_id", id.toString())
-            ).first();
-
-            return entity != null ? contributionMapper.toDomain(entity) : null;
-        });
-    }
-    @Override
-    public Optional<Contribution> getContributionByIdTemp(UUID id) {
-            ContributionEntity entity = contributions.find(
-                new org.bson.Document("_id", id.toString())
-            ).first();
+    public Optional<Contribution> getContributionById(UUID id) {
+        ContributionEntity entity = contributions.find(
+            new org.bson.Document("_id", id.toString())
+        ).first();
 
         return Optional.ofNullable(entity).map(contributionMapper::toDomain);
     }

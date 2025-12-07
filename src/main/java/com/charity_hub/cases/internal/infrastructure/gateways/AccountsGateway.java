@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 @Component
 public class AccountsGateway {
@@ -16,11 +15,7 @@ public class AccountsGateway {
         this.accountsAPI = accountsAPI;
     }
 
-    public List<AccountDTO> getAccountsByIdsTemp(List<UUID> idsList) {
-        return accountsAPI.getAccountsByIdsTemp(idsList);
-    }
-
-    public CompletableFuture<List<AccountDTO>> getAccountsByIds(List<UUID> idsList) {
+    public List<AccountDTO> getAccountsByIds(List<UUID> idsList) {
         return accountsAPI.getAccountsByIds(idsList);
     }
 }

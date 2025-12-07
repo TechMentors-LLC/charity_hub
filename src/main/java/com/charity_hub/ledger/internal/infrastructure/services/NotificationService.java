@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 @Component("ledgerNotificationService")
 public class NotificationService implements INotificationService {
@@ -40,106 +39,96 @@ public class NotificationService implements INotificationService {
     }
 
     @Override
-    public CompletableFuture<Void> notifyContributionPaid(ContributionPaidDTO contribution) {
-        return CompletableFuture.runAsync(() -> {
-            var parentAccount = getConnection(contribution.contributorId()).join();
+    public void notifyContributionPaid(ContributionPaidDTO contribution) {
+        var parentAccount = getConnection(contribution.contributorId());
 
-            if (parentAccount == null) {
-                logger.info("This is a root user, no parent account to notify");
-                return;
-            }
+        if (parentAccount == null) {
+            logger.info("This is a root user, no parent account to notify");
+            return;
+        }
 
-            List<String> accountTokens = parentAccount.devicesTokens();
+        List<String> accountTokens = parentAccount.devicesTokens();
 
-            var contributor = accountsAPI.getById(contribution.contributorId()).join();
-            if (contributor == null) {
-                logger.info("Contributor not found when trying to notify collector");
-                return;
-            }
+        var contributor = accountsAPI.getById(contribution.contributorId());
+        if (contributor == null) {
+            logger.info("Contributor not found when trying to notify collector");
+            return;
+        }
 
-            notificationApi.notifyDevices(
-                    accountTokens,
-                    messageService.getMessage("notification.contribution.pending.title"),
-                    messageService.getMessage("notification.contribution.pending.body", contributor.fullName())
-            );
-        });
+        notificationApi.notifyDevices(
+                accountTokens,
+                messageService.getMessage("notification.contribution.pending.title"),
+                messageService.getMessage("notification.contribution.pending.body", contributor.fullName())
+        );
     }
 
     @Override
-    public CompletableFuture<Void> notifyContributionConfirmed(ContributionConfirmedDTO contribution) {
-        return CompletableFuture.runAsync(() -> {
-            var parentAccount = getConnection(contribution.contributorId()).join();
+    public void notifyContributionConfirmed(ContributionConfirmedDTO contribution) {
+        var parentAccount = getConnection(contribution.contributorId());
 
-            if (parentAccount == null) {
-                logger.info("This is a root user, no parent account to notify");
-                return;
-            }
+        if (parentAccount == null) {
+            logger.info("This is a root user, no parent account to notify");
+            return;
+        }
 
-            List<String> accountTokens = parentAccount.devicesTokens();
+        List<String> accountTokens = parentAccount.devicesTokens();
 
-            var contributor = getConnection(contribution.contributorId()).join();
-            if (contributor == null) {
-                logger.info("Contributor not found when trying to notify collector");
-                return;
-            }
+        var contributor = getConnection(contribution.contributorId());
+        if (contributor == null) {
+            logger.info("Contributor not found when trying to notify collector");
+            return;
+        }
 
-            notificationApi.notifyDevices(
-                    accountTokens,
-                    messageService.getMessage("notification.contribution.confirmed.title"),
-                    messageService.getMessage("notification.contribution.confirmed.body", contributor.fullName())
-            );
-        });
+        notificationApi.notifyDevices(
+                accountTokens,
+                messageService.getMessage("notification.contribution.confirmed.title"),
+                messageService.getMessage("notification.contribution.confirmed.body", contributor.fullName())
+        );
     }
 
     @Override
-    public CompletableFuture<Void> notifyContributorToPay(ContributionRemindedDTO contribution) {
-        return CompletableFuture.runAsync(() -> {
-            var contributor = accountsAPI.getById(contribution.contributorId()).join();
-            if (contributor == null) {
-                logger.info("Contributor not found when trying to notify collector");
-                return;
-            }
+    public void notifyContributorToPay(ContributionRemindedDTO contribution) {
+        var contributor = accountsAPI.getById(contribution.contributorId());
+        if (contributor == null) {
+            logger.info("Contributor not found when trying to notify collector");
+            return;
+        }
 
-            List<String> accountTokens = contributor.devicesTokens();
+        List<String> accountTokens = contributor.devicesTokens();
 
-            notificationApi.notifyDevices(
-                    accountTokens,
-                    messageService.getMessage("notification.contribution.reminder.title"),
-                    messageService.getMessage("notification.contribution.reminder.body")
-            );
-        });
+        notificationApi.notifyDevices(
+                accountTokens,
+                messageService.getMessage("notification.contribution.reminder.title"),
+                messageService.getMessage("notification.contribution.reminder.body")
+        );
     }
 
     @Override
-    public CompletableFuture<Void> notifyNewConnectionAdded(Member member) {
-        return CompletableFuture.runAsync(() -> {
-            var parentAccount = accountsAPI.getById(member.parent().value()).join();
-            if (parentAccount == null) {
-                logger.info("Parent account not found when trying to notify new connection");
-                return;
-            }
+    public void notifyNewConnectionAdded(Member member) {
+        var parentAccount = accountsAPI.getById(member.parent().value());
+        if (parentAccount == null) {
+            logger.info("Parent account not found when trying to notify new connection");
+            return;
+        }
 
-            List<String> accountTokens = parentAccount.devicesTokens();
+        List<String> accountTokens = parentAccount.devicesTokens();
 
-            var invited = accountsAPI.getById(member.memberId().value()).join();
-            if (invited == null) {
-                logger.info("Invited member not found when trying to notify parent account");
-                return;
-            }
+        var invited = accountsAPI.getById(member.memberId().value());
+        if (invited == null) {
+            logger.info("Invited member not found when trying to notify parent account");
+            return;
+        }
 
-            notificationApi.notifyDevices(
-                    accountTokens,
-                    messageService.getMessage("notification.connection.added.title", invited.fullName()),
-                    messageService.getMessage("notification.connection.added.body")
-            );
-        });
+        notificationApi.notifyDevices(
+                accountTokens,
+                messageService.getMessage("notification.connection.added.title", invited.fullName()),
+                messageService.getMessage("notification.connection.added.body")
+        );
     }
 
-    private CompletableFuture<AccountDTO> getConnection(UUID userId) {
-        return membersNetworkRepo.getById(userId)
-                .thenCompose(member -> {
-                    if (member == null) return null;
-                    return accountsAPI.getById(member.parent().value());
-                });
+    private AccountDTO getConnection(UUID userId) {
+        var member = membersNetworkRepo.getById(userId);
+        if (member == null) return null;
+        return accountsAPI.getById(member.parent().value());
     }
 }

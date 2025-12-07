@@ -18,13 +18,13 @@ public class PayContributionHandler extends VoidCommandHandler<PayContribution> 
 
     @Override
     public void handle(PayContribution command) {
-        var contribution = caseRepo.getContributionByIdTemp(command.contributionId())
+        var contribution = caseRepo.getContributionById(command.contributionId())
                 .orElseThrow(() -> {
                     logger.error("Contribution not found with ID {} ", command.contributionId());
                     return new NotFoundException("Contribution not found with ID " + command.contributionId());
                 });
         contribution.pay(command.paymentProof());
-        caseRepo.saveTemp(contribution);
+        caseRepo.save(contribution);
         logger.info("Contribution paid and saved with ID {} ", command.contributionId());
     }
 }

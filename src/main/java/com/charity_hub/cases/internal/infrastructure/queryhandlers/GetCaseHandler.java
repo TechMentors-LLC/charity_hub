@@ -6,7 +6,7 @@ import com.charity_hub.cases.internal.application.queries.GetCase.GetCaseQuery;
 import com.charity_hub.cases.internal.application.queries.GetCase.IGetCaseHandler;
 import com.charity_hub.cases.internal.infrastructure.gateways.AccountsGateway;
 import com.charity_hub.cases.internal.application.contracts.ICaseReadRepo;
-import com.charity_hub.shared.abstractions.QueryHandlerTemp;
+import com.charity_hub.shared.abstractions.QueryHandler;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.UUID;
 import com.charity_hub.shared.exceptions.NotFoundException;
 
 @Service
-public class GetCaseHandler implements QueryHandlerTemp<GetCaseQuery, GetCaseResponse>, IGetCaseHandler {
+public class GetCaseHandler implements QueryHandler<GetCaseQuery, GetCaseResponse>, IGetCaseHandler {
     private final ICaseReadRepo caseRepo;
     private final GetCaseMapper getCaseMapper;
     private final AccountsGateway accountsGateway;
@@ -31,12 +31,12 @@ public class GetCaseHandler implements QueryHandlerTemp<GetCaseQuery, GetCaseRes
 
     @Override
     public GetCaseResponse handle(GetCaseQuery query) {
-        var case_ = caseRepo.getByCodeTemp(query.caseCode());
+        var case_ = caseRepo.getByCode(query.caseCode());
         if (case_ == null) {
             throw new NotFoundException(String.format("Case with code %s is not found", query.caseCode()));
         }
 
-        var contributions = caseRepo.getContributionsByCaseCodeTemp(case_.code());
+        var contributions = caseRepo.getContributionsByCaseCode(case_.code());
 
         // get the contributors details only if the account has full access
         if (query.accessTokenPayload().hasFullAccess()) {
@@ -46,7 +46,7 @@ public class GetCaseHandler implements QueryHandlerTemp<GetCaseQuery, GetCaseRes
                     .map(contribution -> UUID.fromString(contribution.contributorId()))
                     .toList();
 
-            List<AccountDTO> contributors = accountsGateway.getAccountsByIdsTemp(contributorsIds);
+            List<AccountDTO> contributors = accountsGateway.getAccountsByIds(contributorsIds);
 
             var caseDetails = getCaseMapper.toCaseDetails(case_, contributions, contributors);
             return new GetCaseResponse(caseDetails);

@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,49 +26,48 @@ public class GetLedgerSummaryHandler implements QueryHandler<GetLedgerSummary, L
         this.accountGateway = accountGateway;
     }
 
-    public CompletableFuture<LedgerSummaryDefaultResponse> handle(GetLedgerSummary command) {
-        return CompletableFuture.supplyAsync(() -> {
-            List<ContributionDTO> userContributions = casesGateway.getContributions(command.userId()).join();
+    @Override
+    public LedgerSummaryDefaultResponse handle(GetLedgerSummary command) {
+        List<ContributionDTO> userContributions = casesGateway.getContributions(command.userId());
 
-            int pledged = getPledged(userContributions);
-            int paid = getPaid(userContributions);
-            int confirmed = getConfirmed(userContributions);
+        int pledged = getPledged(userContributions);
+        int paid = getPaid(userContributions);
+        int confirmed = getConfirmed(userContributions);
 
-            List<AccountDTO> connections =  getConnections(command.userId()).join();
-            List<UUID> contributorsIds = connections.stream()
-                    .map(connection -> UUID.fromString(connection.id()))
+        List<AccountDTO> connections = getConnections(command.userId());
+        List<UUID> contributorsIds = connections.stream()
+                .map(connection -> UUID.fromString(connection.id()))
+                .collect(Collectors.toList());
+
+        List<ContributionDTO> allConnectionsContributions =
+                casesGateway.getContributions(contributorsIds);
+
+        List<LedgerSummaryDefaultResponse.ConnectionLedger> list = new ArrayList<>();
+
+        for (AccountDTO connection : connections) {
+            List<ContributionDTO> contributions = allConnectionsContributions.stream()
+                    .filter(contribution ->
+                            contribution.contributorId().equals(connection.id()))
                     .collect(Collectors.toList());
 
-            List<ContributionDTO> allConnectionsContributions =
-                    casesGateway.getContributions(contributorsIds).join();
+            list.add(new LedgerSummaryDefaultResponse.ConnectionLedger(
+                    connection.id(),
+                    connection.fullName(),
+                    connection.photoUrl(),
+                    getPledged(contributions),
+                    getPaid(contributions),
+                    getConfirmed(contributions)
+            ));
+        }
 
-            List<LedgerSummaryDefaultResponse.ConnectionLedger> list = new ArrayList<>();
+        list.sort((a, b) -> Integer.compare(b.pledged(), a.pledged()));
 
-            for (AccountDTO connection : connections) {
-                List<ContributionDTO> contributions = allConnectionsContributions.stream()
-                        .filter(contribution ->
-                                contribution.contributorId().equals(connection.id()))
-                        .collect(Collectors.toList());
-
-                list.add(new LedgerSummaryDefaultResponse.ConnectionLedger(
-                        connection.id(),
-                        connection.fullName(),
-                        connection.photoUrl(),
-                        getPledged(contributions),
-                        getPaid(contributions),
-                        getConfirmed(contributions)
-                ));
-            }
-
-            list.sort((a, b) -> Integer.compare(b.pledged(), a.pledged()));
-
-            return new LedgerSummaryDefaultResponse(
-                    confirmed,
-                    pledged,
-                    paid,
-                    list
-            );
-        });
+        return new LedgerSummaryDefaultResponse(
+                confirmed,
+                pledged,
+                paid,
+                list
+        );
     }
 
     private int getPledged(List<ContributionDTO> contributions) {
@@ -91,13 +89,11 @@ public class GetLedgerSummaryHandler implements QueryHandler<GetLedgerSummary, L
                 .sum();
     }
 
-    private CompletableFuture<List<AccountDTO>> getConnections(UUID userId) {
-        return CompletableFuture.supplyAsync(() -> {
-            Member member = membersNetworkRepo.getById(userId).join();
-            if (member == null) {
-                return new ArrayList<>();
-            }
-            return accountGateway.getAccounts(member.children()).join().stream().toList();
-        });
+    private List<AccountDTO> getConnections(UUID userId) {
+        Member member = membersNetworkRepo.getById(userId);
+        if (member == null) {
+            return new ArrayList<>();
+        }
+        return accountGateway.getAccounts(member.children()).stream().toList();
     }
 }

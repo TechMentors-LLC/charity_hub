@@ -1,6 +1,5 @@
 package com.charity_hub.cases.internal.infrastructure.repositories;
 
-import com.charity_hub.cases.internal.application.contracts.ICaseReadRepo;
 import com.charity_hub.cases.internal.infrastructure.db.CaseEntity;
 import com.charity_hub.cases.internal.infrastructure.db.ContributionEntity;
 import com.mongodb.client.MongoCollection;
@@ -17,14 +16,14 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Repository
-public class CaseReadRepo implements ICaseReadRepo {
+public class ReadCaseRepo {
     private static final String CASES_COLLECTION = "cases";
     private static final String CONTRIBUTION_COLLECTION = "contributions";
 
     private final MongoCollection<CaseEntity> cases;
     private final MongoCollection<ContributionEntity> contributions;
 
-    public CaseReadRepo(MongoDatabase mongoDatabase) {
+    public ReadCaseRepo(MongoDatabase mongoDatabase) {
         this.cases = mongoDatabase.getCollection(CASES_COLLECTION, CaseEntity.class);
         this.contributions = mongoDatabase.getCollection(CONTRIBUTION_COLLECTION, ContributionEntity.class);
     }

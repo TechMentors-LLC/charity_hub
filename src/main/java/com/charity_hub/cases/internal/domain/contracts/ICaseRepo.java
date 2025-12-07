@@ -6,24 +6,17 @@ import com.charity_hub.cases.internal.domain.model.Contribution.Contribution;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public interface ICaseRepo {
-    int nextCaseCodeTemp();
-    CompletableFuture<Integer> nextCaseCode();
+    int nextCaseCode();
     
-    Optional<Case> getByCodeTemp(CaseCode caseCode);
-    CompletableFuture<Case> getByCode(CaseCode caseCode);
+    Optional<Case> getByCode(CaseCode caseCode);
 
-    void saveTemp(Case case_);
-    CompletableFuture<Void> save(Case case_);
+    void save(Case case_);
 
-    void deleteTemp(CaseCode caseCode);
-    CompletableFuture<Void> delete(CaseCode caseCode);
+    void delete(CaseCode caseCode);
     
-    void saveTemp(Contribution contribution);
-    CompletableFuture<Void> save(Contribution contribution);
+    void save(Contribution contribution);
 
-    Optional<Contribution> getContributionByIdTemp(UUID id);
-    CompletableFuture<Contribution> getContributionById(UUID id);
+    Optional<Contribution> getContributionById(UUID id);
 }

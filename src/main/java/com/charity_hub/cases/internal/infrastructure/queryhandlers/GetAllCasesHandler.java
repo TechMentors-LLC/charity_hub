@@ -5,7 +5,7 @@ import com.charity_hub.cases.internal.application.queries.GetAllCases.GetAllCase
 import com.charity_hub.cases.internal.application.queries.GetAllCases.IGetAllCasesHandler;
 import com.charity_hub.cases.internal.infrastructure.db.CaseEntity;
 import com.charity_hub.cases.internal.application.contracts.ICaseReadRepo;
-import com.charity_hub.shared.abstractions.QueryHandlerTemp;
+import com.charity_hub.shared.abstractions.QueryHandler;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 import static com.charity_hub.cases.internal.application.queries.GetAllCases.GetCasesQueryResult.Case;
 
 @Service
-public class GetAllCasesHandler implements QueryHandlerTemp<GetAllCasesQuery, GetCasesQueryResult>, IGetAllCasesHandler {
+public class GetAllCasesHandler implements QueryHandler<GetAllCasesQuery, GetCasesQueryResult>, IGetAllCasesHandler {
     private final ICaseReadRepo caseRepo;
 
     public GetAllCasesHandler(ICaseReadRepo caseRepo) {
@@ -30,12 +30,12 @@ public class GetAllCasesHandler implements QueryHandlerTemp<GetAllCasesQuery, Ge
     public GetCasesQueryResult handle(GetAllCasesQuery query) {
         Supplier<Bson> filter = filtersFrom(query);
 
-        List<Case> cases = caseRepo.searchTemp(query.offset(), query.limit(), filter)
+        List<Case> cases = caseRepo.search(query.offset(), query.limit(), filter)
                 .stream()
                 .map(CaseEntity::toQueryResult)
                 .toList();
 
-        int casesCount = caseRepo.getCasesCountTemp(filter);
+        int casesCount = caseRepo.getCasesCount(filter);
 
         return new GetCasesQueryResult(cases, casesCount);
     }

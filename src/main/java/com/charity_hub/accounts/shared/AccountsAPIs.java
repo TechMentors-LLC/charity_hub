@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Component
@@ -22,31 +21,18 @@ public class AccountsAPIs implements IAccountsAPI {
     }
 
     @Override
-    public CompletableFuture<InvitationResponse> getInvitationByMobileNumber(String mobileNumber) {
-        return invitationRepo.get(mobileNumber)
-                .thenApply(invitation -> {
-                    if (invitation == null) return null;
-                    return new InvitationResponse(invitation.invitedMobileNumber().value(), invitation.inviterId());
-                });
+    public InvitationResponse getInvitationByMobileNumber(String mobileNumber) {
+        var invitation = invitationRepo.get(mobileNumber);
+        if (invitation == null) return null;
+        return new InvitationResponse(invitation.invitedMobileNumber().value(), invitation.inviterId());
     }
 
-    public CompletableFuture<AccountDTO> getById(UUID id) {
-        return CompletableFuture.supplyAsync(() ->
-                dtoAccountMapper.toDTO(readAccountRepo.getById(id).join())
-        );
+    public AccountDTO getById(UUID id) {
+        return dtoAccountMapper.toDTO(readAccountRepo.getById(id));
     }
 
-    public CompletableFuture<List<AccountDTO>> getAccountsByIds(List<UUID> ids) {
-        return CompletableFuture.supplyAsync(() ->
-                readAccountRepo.getAccountsByIds(ids).join()
-                        .stream()
-                        .map(dtoAccountMapper::toDTO)
-                        .collect(Collectors.toList())
-        );
-    }
-
-    public List<AccountDTO> getAccountsByIdsTemp(List<UUID> ids) {
-        return readAccountRepo.getAccountsByIdsTemp(ids)
+    public List<AccountDTO> getAccountsByIds(List<UUID> ids) {
+        return readAccountRepo.getAccountsByIds(ids)
                 .stream()
                 .map(dtoAccountMapper::toDTO)
                 .collect(Collectors.toList());

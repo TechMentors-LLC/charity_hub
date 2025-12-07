@@ -15,7 +15,7 @@ public class ChangePermissionHandler extends VoidCommandHandler<ChangePermission
 
     @Override
     public void handle(ChangePermission command) {
-                var identity = accountRepo.getByIdTemp(command.userId())
+                var identity = accountRepo.getById(command.userId())
                         .orElseThrow(()-> new NotFoundException("User with Id " + command.userId() + " not found"));
 
                 if (command.shouldAdd()) {
@@ -24,7 +24,7 @@ public class ChangePermissionHandler extends VoidCommandHandler<ChangePermission
                     identity.removePermission(command.permission());
                 }
 
-                accountRepo.saveTemp(identity);
+                accountRepo.save(identity);
 
     }
 }

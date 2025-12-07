@@ -12,12 +12,11 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -39,8 +38,7 @@ class ConfirmContributionControllerTest {
         // Given
         UUID contributionId = UUID.randomUUID();
         
-        when(handler.handle(any(ConfirmContribution.class)))
-                .thenReturn(CompletableFuture.completedFuture(null));
+        doNothing().when(handler).handle(any(ConfirmContribution.class));
 
         // When & Then
         mockMvc.perform(post("/v1/contributions/{contributionId}/confirm", contributionId))
@@ -59,8 +57,7 @@ class ConfirmContributionControllerTest {
         // Given
         UUID contributionId = UUID.randomUUID();
         
-        when(handler.handle(any(ConfirmContribution.class)))
-                .thenReturn(CompletableFuture.completedFuture(null));
+        doNothing().when(handler).handle(any(ConfirmContribution.class));
 
         // When & Then
         mockMvc.perform(post("/v1/contributions/{contributionId}/confirm", contributionId))
@@ -87,8 +84,7 @@ class ConfirmContributionControllerTest {
         // Given
         UUID contributionId = UUID.randomUUID();
         
-        when(handler.handle(any(ConfirmContribution.class)))
-                .thenReturn(CompletableFuture.completedFuture(null));
+        doNothing().when(handler).handle(any(ConfirmContribution.class));
 
         // When
         mockMvc.perform(post("/v1/contributions/{contributionId}/confirm", contributionId))

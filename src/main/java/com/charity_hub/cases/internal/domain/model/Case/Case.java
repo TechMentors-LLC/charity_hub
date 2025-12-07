@@ -88,7 +88,7 @@ public class Case extends AggregateRoot<CaseCode> {
         if (!status.isDraft()) {
             throw new CannotDeleteCaseException();
         }
-        caseRepo.deleteTemp(getId());
+        caseRepo.delete(getId());
     }
 
     public void open() {

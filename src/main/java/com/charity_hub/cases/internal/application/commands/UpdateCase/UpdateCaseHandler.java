@@ -16,7 +16,7 @@ public class UpdateCaseHandler extends VoidCommandHandler<UpdateCase> {
 
     @Override
     public void handle(UpdateCase command) {
-        var case_ = caseRepo.getByCodeTemp(new CaseCode(command.caseCode()))
+        var case_ = caseRepo.getByCode(new CaseCode(command.caseCode()))
                 .orElseThrow(() -> new NotFoundException("This case is not found"));
 
         case_.update(
@@ -26,6 +26,6 @@ public class UpdateCaseHandler extends VoidCommandHandler<UpdateCase> {
                 command.acceptZakat(),
                 command.documents()
         );
-        caseRepo.saveTemp(case_);
+        caseRepo.save(case_);
     }
 }

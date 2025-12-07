@@ -18,7 +18,7 @@ public class RegisterNotificationTokenHandler extends VoidCommandHandler<Registe
             RegisterNotificationToken command
     ) {
 
-                var identity = accountRepo.getByIdTemp(command.userId())
+                var identity = accountRepo.getById(command.userId())
                         .orElseThrow(()-> new NotFoundException("User with Id " + command.userId() + " not found"));
 
                 identity.registerFCMToken(
@@ -26,7 +26,7 @@ public class RegisterNotificationTokenHandler extends VoidCommandHandler<Registe
                         command.fcmToken()
                 );
 
-                accountRepo.saveTemp(identity);
+                accountRepo.save(identity);
 
     }
 }

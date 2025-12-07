@@ -19,7 +19,7 @@ public class BlockAccountHandler extends VoidCommandHandler<BlockAccount> {
     @Override
     @Transactional
     public void handle(BlockAccount command) {
-        var identity = accountRepo.getByIdTemp(UUID.fromString(command.userId()))
+        var identity = accountRepo.getById(UUID.fromString(command.userId()))
                 .orElseThrow(() -> new NotFoundException("User with Id " + command.userId() + " not found"));
 
         if (command.isUnblock()) {

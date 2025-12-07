@@ -1,14 +1,14 @@
 package com.charity_hub.cases.internal.application.queries.GetDraftCases;
 
 import com.charity_hub.cases.internal.application.contracts.ICaseReadRepo;
-import com.charity_hub.shared.abstractions.QueryHandlerTemp;
+import com.charity_hub.shared.abstractions.QueryHandler;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class GetDraftCasesHandler implements QueryHandlerTemp<GetDraftCases, GetDraftCasesResponse> {
+public class GetDraftCasesHandler implements QueryHandler<GetDraftCases, GetDraftCasesResponse> {
     private final ICaseReadRepo caseRepo;
 
     public GetDraftCasesHandler(ICaseReadRepo caseRepo) {
@@ -17,7 +17,7 @@ public class GetDraftCasesHandler implements QueryHandlerTemp<GetDraftCases, Get
 
     @Override
     public GetDraftCasesResponse handle(GetDraftCases query) {
-        List<GetDraftCasesResponse.DraftCase> draftCases = caseRepo.getDraftCasesTemp()
+        List<GetDraftCasesResponse.DraftCase> draftCases = caseRepo.getDraftCases()
                 .stream()
                 .map(it -> new GetDraftCasesResponse.DraftCase(
                         it.code(),

@@ -11,9 +11,6 @@ import com.mongodb.client.model.ReplaceOptions;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -26,29 +23,23 @@ public class MembersNetworkRepo implements IMembersNetworkRepo {
     }
 
     @Override
-    public CompletableFuture<Member> getById(UUID id) {
-        return CompletableFuture.supplyAsync(() -> {
-            MemberEntity entity = collection.find(eq("_id", id.toString())).first();
-            return entity != null ? MemberMapper.toDomain(entity) : null;
-        });
+    public Member getById(UUID id) {
+        MemberEntity entity = collection.find(eq("_id", id.toString())).first();
+        return entity != null ? MemberMapper.toDomain(entity) : null;
     }
 
     @Override
-    public CompletableFuture<Void> delete(MemberId id) {
-        return CompletableFuture.runAsync(() -> {
-            collection.deleteOne(eq("_id", id.value().toString()));
-        });
+    public void delete(MemberId id) {
+        collection.deleteOne(eq("_id", id.value().toString()));
     }
 
     @Override
-    public CompletableFuture<Void> save(Member member) {
-        return CompletableFuture.runAsync(() -> {
-            MemberEntity entity = MemberMapper.toDB(member);
-            collection.replaceOne(
-                eq("_id", entity._id()),
-                entity,
-                new ReplaceOptions().upsert(true)
-            );
-        });
+    public void save(Member member) {
+        MemberEntity entity = MemberMapper.toDB(member);
+        collection.replaceOne(
+            eq("_id", entity._id()),
+            entity,
+            new ReplaceOptions().upsert(true)
+        );
     }
 }
