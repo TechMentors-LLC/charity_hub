@@ -7,9 +7,11 @@ import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "firebase.test-mode", havingValue = "false", matchIfMissing = true)
 public class FirebaseAuthProvider implements IAuthProvider {
 
     private final FirebaseAuth firebaseAuth;

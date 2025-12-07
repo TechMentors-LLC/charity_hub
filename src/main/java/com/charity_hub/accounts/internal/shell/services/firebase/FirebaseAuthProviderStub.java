@@ -15,18 +15,9 @@ import org.springframework.stereotype.Component;
 )
 public class FirebaseAuthProviderStub implements IAuthProvider {
 
-    private final FirebaseAuthProvider firebaseAuthProvider;
-
-    public FirebaseAuthProviderStub(FirebaseAuthProvider firebaseAuthProvider) {
-        this.firebaseAuthProvider = firebaseAuthProvider;
-    }
-
     @Override
     public String getVerifiedMobileNumber(String idToken) {
-        try {
-            return MobileNumber.create(idToken).value();
-        } catch (Exception e) {
-            return firebaseAuthProvider.getVerifiedMobileNumber(idToken);
-        }
+        // In test mode, treat the token as a mobile number directly
+        return MobileNumber.create(idToken).value();
     }
 }
