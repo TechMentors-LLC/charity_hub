@@ -4,10 +4,8 @@ import com.charity_hub.cases.internal.application.eventHandlers.loggers.CaseOpen
 import com.charity_hub.cases.shared.dtos.CaseOpenedDTO;
 import com.charity_hub.cases.internal.domain.contracts.INotificationService;
 import com.charity_hub.shared.domain.IEventBus;
-import org.springframework.context.annotation.Bean;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.CompletableFuture;
 
 @Service
 public class CaseOpenedHandler {
@@ -21,23 +19,20 @@ public class CaseOpenedHandler {
         this.logger = logger;
     }
 
-    @Bean("CaseOpenedListener")
-    public CompletableFuture<Void> start() {
+    @PostConstruct
+    public void start() {
         logger.handlerRegistered();
         eventBus.subscribe(this, CaseOpenedDTO.class, this::handle);
-        return CompletableFuture.completedFuture(null);
     }
 
-    private CompletableFuture<Void> handle(CaseOpenedDTO case_) {
-        return CompletableFuture.runAsync(() -> {
-            logger.processingEvent(case_);
+    private void handle(CaseOpenedDTO case_) {
+        logger.processingEvent(case_);
 
-            try {
-                notificationService.notifyCaseOpened(case_).join();
-                logger.notificationSent(case_.caseCode());
-            } catch (Exception e) {
-                logger.notificationFailed(case_.caseCode(), e);
-            }
-        });
+        try {
+            notificationService.notifyCaseOpened(case_);
+            logger.notificationSent(case_.caseCode());
+        } catch (Exception e) {
+            logger.notificationFailed(case_.caseCode(), e);
+        }
     }
 } 

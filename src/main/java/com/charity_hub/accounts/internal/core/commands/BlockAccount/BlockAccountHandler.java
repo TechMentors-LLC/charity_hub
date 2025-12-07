@@ -1,15 +1,15 @@
 package com.charity_hub.accounts.internal.core.commands.BlockAccount;
 
 import com.charity_hub.accounts.internal.core.contracts.IAccountRepo;
-import com.charity_hub.shared.abstractions.CommandHandler;
+import com.charity_hub.shared.abstractions.VoidCommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 @Service
-public class BlockAccountHandler extends CommandHandler<BlockAccount, Void> {
+public class BlockAccountHandler extends VoidCommandHandler<BlockAccount> {
     private final IAccountRepo accountRepo;
 
     public BlockAccountHandler(IAccountRepo accountRepo) {
@@ -17,24 +17,24 @@ public class BlockAccountHandler extends CommandHandler<BlockAccount, Void> {
     }
 
     @Override
-    public CompletableFuture<Void> handle(BlockAccount command) {
-        return CompletableFuture.runAsync(() -> {
-            try {
-                var identity = accountRepo.getById(UUID.fromString(command.userId())).join();
-                if (identity == null) {
-                    throw new NotFoundException("User with Id " + command.userId() + " not found");
-                }
+    @Transactional
+    public void handle(BlockAccount command) {
+        String action = command.isUnblock() ? "UNBLOCK" : "BLOCK";
+        logger.info("Account {} requested - UserId: {}", action, command.userId());
+        
+        var identity = accountRepo.getById(UUID.fromString(command.userId()))
+                .orElseThrow(() -> {
+                    logger.warn("Account not found for {} - UserId: {}", action, command.userId());
+                    return new NotFoundException("User with Id " + command.userId() + " not found");
+                });
 
-                if (command.isUnblock()) {
-                    identity.unBlock();
-                } else {
-                    identity.block();
-                }
+        if (command.isUnblock()) {
+            identity.unBlock();
+        } else {
+            identity.block();
+        }
 
-                accountRepo.save(identity);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+        accountRepo.save(identity);
+        logger.info("Account {} completed successfully - UserId: {}", action, command.userId());
     }
 }

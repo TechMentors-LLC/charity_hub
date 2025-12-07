@@ -1,16 +1,13 @@
 package com.charity_hub.cases.internal.application.commands.UpdateCase;
 
 import com.charity_hub.cases.internal.domain.contracts.ICaseRepo;
-import com.charity_hub.cases.internal.domain.model.Case.Case;
 import com.charity_hub.cases.internal.domain.model.Case.CaseCode;
-import com.charity_hub.shared.abstractions.CommandHandler;
+import com.charity_hub.shared.abstractions.VoidCommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.CompletableFuture;
-
 @Service
-public class UpdateCaseHandler extends CommandHandler<UpdateCase, Void> {
+public class UpdateCaseHandler extends VoidCommandHandler<UpdateCase> {
     private final ICaseRepo caseRepo;
 
     public UpdateCaseHandler(ICaseRepo caseRepo) {
@@ -18,19 +15,15 @@ public class UpdateCaseHandler extends CommandHandler<UpdateCase, Void> {
     }
 
     @Override
-    public CompletableFuture<Void> handle(UpdateCase command) {
-        return caseRepo.getByCode(new CaseCode(command.caseCode()))
-                .thenCompose(case_ -> {
-                    if (case_ == null) {
-                        return CompletableFuture.failedFuture(
-                                new NotFoundException("This case is not found")
-                        );
-                    }
-                    return updateAndSaveCase(case_, command);
+    public void handle(UpdateCase command) {
+        logger.info("Updating case - CaseCode: {}, Title: {}", command.caseCode(), command.title());
+        
+        var case_ = caseRepo.getByCode(new CaseCode(command.caseCode()))
+                .orElseThrow(() -> {
+                    logger.warn("Case not found for update - CaseCode: {}", command.caseCode());
+                    return new NotFoundException("This case is not found");
                 });
-    }
 
-    private CompletableFuture<Void> updateAndSaveCase(Case case_, UpdateCase command) {
         case_.update(
                 command.title(),
                 command.description(),
@@ -38,6 +31,7 @@ public class UpdateCaseHandler extends CommandHandler<UpdateCase, Void> {
                 command.acceptZakat(),
                 command.documents()
         );
-        return caseRepo.save(case_);
+        caseRepo.save(case_);
+        logger.info("Case updated successfully - CaseCode: {}", command.caseCode());
     }
 }

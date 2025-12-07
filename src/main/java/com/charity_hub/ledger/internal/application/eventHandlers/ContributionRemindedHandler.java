@@ -4,10 +4,8 @@ import com.charity_hub.cases.shared.dtos.ContributionRemindedDTO;
 import com.charity_hub.ledger.internal.domain.contracts.INotificationService;
 import com.charity_hub.ledger.internal.application.eventHandlers.loggers.ContributionRemindedLogger;
 import com.charity_hub.shared.domain.IEventBus;
-import org.springframework.context.annotation.Bean;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.CompletableFuture;
 
 @Service
 public class ContributionRemindedHandler {
@@ -25,23 +23,20 @@ public class ContributionRemindedHandler {
         this.logger = logger;
     }
 
-    @Bean("ContributionRemindedListener")
-    public CompletableFuture<Void> start() {
+    @PostConstruct
+    public void start() {
         logger.handlerRegistered();
         eventBus.subscribe(this, ContributionRemindedDTO.class, this::handle);
-        return CompletableFuture.completedFuture(null);
     }
 
-    private CompletableFuture<Void> handle(ContributionRemindedDTO contribution) {
-        return CompletableFuture.runAsync(() -> {
-            logger.processingEvent(contribution);
-            
-            try {
-                notificationService.notifyContributorToPay(contribution).join();
-                logger.notificationSent(contribution.id(), contribution.contributorId());
-            } catch (Exception e) {
-                logger.notificationFailed(contribution.id(), contribution.contributorId(), e);
-            }
-        });
+    private void handle(ContributionRemindedDTO contribution) {
+        logger.processingEvent(contribution);
+        
+        try {
+            notificationService.notifyContributorToPay(contribution);
+            logger.notificationSent(contribution.id(), contribution.contributorId());
+        } catch (Exception e) {
+            logger.notificationFailed(contribution.id(), contribution.contributorId(), e);
+        }
     }
 }

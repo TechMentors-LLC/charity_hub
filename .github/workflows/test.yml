@@ -14,16 +14,14 @@ jobs:
       - name: 'Checkout'
         uses: 'actions/checkout@v4'
 
-      - name: 'Set up JDK 17'
+      - name: 'Set up JDK 21'
         uses: 'actions/setup-java@v4'
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
       - name: 'Setup Gradle'
         uses: 'gradle/actions/setup-gradle@v3'
-        with:
-          gradle-version: '8.7'
 
       - name: 'Create test Firebase cert'
         run: |
@@ -33,14 +31,26 @@ jobs:
       - name: 'Make gradlew executable'
         run: chmod +x ./gradlew
 
+      - name: 'Pre-pull MongoDB image for Testcontainers'
+        run: docker pull mongo:7.0
+
       - name: 'Run tests'
-        run: ./gradlew test --quiet --continue
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: 'true'
+        run: ./gradlew test --continue
+
+      - name: 'Upload test results'
+        uses: 'actions/upload-artifact@v4'
+        if: always()
+        with:
+          name: test-results
+          path: build/reports/tests/test/
 
       - name: 'Display test results summary'
         if: always()
         run: |
           echo "## Test Results Summary"
-          if [ -f build/test-results/test/TEST-*.xml ]; then
+          if ls build/test-results/test/TEST-*.xml 1> /dev/null 2>&1; then
             echo "✅ Tests completed"
             total_tests=$(grep -h "tests=" build/test-results/test/TEST-*.xml | sed 's/.*tests="\([0-9]*\)".*/\1/' | awk '{sum += $1} END {print sum}')
             failed_tests=$(grep -h "failures=" build/test-results/test/TEST-*.xml | sed 's/.*failures="\([0-9]*\)".*/\1/' | awk '{sum += $1} END {print sum}')

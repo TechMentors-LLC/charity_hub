@@ -5,14 +5,12 @@ import com.charity_hub.cases.shared.dtos.ContributionPaidDTO;
 import com.charity_hub.cases.shared.dtos.ContributionRemindedDTO;
 import com.charity_hub.ledger.internal.domain.model.Member;
 
-import java.util.concurrent.CompletableFuture;
-
 public interface INotificationService {
-    CompletableFuture<Void> notifyContributionPaid(ContributionPaidDTO contribution);
+    void notifyContributionPaid(ContributionPaidDTO contribution);
 
-    CompletableFuture<Void> notifyContributionConfirmed(ContributionConfirmedDTO contribution);
+    void notifyContributionConfirmed(ContributionConfirmedDTO contribution);
 
-    CompletableFuture<Void> notifyContributorToPay(ContributionRemindedDTO contribution);
+    void notifyContributorToPay(ContributionRemindedDTO contribution);
 
-    CompletableFuture<Void> notifyNewConnectionAdded(Member member);
+    void notifyNewConnectionAdded(Member member);
 }

@@ -3,13 +3,11 @@ package com.charity_hub.accounts.internal.core.commands.InviteAccount;
 import com.charity_hub.accounts.internal.core.contracts.IInvitationRepo;
 import com.charity_hub.accounts.internal.core.exceptions.AlreadyInvitedException;
 import com.charity_hub.accounts.internal.core.model.invitation.Invitation;
-import com.charity_hub.shared.abstractions.CommandHandler;
+import com.charity_hub.shared.abstractions.VoidCommandHandler;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.CompletableFuture;
-
 @Service
-public class InviteAccountHandler extends CommandHandler<InvitationAccount, Void> {
+public class InviteAccountHandler extends VoidCommandHandler<InvitationAccount> {
     private final IInvitationRepo invitationRepo;
 
     public InviteAccountHandler(IInvitationRepo invitationRepo) {
@@ -17,19 +15,24 @@ public class InviteAccountHandler extends CommandHandler<InvitationAccount, Void
     }
 
     @Override
-    public CompletableFuture<Void> handle(InvitationAccount command) {
-        return invitationRepo.hasInvitation(command.mobileNumber())
-                .thenCompose(hasInvitation -> {
-                    if (hasInvitation) {
-                        return CompletableFuture.failedFuture(new AlreadyInvitedException("already invited"));
-                    }
+    public void handle(InvitationAccount command) {
+        logger.info("Processing invitation - MobileNumber: {}, InviterId: {}", 
+                command.mobileNumber(), command.inviterId());
+        
+        boolean hasInvitation = invitationRepo.hasInvitation(command.mobileNumber());
 
-                    Invitation newInvitation = Invitation.of(
-                            command.mobileNumber(),
-                            command.inviterId()
-                    );
+        if (hasInvitation) {
+            logger.warn("Duplicate invitation attempt - MobileNumber: {} already invited", command.mobileNumber());
+            throw new AlreadyInvitedException("already invited");
+        }
 
-                    return invitationRepo.save(newInvitation);
-                });
+        Invitation newInvitation = Invitation.of(
+                command.mobileNumber(),
+                command.inviterId()
+        );
+
+        invitationRepo.save(newInvitation);
+        logger.info("Invitation created successfully - MobileNumber: {}, InviterId: {}", 
+                command.mobileNumber(), command.inviterId());
     }
 }

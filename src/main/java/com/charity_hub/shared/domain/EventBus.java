@@ -2,50 +2,37 @@ package com.charity_hub.shared.domain;
 
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 public class EventBus implements IEventBus {
-    private final List<EventListener<?>> listeners = new ArrayList<>();
-    private final ExecutorService executor = Executors.newCachedThreadPool();
+    // CopyOnWriteArrayList is thread-safe and doesn't require synchronization for iteration.
+    // This avoids virtual thread pinning when handlers perform blocking I/O.
+    private final List<EventListener<?>> listeners = new CopyOnWriteArrayList<>();
 
     @Override
     public <T> void subscribe(Object owner, Class<T> event, EventCallback<T> callback) {
         EventListener<T> listener = new EventListener<>(owner, event, callback);
-        synchronized (listeners) {
-            listeners.add(listener);
-        }
+        listeners.add(listener);
     }
 
     @Override
     public void unsubscribe(Object owner) {
-        synchronized (listeners) {
-            listeners.removeIf(listener -> listener.owner().equals(owner));
-        }
+        listeners.removeIf(listener -> listener.owner().equals(owner));
     }
 
     @Override
-    public <T> CompletableFuture<Void> push(T event) {
-        return CompletableFuture.runAsync(() -> {
-            synchronized (listeners) {
-                listeners.forEach(listener -> {
-                    if (listener.event().isInstance(event)) {
-                        @SuppressWarnings("unchecked")
-                        EventListener<T> typedListener = (EventListener<T>) listener;
-                        typedListener.callback().handle(event);
-                    }
-                });
+    public <T> void push(T event) {
+        // No synchronization needed - CopyOnWriteArrayList handles thread-safety
+        // and virtual threads won't be pinned during handler execution
+        listeners.forEach(listener -> {
+            if (listener.event().isInstance(event)) {
+                @SuppressWarnings("unchecked")
+                EventListener<T> typedListener = (EventListener<T>) listener;
+                typedListener.callback().handle(event);
             }
-        }, executor);
-    }
-
-    // Method to properly shutdown the executor
-    public void shutdown() {
-        executor.shutdown();
+        });
     }
 }
 

@@ -4,11 +4,8 @@ import com.charity_hub.accounts.shared.AccountEventDto;
 import com.charity_hub.cases.internal.domain.contracts.INotificationService;
 import com.charity_hub.cases.internal.application.loggers.FCMTokenLogger;
 import com.charity_hub.shared.domain.IEventBus;
-import com.charity_hub.shared.domain.ILogger;
-import org.springframework.context.annotation.Bean;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.CompletableFuture;
 
 @Service
 public class FCMTokenUpdatedHandler {
@@ -22,28 +19,25 @@ public class FCMTokenUpdatedHandler {
         this.logger = baseLogger;
     }
 
-    @Bean("FCMTokenUpdatedListener")
-    public CompletableFuture<Void> start() {
+    @PostConstruct
+    public void start() {
         logger.handlerRegistered();
         eventBus.subscribe(this, AccountEventDto.FCMTokenUpdatedDTO.class, this::handle);
-        return CompletableFuture.completedFuture(null);
     }
 
-    public CompletableFuture<Void> handle(AccountEventDto.FCMTokenUpdatedDTO event) {
-        return CompletableFuture.runAsync(() -> {
-            if (event.deviceFCMToken() == null) {
-                logger.nullTokenReceived();
-                return;
-            }
+    public void handle(AccountEventDto.FCMTokenUpdatedDTO event) {
+        if (event.deviceFCMToken() == null) {
+            logger.nullTokenReceived();
+            return;
+        }
 
-            logger.processingToken(event.deviceFCMToken());
-            
-            try {
-                notificationService.subscribeAccountToCaseUpdates(event.deviceFCMToken()).join();
-                logger.tokenSubscribed(event.deviceFCMToken());
-            } catch (Exception e) {
-                logger.tokenSubscriptionFailed(event.deviceFCMToken(), e);
-            }
-        });
+        logger.processingToken(event.deviceFCMToken());
+        
+        try {
+            notificationService.subscribeAccountToCaseUpdates(event.deviceFCMToken());
+            logger.tokenSubscribed(event.deviceFCMToken());
+        } catch (Exception e) {
+            logger.tokenSubscriptionFailed(event.deviceFCMToken(), e);
+        }
     }
 }

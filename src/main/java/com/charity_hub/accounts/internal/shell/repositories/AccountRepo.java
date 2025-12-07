@@ -11,16 +11,18 @@ import com.charity_hub.shared.domain.IEventBus;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReplaceOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 import static com.mongodb.client.model.Filters.*;
 
 @Repository
 public class AccountRepo implements IAccountRepo {
+    private static final Logger logger = LoggerFactory.getLogger(AccountRepo.class);
     private static final String ACCOUNTS_COLLECTION = "accounts";
     private static final String REVOKED_ACCOUNT_COLLECTION = "revoked_accounts";
 
@@ -44,73 +46,70 @@ public class AccountRepo implements IAccountRepo {
     }
 
     @Override
-    public CompletableFuture<Account> getById(UUID id) {
-        return CompletableFuture.supplyAsync(() ->
-                Optional.ofNullable(collection.find(eq("accountId", id.toString())).first())
-                        .map(domainAccountMapper::toDomain)
-                        .orElse(null)
+    public Optional<Account> getById(UUID id) {
+        logger.debug("Fetching account by ID: {}", id);
+        return Optional.ofNullable(collection.find(eq("accountId", id.toString())).first())
+                .map(domainAccountMapper::toDomain);
+    }
+
+    @Override
+    public List<Account> getConnections(UUID id) {
+        logger.debug("Fetching connections for account: {}", id);
+        return collection.find(eq("connections.userId", id.toString()))
+                .map(domainAccountMapper::toDomain)
+                .into(new ArrayList<>());
+    }
+
+    @Override
+    public Optional<Account> getByMobileNumber(String mobileNumber) {
+        logger.debug("Fetching account by mobile number: {}", mobileNumber);
+        return Optional.ofNullable(collection.find(eq("mobileNumber", mobileNumber)).first())
+                .map(domainAccountMapper::toDomain);
+    }
+
+    @Override
+    public void save(Account account) {
+        logger.debug("Saving account: {}", account.getId().value());
+        AccountEntity entity = domainAccountMapper.toDB(account);
+        collection.replaceOne(
+                eq("accountId", entity.accountId()),
+                entity,
+                new ReplaceOptions().upsert(true)
         );
+        logger.info("Account saved successfully: {}", account.getId().value());
+        account.occurredEvents().stream()
+                .map(event -> AccountEventsMapper.map((AccountEvent) event))
+                .forEach(eventBus::push);
     }
 
     @Override
-    public CompletableFuture<List<Account>> getConnections(UUID id) {
-        return CompletableFuture.supplyAsync(() ->
-                collection.find(eq("connections.userId", id.toString()))
-                        .map(domainAccountMapper::toDomain)
-                        .into(new ArrayList<>())
-        );
+    public boolean isAdmin(String mobileNumber) {
+        boolean isAdmin = admins.contains(mobileNumber);
+        logger.debug("Admin check for {}: {}", mobileNumber, isAdmin);
+        return isAdmin;
     }
 
     @Override
-    public CompletableFuture<Account> getByMobileNumber(String mobileNumber) {
-        return CompletableFuture.supplyAsync(() ->
-                Optional.ofNullable(collection.find(eq("mobileNumber", mobileNumber)).first())
-                        .map(domainAccountMapper::toDomain)
-                        .orElse(null)
-        );
+    public void revoke(UUID uuid) {
+        logger.info("Revoking account tokens: {}", uuid);
+        RevokedAccountEntity revokedAccount = new RevokedAccountEntity(uuid.toString(), new Date().getTime());
+        if (revokedCollection.find(eq("accountId", uuid.toString())).first() != null) {
+            revokedCollection.replaceOne(eq("accountId", uuid.toString()), revokedAccount);
+        } else {
+            revokedCollection.insertOne(revokedAccount);
+        }
+        logger.info("Account tokens revoked: {}", uuid);
     }
 
     @Override
-    public CompletableFuture<Void> save(Account account) {
-        return CompletableFuture.supplyAsync(() -> {
-            AccountEntity entity = domainAccountMapper.toDB(account);
-            collection.replaceOne(
-                    eq("accountId", entity.accountId()),
-                    entity,
-                    new ReplaceOptions().upsert(true)
-            );
-            account.occurredEvents().stream()
-                    .map(event -> AccountEventsMapper.map((AccountEvent) event))
-                    .forEach(eventBus::push);
-            return null;
-        });
-    }
-
-    @Override
-    public CompletableFuture<Boolean> isAdmin(String mobileNumber) {
-        return CompletableFuture.completedFuture(admins.contains(mobileNumber));
-    }
-
-    @Override
-    public CompletableFuture<Void> revoke(UUID uuid) {
-        return CompletableFuture.supplyAsync(() -> {
-            RevokedAccountEntity revokedAccount = new RevokedAccountEntity(uuid.toString(), new Date().getTime());
-            if (revokedCollection.find(eq("accountId", uuid.toString())).first() != null) {
-                revokedCollection.replaceOne(eq("accountId", uuid.toString()), revokedAccount);
-            } else {
-                revokedCollection.insertOne(revokedAccount);
-            }
-            return null;
-        });
-    }
-
-    @Override
-    public CompletableFuture<Boolean> isRevoked(UUID id, long tokenIssueDate) {
-        return CompletableFuture.supplyAsync(() ->
-                revokedCollection.find(and(
-                        eq("accountId", id.toString()),
-                        gt("revokedTime", tokenIssueDate)
-                )).first() != null
-        );
+    public boolean isRevoked(UUID id, long tokenIssueDate) {
+        boolean isRevoked = revokedCollection.find(and(
+                eq("accountId", id.toString()),
+                gt("revokedTime", tokenIssueDate)
+        )).first() != null;
+        if (isRevoked) {
+            logger.debug("Token revoked for account: {}", id);
+        }
+        return isRevoked;
     }
 }

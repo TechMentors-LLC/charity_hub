@@ -13,13 +13,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,7 +29,7 @@ class CreateCaseHandlerTest {
 
     @Test
     @DisplayName("Should create case with correct properties")
-    void shouldCreateCaseWithCorrectProperties() throws ExecutionException, InterruptedException, TimeoutException {
+    void shouldCreateCaseWithCorrectProperties() {
         // Given
         String title = "test title";
         String description = "test description";
@@ -44,15 +39,13 @@ class CreateCaseHandlerTest {
         List<String> documents = List.of("https://url1.com", "https://url2.com");
         CreateCase command = new CreateCase(title, description, targetAmount, isPublic, isOpen, documents);
 
-        when(caseRepo.nextCaseCode()).thenReturn(CompletableFuture.completedFuture(11));
-        when(caseRepo.save(any(Case.class))).thenAnswer(invocation ->
-                CompletableFuture.completedFuture(invocation.getArguments()[0]));
+        when(caseRepo.nextCaseCode()).thenReturn(11);
+        
         // When
-        CompletableFuture<CaseResponse> responseFuture = createCaseHandler.handle(command);
+        CaseResponse response = createCaseHandler.handle(command);
 
         // Then
-        assertNotNull(responseFuture);
-        CaseResponse response = responseFuture.get(5, TimeUnit.SECONDS);
+        assertNotNull(response);
         assertEquals(11, response.caseCode());
 
         // Verify case was saved with correct properties

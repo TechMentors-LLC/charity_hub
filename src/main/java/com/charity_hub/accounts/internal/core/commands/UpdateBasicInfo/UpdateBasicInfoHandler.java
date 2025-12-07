@@ -6,8 +6,6 @@ import com.charity_hub.shared.abstractions.CommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.CompletableFuture;
-
 @Service
 public class UpdateBasicInfoHandler extends CommandHandler<UpdateBasicInfo,String> {
     private final IAccountRepo accountRepo;
@@ -18,15 +16,18 @@ public class UpdateBasicInfoHandler extends CommandHandler<UpdateBasicInfo,Strin
         this.jwtGenerator = jwtGenerator;
     }
 
-    public CompletableFuture<String> handle(
+        @Override
+        public String handle(
             UpdateBasicInfo command
-    ) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                var identity = accountRepo.getById(command.userId()).join();
-                if (identity == null) {
-                    throw new NotFoundException("User with Id " + command.userId() + " not found");
-                }
+        ) {
+                logger.info("Updating basic info - UserId: {}, DeviceId: {}", 
+                        command.userId(), command.deviceId());
+                
+                var identity = accountRepo.getById(command.userId())
+                        .orElseThrow(() -> {
+                            logger.warn("Account not found for profile update - UserId: {}", command.userId());
+                            return new NotFoundException("User with Id " + command.userId() + " not found");
+                        });
 
                 String accessToken = identity.updateBasicInfo(
                     command.deviceId(),
@@ -36,10 +37,8 @@ public class UpdateBasicInfoHandler extends CommandHandler<UpdateBasicInfo,Strin
                 );
 
                 accountRepo.save(identity);
+                logger.info("Basic info updated successfully - UserId: {}", command.userId());
                 return accessToken;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+
     }
 }

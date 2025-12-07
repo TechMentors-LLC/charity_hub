@@ -2,14 +2,13 @@ package com.charity_hub.accounts.internal.shell.api.controllers;
 
 import com.charity_hub.accounts.internal.core.commands.Authenticate.Authenticate;
 import com.charity_hub.accounts.internal.core.commands.Authenticate.AuthenticateHandler;
-import com.charity_hub.shared.api.DeferredResults;
+import com.charity_hub.accounts.internal.core.commands.Authenticate.AuthenticateResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.async.DeferredResult;
 
 @RestController
 public class AuthController {
@@ -21,12 +20,11 @@ public class AuthController {
     }
 
     @PostMapping("/v1/accounts/authenticate")
-    public DeferredResult<ResponseEntity<?>> login(@RequestBody Authenticate authenticate) {
+    public ResponseEntity<AuthenticateResponse> login(@RequestBody Authenticate authenticate) {
         log.info("Processing authentication request");
-        return DeferredResults.from(
-                authenticateHandler.handle(authenticate)
-                        .thenApply(ResponseEntity::ok)
-        );
-    }
+                AuthenticateResponse response = authenticateHandler.handle(authenticate);
+                return ResponseEntity.ok(response);
+
+     }
 }
 

@@ -5,6 +5,7 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ResourceUtils;
@@ -23,6 +24,7 @@ public class FirebaseConfig {
     }
 
     @Bean
+    @ConditionalOnProperty(name = "firebase.test-mode", havingValue = "false", matchIfMissing = true)
     public FirebaseAuth initFirebaseAuth() throws IOException {
         GoogleCredentials credentials;
         try (FileInputStream serviceAccount = new FileInputStream(ResourceUtils.getFile(serviceAccountPath))) {

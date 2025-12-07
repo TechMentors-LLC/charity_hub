@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
 
 @Component("casesNotificationService")
 public class NotificationService implements INotificationService {
@@ -38,94 +37,87 @@ public class NotificationService implements INotificationService {
     }
 
     @Override
-    public CompletableFuture<Void> subscribeAccountToCaseUpdates(String token) {
-        return CompletableFuture.runAsync(() ->
-                notificationApi.subscribeToTopic("CaseUpdates", Collections.singletonList(token))
+    public void subscribeAccountToCaseUpdates(String token) {
+        notificationApi.subscribeToTopic("CaseUpdates", Collections.singletonList(token));
+    }
+
+    @SneakyThrows
+    @Override
+    public void notifyCaseOpened(CaseOpenedDTO case_) {
+        var payload = new NotificationPayload(
+                case_.caseCode(),
+                case_.title()
+        );
+
+        notificationApi.notifyTopicSubscribers(
+                "CaseUpdates",
+                "caseCreated",
+                payload,
+                messageService.getMessage("notification.case.new.title"),
+                case_.description()
         );
     }
 
     @SneakyThrows
     @Override
-    public CompletableFuture<Void> notifyCaseOpened(CaseOpenedDTO case_) {
-        return CompletableFuture.runAsync(() -> {
-            var payload = new NotificationPayload(
-                    case_.caseCode(),
-                    case_.title()
-            );
+    public void notifyCaseClosed(CaseClosedDTO case_) {
+        int collected = case_.contributionsTotal();
+        String title;
 
-            notificationApi.notifyTopicSubscribers(
-                    "CaseUpdates",
-                    "caseCreated",
-                    payload,
-                    messageService.getMessage("notification.case.new.title"),
-                    case_.description()
-            );
-        });
+        if (collected > case_.goal()) {
+            title = messageService.getMessage("notification.case.closed.exceeded", collected);
+        } else if (collected == case_.goal()) {
+            title = messageService.getMessage("notification.case.closed.exact", collected);
+        } else {
+            title = messageService.getMessage("notification.case.closed.incomplete");
+        }
+
+        var payload = new NotificationPayload(
+                case_.caseCode(),
+                case_.title()
+        );
+
+        notificationApi.notifyTopicSubscribers(
+                "CaseUpdates",
+                "caseClosed",
+                payload,
+                title,
+                messageService.getMessage("notification.case.closed.body")
+        );
     }
 
     @SneakyThrows
     @Override
-    public CompletableFuture<Void> notifyCaseClosed(CaseClosedDTO case_) {
-        return CompletableFuture.runAsync(() -> {
-            int collected = case_.contributionsTotal();
-            String title;
+    public void notifyContributionMade(ContributionMadeDTO contribution) {
+        var caseOpt = caseRepo.getByCode(new CaseCode(contribution.caseCode()));
 
-            if (collected > case_.goal()) {
-                title = messageService.getMessage("notification.case.closed.exceeded", collected);
-            } else if (collected == case_.goal()) {
-                title = messageService.getMessage("notification.case.closed.exact", collected);
-            } else {
-                title = messageService.getMessage("notification.case.closed.incomplete");
-            }
+        if (caseOpt.isEmpty()) {
+            logger.info("case not found when trying to notify a Contribution");
+            return;
+        }
 
-            var payload = new NotificationPayload(
-                    case_.caseCode(),
-                    case_.title()
-            );
+        Case case_ = caseOpt.get();
 
-            notificationApi.notifyTopicSubscribers(
-                    "CaseUpdates",
-                    "caseClosed",
-                    payload,
-                    title,
-                    messageService.getMessage("notification.case.closed.body")
-            );
-        });
-    }
+        String title = case_.getContributions().size() == 1 ?
+                messageService.getMessage("notification.contribution.first", contribution.amount()) :
+                messageService.getMessage("notification.contribution.additional", contribution.amount());
 
-    @SneakyThrows
-    @Override
-    public CompletableFuture<Void> notifyContributionMade(ContributionMadeDTO contribution) {
-        return CompletableFuture.runAsync(() -> {
-            Case case_ = caseRepo.getByCode(new CaseCode(contribution.caseCode()))
-                    .join();
+        String[] messages = messageService.getMessage("notification.contribution.messages").split(",");
+        String randomMessage = messages[random.nextInt(messages.length)];
 
-            if (case_ == null) {
-                logger.info("case not found when trying to notify a Contribution");
-                return;
-            }
+        var payload = new ContributionNotificationPayload(
+                case_.getId().value(),
+                case_.getTitle(),
+                contribution.amount()
+        );
 
-            String title = case_.getContributions().size() == 1 ?
-                    messageService.getMessage("notification.contribution.first", contribution.amount()) :
-                    messageService.getMessage("notification.contribution.additional", contribution.amount());
-
-            String[] messages = messageService.getMessage("notification.contribution.messages").split(",");
-            String randomMessage = messages[random.nextInt(messages.length)];
-
-            var payload = new ContributionNotificationPayload(
-                    case_.getId().value(),
-                    case_.getTitle(),
-                    contribution.amount()
-            );
-
-            notificationApi.notifyTopicSubscribers(
-                    "CaseUpdates",
-                    "contributionMade",
-                    payload,
-                    title,
-                    randomMessage
-            );
-        });
+        notificationApi.notifyTopicSubscribers(
+                "CaseUpdates",
+                "contributionMade",
+                payload,
+                title,
+                randomMessage
+        );
     }
 
     private record NotificationPayload(

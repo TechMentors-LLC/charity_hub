@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 @Component
 public class CasesGateway implements ICasesGateway {
@@ -19,23 +18,22 @@ public class CasesGateway implements ICasesGateway {
     }
 
     @Override
-    public CompletableFuture<List<ContributionDTO>> getContributions(UUID userId) {
+    public List<ContributionDTO> getContributions(UUID userId) {
         return casesAPI.getUsersContributions(userId);
     }
 
     @Override
-    public CompletableFuture<List<CaseDTO>> getCasesByIds(List<Integer> casesCodes) {
+    public List<CaseDTO> getCasesByIds(List<Integer> casesCodes) {
         return casesAPI.getCasesByCodes(casesCodes);
     }
 
     @Override
-    public CompletableFuture<List<ContributionDTO>> getNotConfirmedContributions(UUID userId) {
+    public List<ContributionDTO> getNotConfirmedContributions(UUID userId) {
         return casesAPI.getNotConfirmedContributions(userId);
     }
 
     @Override
-    public CompletableFuture<List<ContributionDTO>> getContributions(List<UUID> usersIds) {
+    public List<ContributionDTO> getContributions(List<UUID> usersIds) {
         return casesAPI.getUsersContributions(usersIds);
     }
-
 }

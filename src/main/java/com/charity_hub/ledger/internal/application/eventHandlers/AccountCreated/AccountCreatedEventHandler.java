@@ -7,8 +7,6 @@ import com.charity_hub.ledger.internal.application.contracts.IMembersNetworkRepo
 import com.charity_hub.ledger.internal.application.eventHandlers.loggers.AccountCreatedEventLogger;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.CompletableFuture;
-
 @Component
 public class AccountCreatedEventHandler {
     private final IMembersNetworkRepo memberShipRepo;
@@ -29,31 +27,29 @@ public class AccountCreatedEventHandler {
     }
 
     public void accountCreatedHandler(AccountCreated account) {
-        CompletableFuture.runAsync(() -> {
-            logger.processingAccount(account.id(), account.mobileNumber());
+        logger.processingAccount(account.id(), account.mobileNumber());
 
-            var invitation = invitationGateway.getInvitationByMobileNumber(account.mobileNumber()).join();
+        var invitation = invitationGateway.getInvitationByMobileNumber(account.mobileNumber());
 
-            if (invitation == null) {
-                logger.invitationNotFound(account.id(), account.mobileNumber());
-                return;
-            }
+        if (invitation == null) {
+            logger.invitationNotFound(account.id(), account.mobileNumber());
+            return;
+        }
 
-            var parentMember = memberShipRepo.getById(invitation.inviterId()).join();
-            if (parentMember == null) {
-                logger.parentMemberNotFound(account.id(), invitation.inviterId());
-                return;
-            }
+        var parentMember = memberShipRepo.getById(invitation.inviterId());
+        if (parentMember == null) {
+            logger.parentMemberNotFound(account.id(), invitation.inviterId());
+            return;
+        }
 
-            try {
-                Member newMember = Member.newMember(parentMember, account.id());
-                memberShipRepo.save(newMember).join();
-                logger.membershipCreated(account.id(), invitation.inviterId());
-                
-                notificationService.notifyNewConnectionAdded(newMember);
-            } catch (Exception e) {
-                logger.membershipCreationFailed(account.id(), invitation.inviterId(), e);
-            }
-        });
+        try {
+            Member newMember = Member.newMember(parentMember, account.id());
+            memberShipRepo.save(newMember);
+            logger.membershipCreated(account.id(), invitation.inviterId());
+            
+            notificationService.notifyNewConnectionAdded(newMember);
+        } catch (Exception e) {
+            logger.membershipCreationFailed(account.id(), invitation.inviterId(), e);
+        }
     }
 }

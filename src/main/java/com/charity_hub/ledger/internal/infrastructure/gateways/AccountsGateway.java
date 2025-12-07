@@ -8,7 +8,6 @@ import com.charity_hub.ledger.internal.domain.model.MemberId;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Component("ledgerAccountsGateway")
 public class AccountsGateway implements IAccountGateway {
@@ -19,22 +18,19 @@ public class AccountsGateway implements IAccountGateway {
     }
 
     @Override
-    public CompletableFuture<InvitationResponse> getInvitationByMobileNumber(String mobileNumber) {
-        return accountsAPI.getInvitationByMobileNumber(mobileNumber)
-                .thenApply(account -> {
-                    if (account == null) {
-                        return null;
-                    }
-                    return new InvitationResponse(
-                            account.invitedMobileNumber(),
-                            account.inviterId()
-                    );
-                });
+    public InvitationResponse getInvitationByMobileNumber(String mobileNumber) {
+        var account = accountsAPI.getInvitationByMobileNumber(mobileNumber);
+        if (account == null) {
+            return null;
+        }
+        return new InvitationResponse(
+                account.invitedMobileNumber(),
+                account.inviterId()
+        );
     }
 
     @Override
-    public CompletableFuture<List<AccountDTO>> getAccounts(List<MemberId> ids) {
+    public List<AccountDTO> getAccounts(List<MemberId> ids) {
         return accountsAPI.getAccountsByIds(ids.stream().map(MemberId::value).toList());
-
     }
 }

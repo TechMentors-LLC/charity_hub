@@ -1,24 +1,23 @@
 package com.charity_hub.cases.internal.application.queries.GetDraftCases;
 
-import com.charity_hub.cases.internal.infrastructure.repositories.ReadCaseRepo;
+import com.charity_hub.cases.internal.application.contracts.ICaseReadRepo;
 import com.charity_hub.shared.abstractions.QueryHandler;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
 public class GetDraftCasesHandler implements QueryHandler<GetDraftCases, GetDraftCasesResponse> {
-    private final ReadCaseRepo caseRepo;
+    private final ICaseReadRepo caseRepo;
 
-    public GetDraftCasesHandler(ReadCaseRepo caseRepo) {
+    public GetDraftCasesHandler(ICaseReadRepo caseRepo) {
         this.caseRepo = caseRepo;
     }
 
     @Override
-    public CompletableFuture<GetDraftCasesResponse> handle(GetDraftCases query) {
-        List<GetDraftCasesResponse.DraftCase> draftCases = caseRepo.getDraftCases().join()
+    public GetDraftCasesResponse handle(GetDraftCases query) {
+        List<GetDraftCasesResponse.DraftCase> draftCases = caseRepo.getDraftCases()
                 .stream()
                 .map(it -> new GetDraftCasesResponse.DraftCase(
                         it.code(),
@@ -31,6 +30,6 @@ public class GetDraftCasesHandler implements QueryHandler<GetDraftCases, GetDraf
                 ))
                 .collect(Collectors.toList());
 
-        return CompletableFuture.completedFuture(new GetDraftCasesResponse(draftCases));
+        return new GetDraftCasesResponse(draftCases);
     }
 }
