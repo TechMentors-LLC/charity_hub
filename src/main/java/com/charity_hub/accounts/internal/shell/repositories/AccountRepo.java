@@ -11,6 +11,8 @@ import com.charity_hub.shared.domain.IEventBus;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReplaceOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -20,6 +22,7 @@ import static com.mongodb.client.model.Filters.*;
 
 @Repository
 public class AccountRepo implements IAccountRepo {
+    private static final Logger logger = LoggerFactory.getLogger(AccountRepo.class);
     private static final String ACCOUNTS_COLLECTION = "accounts";
     private static final String REVOKED_ACCOUNT_COLLECTION = "revoked_accounts";
 
@@ -44,12 +47,14 @@ public class AccountRepo implements IAccountRepo {
 
     @Override
     public Optional<Account> getById(UUID id) {
+        logger.debug("Fetching account by ID: {}", id);
         return Optional.ofNullable(collection.find(eq("accountId", id.toString())).first())
                 .map(domainAccountMapper::toDomain);
     }
 
     @Override
     public List<Account> getConnections(UUID id) {
+        logger.debug("Fetching connections for account: {}", id);
         return collection.find(eq("connections.userId", id.toString()))
                 .map(domainAccountMapper::toDomain)
                 .into(new ArrayList<>());
@@ -57,18 +62,21 @@ public class AccountRepo implements IAccountRepo {
 
     @Override
     public Optional<Account> getByMobileNumber(String mobileNumber) {
+        logger.debug("Fetching account by mobile number: {}", mobileNumber);
         return Optional.ofNullable(collection.find(eq("mobileNumber", mobileNumber)).first())
                 .map(domainAccountMapper::toDomain);
     }
 
     @Override
     public void save(Account account) {
+        logger.debug("Saving account: {}", account.getId().value());
         AccountEntity entity = domainAccountMapper.toDB(account);
         collection.replaceOne(
                 eq("accountId", entity.accountId()),
                 entity,
                 new ReplaceOptions().upsert(true)
         );
+        logger.info("Account saved successfully: {}", account.getId().value());
         account.occurredEvents().stream()
                 .map(event -> AccountEventsMapper.map((AccountEvent) event))
                 .forEach(eventBus::push);
@@ -76,24 +84,32 @@ public class AccountRepo implements IAccountRepo {
 
     @Override
     public boolean isAdmin(String mobileNumber) {
-        return admins.contains(mobileNumber);
+        boolean isAdmin = admins.contains(mobileNumber);
+        logger.debug("Admin check for {}: {}", mobileNumber, isAdmin);
+        return isAdmin;
     }
 
     @Override
     public void revoke(UUID uuid) {
+        logger.info("Revoking account tokens: {}", uuid);
         RevokedAccountEntity revokedAccount = new RevokedAccountEntity(uuid.toString(), new Date().getTime());
         if (revokedCollection.find(eq("accountId", uuid.toString())).first() != null) {
             revokedCollection.replaceOne(eq("accountId", uuid.toString()), revokedAccount);
         } else {
             revokedCollection.insertOne(revokedAccount);
         }
+        logger.info("Account tokens revoked: {}", uuid);
     }
 
     @Override
     public boolean isRevoked(UUID id, long tokenIssueDate) {
-        return revokedCollection.find(and(
+        boolean isRevoked = revokedCollection.find(and(
                 eq("accountId", id.toString()),
                 gt("revokedTime", tokenIssueDate)
         )).first() != null;
+        if (isRevoked) {
+            logger.debug("Token revoked for account: {}", id);
+        }
+        return isRevoked;
     }
 }

@@ -7,6 +7,8 @@ import com.charity_hub.accounts.internal.shell.db.InvitationEntity;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReplaceOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -17,6 +19,7 @@ import static com.mongodb.client.model.Filters.eq;
 
 @Repository
 public class InvitationRepo implements IInvitationRepo {
+    private static final Logger logger = LoggerFactory.getLogger(InvitationRepo.class);
     private static final String COLLECTION = "invitations";
 
     private final MongoCollection<InvitationEntity> collection;
@@ -29,27 +32,40 @@ public class InvitationRepo implements IInvitationRepo {
 
     @Override
     public void save(Invitation invitation) {
+        logger.info("Saving invitation for mobile: {}", invitation.invitedMobileNumber().value());
         InvitationEntity entity = invitationMapper.toEntity(invitation);
         collection.replaceOne(
                 eq("inviterId", entity.inviterId()),
                 entity,
                 new ReplaceOptions().upsert(true)
         );
+        logger.debug("Invitation saved successfully for mobile: {}", invitation.invitedMobileNumber().value());
     }
 
     @Override
     public Invitation get(String mobileNumber) {
-        return Optional.ofNullable(collection.find(eq("mobileNumber", mobileNumber)).first())
+        logger.debug("Looking up invitation for mobile: {}", mobileNumber);
+        Invitation invitation = Optional.ofNullable(collection.find(eq("mobileNumber", mobileNumber)).first())
                 .map(invitationMapper::fromEntity)
                 .orElse(null);
+        if (invitation == null) {
+            logger.debug("No invitation found for mobile: {}", mobileNumber);
+        }
+        return invitation;
     }
 
     @Override
     public boolean hasInvitation(String mobileNumber) {
-        return collection.find(eq("mobileNumber", mobileNumber)).first() != null;
+        logger.debug("Checking if invitation exists for mobile: {}", mobileNumber);
+        boolean exists = collection.find(eq("mobileNumber", mobileNumber)).first() != null;
+        logger.debug("Invitation exists for mobile {}: {}", mobileNumber, exists);
+        return exists;
     }
 
     public List<InvitationEntity> getAll() {
-        return collection.find().into(new ArrayList<>());
+        logger.debug("Retrieving all invitations");
+        List<InvitationEntity> invitations = collection.find().into(new ArrayList<>());
+        logger.debug("Retrieved {} invitations", invitations.size());
+        return invitations;
     }
 }

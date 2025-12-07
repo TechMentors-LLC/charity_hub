@@ -19,8 +19,14 @@ public class BlockAccountHandler extends VoidCommandHandler<BlockAccount> {
     @Override
     @Transactional
     public void handle(BlockAccount command) {
+        String action = command.isUnblock() ? "UNBLOCK" : "BLOCK";
+        logger.info("Account {} requested - UserId: {}", action, command.userId());
+        
         var identity = accountRepo.getById(UUID.fromString(command.userId()))
-                .orElseThrow(() -> new NotFoundException("User with Id " + command.userId() + " not found"));
+                .orElseThrow(() -> {
+                    logger.warn("Account not found for {} - UserId: {}", action, command.userId());
+                    return new NotFoundException("User with Id " + command.userId() + " not found");
+                });
 
         if (command.isUnblock()) {
             identity.unBlock();
@@ -29,5 +35,6 @@ public class BlockAccountHandler extends VoidCommandHandler<BlockAccount> {
         }
 
         accountRepo.save(identity);
+        logger.info("Account {} completed successfully - UserId: {}", action, command.userId());
     }
 }

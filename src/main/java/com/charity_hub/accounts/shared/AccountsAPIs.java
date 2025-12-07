@@ -27,10 +27,12 @@ public class AccountsAPIs implements IAccountsAPI {
         return new InvitationResponse(invitation.invitedMobileNumber().value(), invitation.inviterId());
     }
 
+    @Override
     public AccountDTO getById(UUID id) {
         return dtoAccountMapper.toDTO(readAccountRepo.getById(id));
     }
 
+    @Override
     public List<AccountDTO> getAccountsByIds(List<UUID> ids) {
         return readAccountRepo.getAccountsByIds(ids)
                 .stream()

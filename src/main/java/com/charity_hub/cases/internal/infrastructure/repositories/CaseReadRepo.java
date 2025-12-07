@@ -8,6 +8,8 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 import org.bson.conversions.Bson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Repository
 public class CaseReadRepo implements ICaseReadRepo {
+    private static final Logger logger = LoggerFactory.getLogger(CaseReadRepo.class);
     private static final String CASES_COLLECTION = "cases";
     private static final String CONTRIBUTION_COLLECTION = "contributions";
 
@@ -31,28 +34,38 @@ public class CaseReadRepo implements ICaseReadRepo {
 
     @Override
     public CaseEntity getByCode(int code) {
+        logger.debug("Looking up case by code: {}", code);
         return cases.find(Filters.eq("code", code)).first();
     }
 
     @Override
     public List<CaseEntity> getByCodes(List<Integer> codes) {
-        return cases.find(Filters.in("code", codes))
+        logger.debug("Looking up cases by codes: {}", codes);
+        List<CaseEntity> result = cases.find(Filters.in("code", codes))
                 .into(new ArrayList<>());
+        logger.debug("Found {} cases for {} codes", result.size(), codes.size());
+        return result;
     }
 
     @Override
     public List<ContributionEntity> getContributionsByCaseCode(int caseCode) {
-        return contributions.find(Filters.eq("caseCode", caseCode))
+        logger.debug("Looking up contributions for case code: {}", caseCode);
+        List<ContributionEntity> result = contributions.find(Filters.eq("caseCode", caseCode))
                 .into(new ArrayList<>());
+        logger.debug("Found {} contributions for case code: {}", result.size(), caseCode);
+        return result;
     }
 
     @Override
     public int getCasesCount(Supplier<Bson> filter) {
+        logger.debug("Counting cases with filter");
         Bson query = Filters.ne("status", CaseEntity.STATUS_DRAFT);
         if (filter != null) {
             query = Filters.and(query, filter.get());
         }
-        return (int) cases.countDocuments(query);
+        int count = (int) cases.countDocuments(query);
+        logger.debug("Cases count: {}", count);
+        return count;
     }
 
     @Override
@@ -61,12 +74,13 @@ public class CaseReadRepo implements ICaseReadRepo {
             int limit,
             Supplier<Bson> filter
     ) {
+        logger.debug("Searching cases with offset: {}, limit: {}", offset, limit);
         Bson query = Filters.ne("status", CaseEntity.STATUS_DRAFT);
         if (filter != null) {
             query = Filters.and(query, filter.get());
         }
 
-        return cases.find(query)
+        List<CaseEntity> result = cases.find(query)
                 .sort(Sorts.orderBy(
                         Sorts.ascending("status"),
                         Sorts.descending("lastUpdated")
@@ -74,21 +88,27 @@ public class CaseReadRepo implements ICaseReadRepo {
                 .skip(offset)
                 .limit(limit)
                 .into(new ArrayList<>());
+        logger.debug("Search returned {} cases", result.size());
+        return result;
     }
 
     @Override
     public List<ContributionEntity> getNotConfirmedContributions(UUID contributorId) {
-        return contributions.find(Filters.and(
+        logger.debug("Looking up not confirmed contributions for contributor: {}", contributorId);
+        List<ContributionEntity> result = contributions.find(Filters.and(
                         Filters.eq("contributorId", contributorId.toString()),
                         Filters.ne("status", ContributionEntity.STATUS_CONFIRMED)
                 ))
                 .sort(Sorts.descending("lastUpdated"))
                 .into(new ArrayList<>());
+        logger.debug("Found {} not confirmed contributions for contributor: {}", result.size(), contributorId);
+        return result;
     }
 
     @Override
     public List<ContributionEntity> getContributions(List<UUID> contributorsIds) {
-        return contributions.find(
+        logger.debug("Looking up contributions for {} contributors", contributorsIds.size());
+        List<ContributionEntity> result = contributions.find(
                         Filters.in("contributorId",
                                 contributorsIds.stream()
                                         .map(UUID::toString)
@@ -97,19 +117,27 @@ public class CaseReadRepo implements ICaseReadRepo {
                 )
                 .sort(Sorts.descending("lastUpdated"))
                 .into(new ArrayList<>());
+        logger.debug("Found {} contributions for {} contributors", result.size(), contributorsIds.size());
+        return result;
     }
 
     @Override
     public List<ContributionEntity> getContributions(UUID contributorId) {
-        return contributions.find(Filters.eq("contributorId", contributorId.toString()))
+        logger.debug("Looking up contributions for contributor: {}", contributorId);
+        List<ContributionEntity> result = contributions.find(Filters.eq("contributorId", contributorId.toString()))
                 .sort(Sorts.descending("lastUpdated"))
                 .into(new ArrayList<>());
+        logger.debug("Found {} contributions for contributor: {}", result.size(), contributorId);
+        return result;
     }
 
     @Override
     public List<CaseEntity> getDraftCases() {
-        return cases.find(Filters.eq("status", CaseEntity.STATUS_DRAFT))
+        logger.debug("Looking up draft cases");
+        List<CaseEntity> result = cases.find(Filters.eq("status", CaseEntity.STATUS_DRAFT))
                 .sort(Sorts.descending("lastUpdated"))
                 .into(new ArrayList<>());
+        logger.debug("Found {} draft cases", result.size());
+        return result;
     }
 }

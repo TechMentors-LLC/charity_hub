@@ -16,9 +16,13 @@ public class InviteAccountHandler extends VoidCommandHandler<InvitationAccount> 
 
     @Override
     public void handle(InvitationAccount command) {
+        logger.info("Processing invitation - MobileNumber: {}, InviterId: {}", 
+                command.mobileNumber(), command.inviterId());
+        
         boolean hasInvitation = invitationRepo.hasInvitation(command.mobileNumber());
 
         if (hasInvitation) {
+            logger.warn("Duplicate invitation attempt - MobileNumber: {} already invited", command.mobileNumber());
             throw new AlreadyInvitedException("already invited");
         }
 
@@ -28,5 +32,7 @@ public class InviteAccountHandler extends VoidCommandHandler<InvitationAccount> 
         );
 
         invitationRepo.save(newInvitation);
+        logger.info("Invitation created successfully - MobileNumber: {}, InviterId: {}", 
+                command.mobileNumber(), command.inviterId());
     }
 }

@@ -17,12 +17,20 @@ public class ContributeHandler extends CommandHandler<Contribute, ContributeDefa
 
     @Override
     public ContributeDefaultResponse handle(Contribute command) {
+        logger.info("Processing contribution - CaseCode: {}, UserId: {}, Amount: {}", 
+                command.caseCode(), command.userId(), command.amount());
+        
         var case_ = caseRepo.getByCode(new CaseCode(command.caseCode()))
-                .orElseThrow(() -> new NotFoundException("This case is not found"));
+                .orElseThrow(() -> {
+                    logger.warn("Case not found for contribution - CaseCode: {}", command.caseCode());
+                    return new NotFoundException("This case is not found");
+                });
 
         var contribution = case_.contribute(command.userId(), command.amount());
         
         caseRepo.save(case_);
+        logger.info("Contribution created successfully - ContributionId: {}, CaseCode: {}, Amount: {}", 
+                contribution.contributionId(), command.caseCode(), command.amount());
         return new ContributeDefaultResponse(contribution.contributionId());
     }
 }

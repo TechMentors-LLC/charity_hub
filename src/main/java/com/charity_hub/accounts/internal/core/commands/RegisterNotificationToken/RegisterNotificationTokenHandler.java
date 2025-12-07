@@ -17,9 +17,14 @@ public class RegisterNotificationTokenHandler extends VoidCommandHandler<Registe
     public void handle(
             RegisterNotificationToken command
     ) {
-
+                logger.info("Registering FCM token - UserId: {}, DeviceId: {}", 
+                        command.userId(), command.deviceId());
+                
                 var identity = accountRepo.getById(command.userId())
-                        .orElseThrow(()-> new NotFoundException("User with Id " + command.userId() + " not found"));
+                        .orElseThrow(()-> {
+                            logger.warn("Account not found for FCM registration - UserId: {}", command.userId());
+                            return new NotFoundException("User with Id " + command.userId() + " not found");
+                        });
 
                 identity.registerFCMToken(
                         command.deviceId(),
@@ -27,6 +32,7 @@ public class RegisterNotificationTokenHandler extends VoidCommandHandler<Registe
                 );
 
                 accountRepo.save(identity);
-
+                logger.info("FCM token registered successfully - UserId: {}, DeviceId: {}", 
+                        command.userId(), command.deviceId());
     }
 }

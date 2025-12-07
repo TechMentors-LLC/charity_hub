@@ -15,8 +15,15 @@ public class ChangePermissionHandler extends VoidCommandHandler<ChangePermission
 
     @Override
     public void handle(ChangePermission command) {
+                String action = command.shouldAdd() ? "ADD" : "REMOVE";
+                logger.info("Permission change requested - UserId: {}, Permission: {}, Action: {}", 
+                        command.userId(), command.permission(), action);
+                
                 var identity = accountRepo.getById(command.userId())
-                        .orElseThrow(()-> new NotFoundException("User with Id " + command.userId() + " not found"));
+                        .orElseThrow(()-> {
+                            logger.warn("Account not found for permission change - UserId: {}", command.userId());
+                            return new NotFoundException("User with Id " + command.userId() + " not found");
+                        });
 
                 if (command.shouldAdd()) {
                     identity.addPermission(command.permission());
@@ -25,6 +32,7 @@ public class ChangePermissionHandler extends VoidCommandHandler<ChangePermission
                 }
 
                 accountRepo.save(identity);
-
+                logger.info("Permission change completed - UserId: {}, Permission: {}, Action: {}", 
+                        command.userId(), command.permission(), action);
     }
 }

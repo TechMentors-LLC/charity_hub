@@ -16,8 +16,13 @@ public class UpdateCaseHandler extends VoidCommandHandler<UpdateCase> {
 
     @Override
     public void handle(UpdateCase command) {
+        logger.info("Updating case - CaseCode: {}, Title: {}", command.caseCode(), command.title());
+        
         var case_ = caseRepo.getByCode(new CaseCode(command.caseCode()))
-                .orElseThrow(() -> new NotFoundException("This case is not found"));
+                .orElseThrow(() -> {
+                    logger.warn("Case not found for update - CaseCode: {}", command.caseCode());
+                    return new NotFoundException("This case is not found");
+                });
 
         case_.update(
                 command.title(),
@@ -27,5 +32,6 @@ public class UpdateCaseHandler extends VoidCommandHandler<UpdateCase> {
                 command.documents()
         );
         caseRepo.save(case_);
+        logger.info("Case updated successfully - CaseCode: {}", command.caseCode());
     }
 }

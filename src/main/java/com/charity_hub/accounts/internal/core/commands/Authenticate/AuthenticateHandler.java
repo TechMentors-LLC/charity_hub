@@ -36,15 +36,15 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
     @Override
     public AuthenticateResponse handle(Authenticate command) {
 
-        logger.info("Handling authentication for idToken: {}", command.idToken());
+        logger.info("Authentication attempt - DeviceId: {}, DeviceType: {}", command.deviceId(), command.deviceType());
 
         String mobileNumber = authProvider.getVerifiedMobileNumber(command.idToken());
 
-        logger.info("check for account: {}", command);
+        logger.debug("Mobile number verified: {}", mobileNumber);
 
         Account account = existingAccountOrNewAccount(mobileNumber, command);
 
-        logger.info(" finish check for account: {}", command.idToken());
+        logger.debug("Account resolved for authentication - MobileNumber: {}", mobileNumber);
         var tokens = account.authenticate(
                 command.deviceId(),
                 command.deviceType(),
@@ -52,7 +52,7 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
         );
 
         accountRepo.save(account);
-        logger.info("Authentication successful for account: {}", account.getMobileNumber());
+        logger.info("Authentication successful - MobileNumber: {}, DeviceId: {}", mobileNumber, command.deviceId());
 
         return new AuthenticateResponse(tokens.first, tokens.second);
 
@@ -61,7 +61,14 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
     private Account existingAccountOrNewAccount(String mobileNumber, Authenticate request) {
 
         return accountRepo.getByMobileNumber(mobileNumber)
-                .orElseGet(()->authenticateNewAccount(mobileNumber, request));
+                .map(account -> {
+                    logger.debug("Existing account found - MobileNumber: {}", mobileNumber);
+                    return account;
+                })
+                .orElseGet(() -> {
+                    logger.info("Creating new account - MobileNumber: {}", mobileNumber);
+                    return authenticateNewAccount(mobileNumber, request);
+                });
     }
 
     private Account authenticateNewAccount(String mobileNumber, Authenticate request) {
@@ -69,10 +76,11 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
         boolean hasNoInvitations = !invitationRepo.hasInvitation(mobileNumber);
 
         if (!isAdmin && hasNoInvitations) {
-            logger.warn("Account not invited: {}", mobileNumber);
+            logger.warn("Authentication rejected - Account not invited: {}", mobileNumber);
             throw new BusinessRuleException("Account not invited to use the App");
         }
 
+        logger.info("New account created - MobileNumber: {}, IsAdmin: {}", mobileNumber, isAdmin);
         return Account.newAccount(
                 mobileNumber,
                 request.deviceId(),

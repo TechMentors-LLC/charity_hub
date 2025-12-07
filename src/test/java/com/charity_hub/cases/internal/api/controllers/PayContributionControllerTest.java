@@ -158,7 +158,7 @@ class PayContributionControllerTest {
         // Verify handler was called with empty string paymentProof
         verify(handler).handle(argThat(command ->
                 command.contributionId().equals(contributionId) &&
-                command.paymentProof().equals("")
+                command.paymentProof().isEmpty()
         ));
     }
 

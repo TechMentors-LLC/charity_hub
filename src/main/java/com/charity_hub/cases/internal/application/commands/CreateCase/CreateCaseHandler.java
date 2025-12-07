@@ -17,6 +17,9 @@ public class CreateCaseHandler extends CommandHandler<CreateCase, CaseResponse> 
 
     @Override
     public CaseResponse handle(CreateCase command) {
+        logger.info("Creating new case - Title: {}, Goal: {}, Publish: {}", 
+                command.title(), command.goal(), command.publish());
+        
         var newCase = Case.newCase(
                 new NewCaseProbs(
                         caseRepo.nextCaseCode(),
@@ -30,6 +33,8 @@ public class CreateCaseHandler extends CommandHandler<CreateCase, CaseResponse> 
         );
 
         caseRepo.save(newCase);
+        logger.info("Case created successfully - CaseCode: {}, Status: {}", 
+                newCase.getCaseCode().value(), command.publish() ? "OPENED" : "DRAFT");
         return new CaseResponse(newCase.getCaseCode().value());
     }
 }

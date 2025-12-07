@@ -17,6 +17,8 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 
 @Repository
 public class CaseRepo implements ICaseRepo {
+    private static final Logger logger = LoggerFactory.getLogger(CaseRepo.class);
     private static final String CASES_COLLECTION = "cases";
     private static final String CONTRIBUTION_COLLECTION = "contributions";
 
@@ -55,14 +58,20 @@ public class CaseRepo implements ICaseRepo {
                 .sort(new org.bson.Document("code", -1))
                 .limit(1)
                 .first();
-        return (lastCase != null ? lastCase.code() : 20039) + 1;
+        int nextCode = (lastCase != null ? lastCase.code() : 20039) + 1;
+        logger.debug("Generated next case code: {}", nextCode);
+        return nextCode;
     }
 
     @Override
     public Optional<Case> getByCode(CaseCode caseCode) {
+        logger.debug("Fetching case by code: {}", caseCode.value());
         CaseEntity entity = cases.find(new org.bson.Document("code", caseCode.value()))
                 .first();
-        if (entity == null) return Optional.empty();
+        if (entity == null) {
+            logger.debug("Case not found: {}", caseCode.value());
+            return Optional.empty();
+        }
         return Optional.of(caseMapper.toDomain(
             entity,
             getContributionsByCaseCode(new CaseCode(entity.code()))
@@ -71,8 +80,10 @@ public class CaseRepo implements ICaseRepo {
 
     @Override
     public void save(Case case_) {
+        logger.debug("Saving case: {}", case_.getCaseCode().value());
         List<Contribution> caseContributions = case_.getContributions();
         if (!caseContributions.isEmpty()) {
+            logger.debug("Saving {} contributions for case: {}", caseContributions.size(), case_.getCaseCode().value());
             List<com.mongodb.client.model.ReplaceOneModel<ContributionEntity>> updates =
                 caseContributions.stream()
                     .map(contribution -> new com.mongodb.client.model.ReplaceOneModel<>(
@@ -90,6 +101,7 @@ public class CaseRepo implements ICaseRepo {
             caseMapper.toDB(case_),
             new ReplaceOptions().upsert(true)
         );
+        logger.info("Case saved successfully: {}", case_.getCaseCode().value());
 
         case_.occurredEvents().stream()
             .map(event -> CaseEventsMapper.map((CaseEvent) event))
@@ -98,7 +110,9 @@ public class CaseRepo implements ICaseRepo {
 
     @Override
     public void delete(CaseCode caseCode) {
+        logger.info("Deleting case: {}", caseCode.value());
         cases.deleteOne(new org.bson.Document("code", caseCode.value()));
+        logger.info("Case deleted: {}", caseCode.value());
     }
 
     private List<ContributionEntity> getContributionsByCaseCode(CaseCode caseCode) {
@@ -108,6 +122,9 @@ public class CaseRepo implements ICaseRepo {
 
     @Override
     public void save(Contribution contribution) {
+        logger.debug("Saving contribution: {} - Status: {}", 
+                contribution.getId().value(), contribution.getContributionStatus());
+        
         // Check if this is a status change (pay or confirm operation)
         if (contribution.getContributionStatus() == ContributionStatus.PAID ||
             contribution.getContributionStatus() == ContributionStatus.CONFIRMED) {
@@ -128,8 +145,12 @@ public class CaseRepo implements ICaseRepo {
 
             // Check if the update modified any documents
             if (updateResult.getModifiedCount() == 0 && updateResult.getMatchedCount() == 0) {
+                logger.error("Failed to update contribution status - ContributionId: {} does not exist", 
+                        contribution.getId().value());
                 throw new IllegalStateException("Failed to update contribution status: Contribution does not exist.");
             }
+            logger.info("Contribution status updated - ContributionId: {}, NewStatus: {}", 
+                    contribution.getId().value(), contribution.getContributionStatus());
         } else {
             // For other operations, replace the entire document
             contributions.replaceOne(
@@ -137,6 +158,7 @@ public class CaseRepo implements ICaseRepo {
                 contributionMapper.toDB(contribution),
                 new ReplaceOptions().upsert(true)
             );
+            logger.info("Contribution saved - ContributionId: {}", contribution.getId().value());
         }
 
         contribution.occurredEvents()
@@ -145,10 +167,14 @@ public class CaseRepo implements ICaseRepo {
 
     @Override
     public Optional<Contribution> getContributionById(UUID id) {
+        logger.debug("Fetching contribution by ID: {}", id);
         ContributionEntity entity = contributions.find(
             new org.bson.Document("_id", id.toString())
         ).first();
 
+        if (entity == null) {
+            logger.debug("Contribution not found: {}", id);
+        }
         return Optional.ofNullable(entity).map(contributionMapper::toDomain);
     }
 }

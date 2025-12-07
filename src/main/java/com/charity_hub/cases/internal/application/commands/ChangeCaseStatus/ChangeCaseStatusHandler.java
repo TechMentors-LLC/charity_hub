@@ -16,8 +16,14 @@ public class ChangeCaseStatusHandler extends VoidCommandHandler<ChangeCaseStatus
 
     @Override
     public void handle(ChangeCaseStatus command) {
+            String action = command.isActionOpen() ? "OPEN" : "CLOSE";
+            logger.info("Changing case status - CaseCode: {}, Action: {}", command.caseCode(), action);
+            
             var case_ = caseRepo.getByCode(new CaseCode(command.caseCode()))
-                    .orElseThrow(() -> new NotFoundException("This case is not found"));
+                    .orElseThrow(() -> {
+                        logger.warn("Case not found for status change - CaseCode: {}", command.caseCode());
+                        return new NotFoundException("This case is not found");
+                    });
 
             if (command.isActionOpen()) {
                 case_.open();
@@ -26,6 +32,6 @@ public class ChangeCaseStatusHandler extends VoidCommandHandler<ChangeCaseStatus
             }
 
             caseRepo.save(case_);
-
+            logger.info("Case status changed successfully - CaseCode: {}, NewStatus: {}", command.caseCode(), action);
     }
 }

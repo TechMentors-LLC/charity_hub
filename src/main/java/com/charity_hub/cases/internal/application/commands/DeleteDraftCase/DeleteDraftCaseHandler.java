@@ -16,9 +16,15 @@ public class DeleteDraftCaseHandler extends VoidCommandHandler<DeleteDraftCase> 
 
     @Override
     public void handle(DeleteDraftCase command) {
+        logger.info("Deleting draft case - CaseCode: {}", command.caseCode());
+        
         var case_ = caseRepo.getByCode(new CaseCode(command.caseCode()))
-                .orElseThrow(() -> new NotFoundException("This case is not found"));
+                .orElseThrow(() -> {
+                    logger.warn("Draft case not found for deletion - CaseCode: {}", command.caseCode());
+                    return new NotFoundException("This case is not found");
+                });
         
         case_.delete(caseRepo);
+        logger.info("Draft case deleted successfully - CaseCode: {}", command.caseCode());
     }
 }
