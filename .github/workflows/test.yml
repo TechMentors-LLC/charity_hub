@@ -22,6 +22,8 @@ jobs:
 
       - name: 'Setup Gradle'
         uses: 'gradle/actions/setup-gradle@v3'
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/migration/virtual-threads' }}
 
       - name: 'Create test Firebase cert'
         run: |
@@ -31,13 +33,18 @@ jobs:
       - name: 'Make gradlew executable'
         run: chmod +x ./gradlew
 
+      - name: 'Cache Docker images'
+        uses: 'ScribeMD/docker-cache@0.5.0'
+        with:
+          key: docker-${{ runner.os }}-mongo-7.0
+
       - name: 'Pre-pull MongoDB image for Testcontainers'
         run: docker pull mongo:7.0
 
       - name: 'Run tests'
         env:
           TESTCONTAINERS_RYUK_DISABLED: 'true'
-        run: ./gradlew test --continue
+        run: ./gradlew test --continue --build-cache
 
       - name: 'Upload test results'
         uses: 'actions/upload-artifact@v4'
