@@ -22,8 +22,6 @@ jobs:
 
       - name: 'Setup Gradle'
         uses: 'gradle/actions/setup-gradle@v3'
-        with:
-          gradle-version: '8.7'
 
       - name: 'Create test Firebase cert'
         run: |
@@ -34,13 +32,22 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: 'Run tests'
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: 'true'
         run: ./gradlew test --quiet --continue
+
+      - name: 'Upload test results'
+        uses: 'actions/upload-artifact@v4'
+        if: always()
+        with:
+          name: test-results
+          path: build/reports/tests/test/
 
       - name: 'Display test results summary'
         if: always()
         run: |
           echo "## Test Results Summary"
-          if [ -f build/test-results/test/TEST-*.xml ]; then
+          if ls build/test-results/test/TEST-*.xml 1> /dev/null 2>&1; then
             echo "✅ Tests completed"
             total_tests=$(grep -h "tests=" build/test-results/test/TEST-*.xml | sed 's/.*tests="\([0-9]*\)".*/\1/' | awk '{sum += $1} END {print sum}')
             failed_tests=$(grep -h "failures=" build/test-results/test/TEST-*.xml | sed 's/.*failures="\([0-9]*\)".*/\1/' | awk '{sum += $1} END {print sum}')
