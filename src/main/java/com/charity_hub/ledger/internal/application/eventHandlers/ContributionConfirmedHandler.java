@@ -4,7 +4,7 @@ import com.charity_hub.cases.shared.dtos.ContributionConfirmedDTO;
 import com.charity_hub.ledger.internal.domain.contracts.INotificationService;
 import com.charity_hub.ledger.internal.application.eventHandlers.loggers.ContributionConfirmedLogger;
 import com.charity_hub.shared.domain.IEventBus;
-import org.springframework.context.annotation.Bean;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,7 +23,7 @@ public class ContributionConfirmedHandler {
         this.logger = logger;
     }
 
-    @Bean("ContributionConfirmedListener")
+    @PostConstruct
     public void start() {
         logger.handlerRegistered();
         eventBus.subscribe(this, ContributionConfirmedDTO.class, this::handle);

@@ -4,7 +4,7 @@ import com.charity_hub.accounts.shared.AccountEventDto;
 import com.charity_hub.cases.internal.domain.contracts.INotificationService;
 import com.charity_hub.cases.internal.application.loggers.FCMTokenLogger;
 import com.charity_hub.shared.domain.IEventBus;
-import org.springframework.context.annotation.Bean;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,7 +19,7 @@ public class FCMTokenUpdatedHandler {
         this.logger = baseLogger;
     }
 
-    @Bean("FCMTokenUpdatedListener")
+    @PostConstruct
     public void start() {
         logger.handlerRegistered();
         eventBus.subscribe(this, AccountEventDto.FCMTokenUpdatedDTO.class, this::handle);

@@ -18,7 +18,6 @@ import static com.mongodb.client.model.Filters.eq;
 public class AccountReadRepo implements IAccountReadRepo {
 
     private static final String ACCOUNTS_COLLECTION = "accounts";
-    private static final String REVOKED_ACCOUNT_COLLECTION = "revoked_accounts";
 
     private final MongoCollection<AccountEntity> collection;
     private final AccountReadMapper accountReadMapper;

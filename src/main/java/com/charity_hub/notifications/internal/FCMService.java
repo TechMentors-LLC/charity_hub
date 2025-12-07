@@ -6,11 +6,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.messaging.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
+@ConditionalOnProperty(name = "firebase.test-mode", havingValue = "false", matchIfMissing = true)
 public class FCMService implements NotificationApi {
     private static final Logger logger = LoggerFactory.getLogger(FCMService.class);
     private final ObjectMapper objectMapper;

@@ -4,7 +4,7 @@ import com.charity_hub.cases.internal.application.eventHandlers.loggers.CaseOpen
 import com.charity_hub.cases.shared.dtos.CaseOpenedDTO;
 import com.charity_hub.cases.internal.domain.contracts.INotificationService;
 import com.charity_hub.shared.domain.IEventBus;
-import org.springframework.context.annotation.Bean;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,7 +19,7 @@ public class CaseOpenedHandler {
         this.logger = logger;
     }
 
-    @Bean("CaseOpenedListener")
+    @PostConstruct
     public void start() {
         logger.handlerRegistered();
         eventBus.subscribe(this, CaseOpenedDTO.class, this::handle);

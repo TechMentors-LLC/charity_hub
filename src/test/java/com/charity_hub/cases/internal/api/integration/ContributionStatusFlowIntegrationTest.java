@@ -31,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @DisplayName("Contribution Status Flow Integration Tests")
+@SuppressWarnings("resource") // MongoDBContainer is managed by Testcontainers lifecycle
 class ContributionStatusFlowIntegrationTest {
 
     private static final MongoDBContainer mongoDBContainer;
