@@ -62,6 +62,12 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 
+    // Testcontainers for MongoDB
+    testImplementation 'org.testcontainers:testcontainers:1.19.3'
+    testImplementation 'org.testcontainers:mongodb:1.19.3'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.3'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
 }
 
