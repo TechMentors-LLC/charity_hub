@@ -1,10 +1,10 @@
-FROM gradle:8.7-jdk17-alpine AS build
+FROM gradle:8.7-jdk21-alpine AS build
 WORKDIR /home/gradle/src
 COPY --chown=gradle:gradle . .
-RUN gradle build --no-daemon
+RUN gradle build --no-daemon -x test
 
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=build /home/gradle/src/build/libs/*.jar app.jar
 COPY --from=build /home/gradle/src/cert/ ./cert/
