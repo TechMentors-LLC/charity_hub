@@ -51,6 +51,15 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
+    public int nextCaseCodeTemp() {
+        CaseEntity lastCase = cases.find()
+                .sort(new org.bson.Document("code", -1))
+                .limit(1)
+                .first();
+        return (lastCase != null ? lastCase.code() : 20039) + 1;
+    }
+
+    @Override
     public CompletableFuture<Integer> nextCaseCode() {
         return CompletableFuture.supplyAsync(() -> {
             CaseEntity lastCase = cases.find()
@@ -137,6 +146,11 @@ public class CaseRepo implements ICaseRepo {
             case_.occurredEvents().stream()
                 .map(event -> CaseEventsMapper.map((CaseEvent) event))
                 .forEach(eventBus::push);
+    }
+
+    @Override
+    public void deleteTemp(CaseCode caseCode) {
+        cases.deleteOne(new org.bson.Document("code", caseCode.value()));
     }
 
     @Override

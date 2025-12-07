@@ -44,4 +44,11 @@ public class AccountsAPIs implements IAccountsAPI {
                         .collect(Collectors.toList())
         );
     }
+
+    public List<AccountDTO> getAccountsByIdsTemp(List<UUID> ids) {
+        return readAccountRepo.getAccountsByIdsTemp(ids)
+                .stream()
+                .map(dtoAccountMapper::toDTO)
+                .collect(Collectors.toList());
+    }
 }

@@ -9,5 +9,6 @@ public interface IAccountsAPI {
 
     CompletableFuture<AccountDTO> getById(UUID id);
 
+    List<AccountDTO> getAccountsByIdsTemp(List<UUID> idsList);
     CompletableFuture<List<AccountDTO>> getAccountsByIds(List<UUID> idsList);
 }

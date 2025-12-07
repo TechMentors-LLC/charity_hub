@@ -33,4 +33,8 @@ public class ReadAccountRepo {
         return CompletableFuture.supplyAsync(() -> collection.find(in("accountId", ids)).into(new ArrayList<>())
         );
     }
+
+    public List<AccountEntity> getAccountsByIdsTemp(List<UUID> ids) {
+        return collection.find(in("accountId", ids)).into(new ArrayList<>());
+    }
 }

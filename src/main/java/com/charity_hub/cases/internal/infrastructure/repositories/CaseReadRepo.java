@@ -1,5 +1,6 @@
 package com.charity_hub.cases.internal.infrastructure.repositories;
 
+import com.charity_hub.cases.internal.application.contracts.ICaseReadRepo;
 import com.charity_hub.cases.internal.infrastructure.db.CaseEntity;
 import com.charity_hub.cases.internal.infrastructure.db.ContributionEntity;
 import com.mongodb.client.MongoCollection;
@@ -17,14 +18,14 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Repository
-public class ReadCaseRepo {
+public class CaseReadRepo implements ICaseReadRepo {
     private static final String CASES_COLLECTION = "cases";
     private static final String CONTRIBUTION_COLLECTION = "contributions";
 
     private final MongoCollection<CaseEntity> cases;
     private final MongoCollection<ContributionEntity> contributions;
 
-    public ReadCaseRepo(MongoDatabase mongoDatabase) {
+    public CaseReadRepo(MongoDatabase mongoDatabase) {
         this.cases = mongoDatabase.getCollection(CASES_COLLECTION, CaseEntity.class);
         this.contributions = mongoDatabase.getCollection(CONTRIBUTION_COLLECTION, ContributionEntity.class);
     }
@@ -33,6 +34,10 @@ public class ReadCaseRepo {
         return CompletableFuture.supplyAsync(() ->
                 cases.find(Filters.eq("code", code)).first()
         );
+    }
+
+    public CaseEntity getByCodeTemp(int code) {
+        return cases.find(Filters.eq("code", code)).first();
     }
 
     public CompletableFuture<List<CaseEntity>> getByCodes(List<Integer> codes) {
@@ -49,6 +54,11 @@ public class ReadCaseRepo {
         );
     }
 
+    public List<ContributionEntity> getContributionsByCaseCodeTemp(int caseCode) {
+        return contributions.find(Filters.eq("caseCode", caseCode))
+                .into(new ArrayList<>());
+    }
+
     public CompletableFuture<Integer> getCasesCount(Supplier<Bson> filter) {
         return CompletableFuture.supplyAsync(() -> {
             Bson query = Filters.ne("status", CaseEntity.STATUS_DRAFT);
@@ -57,6 +67,14 @@ public class ReadCaseRepo {
             }
             return (int) cases.countDocuments(query);
         });
+    }
+
+    public int getCasesCountTemp(Supplier<Bson> filter) {
+        Bson query = Filters.ne("status", CaseEntity.STATUS_DRAFT);
+        if (filter != null) {
+            query = Filters.and(query, filter.get());
+        }
+        return (int) cases.countDocuments(query);
     }
 
     public CompletableFuture<List<CaseEntity>> search(
@@ -79,6 +97,26 @@ public class ReadCaseRepo {
                     .limit(limit)
                     .into(new ArrayList<>());
         });
+    }
+
+    public List<CaseEntity> searchTemp(
+            int offset,
+            int limit,
+            Supplier<Bson> filter
+    ) {
+        Bson query = Filters.ne("status", CaseEntity.STATUS_DRAFT);
+        if (filter != null) {
+            query = Filters.and(query, filter.get());
+        }
+
+        return cases.find(query)
+                .sort(Sorts.orderBy(
+                        Sorts.ascending("status"),
+                        Sorts.descending("lastUpdated")
+                ))
+                .skip(offset)
+                .limit(limit)
+                .into(new ArrayList<>());
     }
 
     public CompletableFuture<List<ContributionEntity>> getNotConfirmedContributions(UUID contributorId) {
@@ -120,5 +158,11 @@ public class ReadCaseRepo {
                         .sort(Sorts.descending("lastUpdated"))
                         .into(new ArrayList<>())
         );
+    }
+
+    public List<CaseEntity> getDraftCasesTemp() {
+        return cases.find(Filters.eq("status", CaseEntity.STATUS_DRAFT))
+                .sort(Sorts.descending("lastUpdated"))
+                .into(new ArrayList<>());
     }
 }

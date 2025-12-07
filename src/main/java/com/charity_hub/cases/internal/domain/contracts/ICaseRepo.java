@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public interface ICaseRepo {
+    int nextCaseCodeTemp();
     CompletableFuture<Integer> nextCaseCode();
     
     Optional<Case> getByCodeTemp(CaseCode caseCode);
@@ -17,6 +18,7 @@ public interface ICaseRepo {
     void saveTemp(Case case_);
     CompletableFuture<Void> save(Case case_);
 
+    void deleteTemp(CaseCode caseCode);
     CompletableFuture<Void> delete(CaseCode caseCode);
     
     void saveTemp(Contribution contribution);

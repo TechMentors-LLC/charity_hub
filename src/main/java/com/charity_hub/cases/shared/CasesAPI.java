@@ -2,7 +2,7 @@ package com.charity_hub.cases.shared;
 
 import com.charity_hub.cases.shared.mappers.DTOCaseMapper;
 import com.charity_hub.cases.shared.mappers.DTOContributionMapper;
-import com.charity_hub.cases.internal.infrastructure.repositories.ReadCaseRepo;
+import com.charity_hub.cases.internal.application.contracts.ICaseReadRepo;
 import com.charity_hub.cases.shared.dtos.CaseDTO;
 import com.charity_hub.cases.shared.dtos.ContributionDTO;
 import org.springframework.stereotype.Component;
@@ -14,18 +14,18 @@ import java.util.stream.Collectors;
 
 @Component
 public class CasesAPI implements ICasesAPI {
-    private final ReadCaseRepo readCaseRepo;
+    private final ICaseReadRepo caseReadRepo;
     private final DTOContributionMapper contributionMapper;
     private final DTOCaseMapper caseMapper;
 
-    public CasesAPI(ReadCaseRepo readCaseRepo, DTOContributionMapper contributionMapper, DTOCaseMapper caseMapper) {
-        this.readCaseRepo = readCaseRepo;
+    public CasesAPI(ICaseReadRepo caseReadRepo, DTOContributionMapper contributionMapper, DTOCaseMapper caseMapper) {
+        this.caseReadRepo = caseReadRepo;
         this.contributionMapper = contributionMapper;
         this.caseMapper = caseMapper;
     }
 
     public CompletableFuture<List<ContributionDTO>> getUsersContributions(UUID userId) {
-        return readCaseRepo.getContributions(userId)
+        return caseReadRepo.getContributions(userId)
                 .thenApply(contributions ->
                         contributions.stream()
                                 .map(contributionMapper::toDTO)
@@ -34,7 +34,7 @@ public class CasesAPI implements ICasesAPI {
     }
 
     public CompletableFuture<List<ContributionDTO>> getNotConfirmedContributions(UUID userId) {
-        return readCaseRepo.getNotConfirmedContributions(userId)
+        return caseReadRepo.getNotConfirmedContributions(userId)
                 .thenApply(contributions ->
                         contributions.stream()
                                 .map(contributionMapper::toDTO)
@@ -43,7 +43,7 @@ public class CasesAPI implements ICasesAPI {
     }
 
     public CompletableFuture<List<ContributionDTO>> getUsersContributions(List<UUID> usersIds) {
-        return readCaseRepo.getContributions(usersIds)
+        return caseReadRepo.getContributions(usersIds)
                 .thenApply(contributions ->
                         contributions.stream()
                                 .map(contributionMapper::toDTO)
@@ -52,7 +52,7 @@ public class CasesAPI implements ICasesAPI {
     }
 
     public CompletableFuture<List<CaseDTO>> getCasesByCodes(List<Integer> casesCodes) {
-        return readCaseRepo.getByCodes(casesCodes)
+        return caseReadRepo.getByCodes(casesCodes)
                 .thenApply(cases ->
                         cases.stream()
                                 .map(caseMapper::toDTO)

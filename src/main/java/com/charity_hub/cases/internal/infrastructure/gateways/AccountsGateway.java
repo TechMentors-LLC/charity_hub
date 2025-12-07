@@ -16,6 +16,10 @@ public class AccountsGateway {
         this.accountsAPI = accountsAPI;
     }
 
+    public List<AccountDTO> getAccountsByIdsTemp(List<UUID> idsList) {
+        return accountsAPI.getAccountsByIdsTemp(idsList);
+    }
+
     public CompletableFuture<List<AccountDTO>> getAccountsByIds(List<UUID> idsList) {
         return accountsAPI.getAccountsByIds(idsList);
     }
