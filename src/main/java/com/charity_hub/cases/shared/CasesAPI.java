@@ -23,6 +23,7 @@ public class CasesAPI implements ICasesAPI {
         this.caseMapper = caseMapper;
     }
 
+    @Override
     public List<ContributionDTO> getUsersContributions(UUID userId) {
         return caseReadRepo.getContributions(userId)
                 .stream()
@@ -30,6 +31,7 @@ public class CasesAPI implements ICasesAPI {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public List<ContributionDTO> getNotConfirmedContributions(UUID userId) {
         return caseReadRepo.getNotConfirmedContributions(userId)
                 .stream()
@@ -37,6 +39,7 @@ public class CasesAPI implements ICasesAPI {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public List<ContributionDTO> getUsersContributions(List<UUID> usersIds) {
         return caseReadRepo.getContributions(usersIds)
                 .stream()
@@ -44,6 +47,7 @@ public class CasesAPI implements ICasesAPI {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public List<CaseDTO> getCasesByCodes(List<Integer> casesCodes) {
         return caseReadRepo.getByCodes(casesCodes)
                 .stream()
