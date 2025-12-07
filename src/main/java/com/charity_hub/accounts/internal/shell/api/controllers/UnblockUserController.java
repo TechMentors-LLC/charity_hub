@@ -20,8 +20,11 @@ public class UnblockUserController {
 
     @PostMapping("/v1/accounts/{userId}/un-block")
     @PreAuthorize("hasAnyAuthority('FULL_ACCESS')")
-    public DeferredResult<ResponseEntity<?>> handle(@PathVariable String userId) {
-        return DeferredResults.from(blockAccountHandler.handle(new BlockAccount(userId, true))
-                .thenApply(ResponseEntity::ok));
+    public ResponseEntity<Void> handle(@PathVariable String userId) {
+        BlockAccount command = new BlockAccount(userId, true);
+
+        blockAccountHandler.handle(command);
+
+        return ResponseEntity.ok().build();
     }
 }

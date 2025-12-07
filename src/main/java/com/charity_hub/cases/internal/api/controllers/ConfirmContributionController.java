@@ -20,10 +20,9 @@ public class ConfirmContributionController {
     }
 
     @PostMapping("/v1/contributions/{contributionId}/confirm")
-    public DeferredResult<ResponseEntity<?>> handle(@PathVariable UUID contributionId){
+    public ResponseEntity<Void> handle(@PathVariable UUID contributionId){
         ConfirmContribution command = new ConfirmContribution(contributionId);
-        return DeferredResults.from(confirmContributionHandler
-                .handle(command)
-                .thenApply(ResponseEntity::ok));
+        confirmContributionHandler.handle(command);
+        return ResponseEntity.ok().build();
     }
 }

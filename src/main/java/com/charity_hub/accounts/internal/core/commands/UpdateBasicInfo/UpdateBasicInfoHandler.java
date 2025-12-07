@@ -2,14 +2,12 @@ package com.charity_hub.accounts.internal.core.commands.UpdateBasicInfo;
 
 import com.charity_hub.accounts.internal.core.contracts.IAccountRepo;
 import com.charity_hub.accounts.internal.core.contracts.IJWTGenerator;
-import com.charity_hub.shared.abstractions.CommandHandler;
+import com.charity_hub.shared.abstractions.CommandHandlerTemp;
 import com.charity_hub.shared.exceptions.NotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.CompletableFuture;
-
 @Service
-public class UpdateBasicInfoHandler extends CommandHandler<UpdateBasicInfo,String> {
+public class UpdateBasicInfoHandler extends CommandHandlerTemp<UpdateBasicInfo,String> {
     private final IAccountRepo accountRepo;
     private final IJWTGenerator jwtGenerator;
 
@@ -18,15 +16,11 @@ public class UpdateBasicInfoHandler extends CommandHandler<UpdateBasicInfo,Strin
         this.jwtGenerator = jwtGenerator;
     }
 
-    public CompletableFuture<String> handle(
+    public String handle(
             UpdateBasicInfo command
     ) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                var identity = accountRepo.getById(command.userId()).join();
-                if (identity == null) {
-                    throw new NotFoundException("User with Id " + command.userId() + " not found");
-                }
+                var identity = accountRepo.getByIdTemp(command.userId())
+                        .orElseThrow(() -> new NotFoundException("User with Id " + command.userId() + " not found"));
 
                 String accessToken = identity.updateBasicInfo(
                     command.deviceId(),
@@ -35,11 +29,8 @@ public class UpdateBasicInfoHandler extends CommandHandler<UpdateBasicInfo,Strin
                     jwtGenerator
                 );
 
-                accountRepo.save(identity);
+                accountRepo.saveTemp(identity);
                 return accessToken;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+
     }
 }

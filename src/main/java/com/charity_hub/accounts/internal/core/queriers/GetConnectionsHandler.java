@@ -1,31 +1,24 @@
 package com.charity_hub.accounts.internal.core.queriers;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
+import com.charity_hub.accounts.internal.core.contracts.IAccountReadRepo;
+import com.charity_hub.shared.abstractions.QueryHandlerTemp;
 import com.charity_hub.shared.domain.ILogger;
 import org.springframework.stereotype.Service;
 
-import com.charity_hub.accounts.internal.core.contracts.IAccountRepo;
-import com.charity_hub.accounts.internal.core.model.account.Account;
-import com.charity_hub.shared.abstractions.QueryHandler;
+import java.util.List;
 
 @Service
-public class GetConnectionsHandler implements QueryHandler<GetConnectionsQuery, List<Account>> {
-    private final IAccountRepo accountRepo;
+public class GetConnectionsHandler implements QueryHandlerTemp<GetConnectionsQuery, List<Account>> {
+    private final IAccountReadRepo accountReadRepo;
     private final ILogger logger;
 
-    GetConnectionsHandler(IAccountRepo accountRepo, ILogger logger) {
-        this.accountRepo = accountRepo;
+    GetConnectionsHandler(IAccountReadRepo accountReadRepo, ILogger logger) {
+        this.accountReadRepo = accountReadRepo;
         this.logger = logger;
     }
 
     @Override
-    public CompletableFuture<List<Account>> handle(GetConnectionsQuery query) {
-        return accountRepo.getConnections(query.userId())
-                .exceptionally(throwable -> {
-                    logger.error("Failed to get connections for user: {}", query.userId(), throwable);
-                    throw new RuntimeException("Failed to fetch connections", throwable);
-                });
+    public List<Account> handle(GetConnectionsQuery query) {
+        return accountReadRepo.getConnections(query.userId());
     }
 }

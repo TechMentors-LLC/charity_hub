@@ -53,6 +53,12 @@ public class AccountRepo implements IAccountRepo {
     }
 
     @Override
+    public Optional<Account> getByIdTemp(UUID id) {
+               return Optional.ofNullable(collection.find(eq("accountId", id.toString())).first())
+                        .map(domainAccountMapper::toDomain);
+    }
+
+    @Override
     public CompletableFuture<List<Account>> getConnections(UUID id) {
         return CompletableFuture.supplyAsync(() ->
                 collection.find(eq("connections.userId", id.toString()))
@@ -68,6 +74,11 @@ public class AccountRepo implements IAccountRepo {
                         .map(domainAccountMapper::toDomain)
                         .orElse(null)
         );
+    }
+    @Override
+    public Optional<Account> getByMobileNumberTemp(String mobileNumber) {
+              return Optional.ofNullable(collection.find(eq("mobileNumber", mobileNumber)).first())
+                        .map(domainAccountMapper::toDomain);
     }
 
     @Override
@@ -85,7 +96,23 @@ public class AccountRepo implements IAccountRepo {
             return null;
         });
     }
+    @Override
+    public void saveTemp(Account account) {
+            AccountEntity entity = domainAccountMapper.toDB(account);
+            collection.replaceOne(
+                    eq("accountId", entity.accountId()),
+                    entity,
+                    new ReplaceOptions().upsert(true)
+            );
+            account.occurredEvents().stream()
+                    .map(event -> AccountEventsMapper.map((AccountEvent) event))
+                    .forEach(eventBus::push);
+    }
 
+    @Override
+    public boolean isAdminTemp(String mobileNumber) {
+        return admins.contains(mobileNumber);
+    }
     @Override
     public CompletableFuture<Boolean> isAdmin(String mobileNumber) {
         return CompletableFuture.completedFuture(admins.contains(mobileNumber));

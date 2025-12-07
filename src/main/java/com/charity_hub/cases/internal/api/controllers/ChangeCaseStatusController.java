@@ -21,15 +21,17 @@ public class ChangeCaseStatusController {
 
     @PostMapping("/v1/cases/{caseCode}/open")
     @PreAuthorize("hasAnyAuthority('CREATE_CASES', 'FULL_ACCESS')")
-    public DeferredResult<ResponseEntity<?>> open(@PathVariable int caseCode) {
-        return DeferredResults.from(changeCaseStatusHandler.handle(new ChangeCaseStatus(caseCode, true))
-                .thenApply(ResponseEntity::ok));
+    public ResponseEntity<Void> open(@PathVariable int caseCode) {
+        ChangeCaseStatus command = new ChangeCaseStatus(caseCode, true);
+        changeCaseStatusHandler.handle(command);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/v1/cases/{caseCode}/close")
     @PreAuthorize("hasAnyAuthority('CREATE_CASES', 'FULL_ACCESS')")
-    public DeferredResult<ResponseEntity<?>> close(@PathVariable int caseCode) {
-        return DeferredResults.from(changeCaseStatusHandler.handle(new ChangeCaseStatus(caseCode, false))
-                .thenApply(ResponseEntity::ok));
+    public ResponseEntity<Void> close(@PathVariable int caseCode) {
+        ChangeCaseStatus command = new ChangeCaseStatus(caseCode, false);
+        changeCaseStatusHandler.handle(command);
+        return ResponseEntity.ok().build();
     }
 }

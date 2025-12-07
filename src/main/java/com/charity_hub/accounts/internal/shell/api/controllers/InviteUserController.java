@@ -21,11 +21,12 @@ public class InviteUserController {
     }
 
     @PostMapping("/v1/accounts/invite")
-    public DeferredResult<ResponseEntity<?>> handle(
+    public ResponseEntity<Void> handle(
             @RequestBody InviteUserRequest inviteUserRequest,
             @AuthenticationPrincipal AccessTokenPayload accessTokenPayload
     ) {
-        return DeferredResults.from(inviteAccountHandler.handle(new InvitationAccount(inviteUserRequest.mobileNumber(), accessTokenPayload.getUserId())
-        ).thenApply(ResponseEntity::ok));
+        InvitationAccount command = new InvitationAccount(inviteUserRequest.mobileNumber(), accessTokenPayload.getUserId());
+        inviteAccountHandler.handle(command);
+        return ResponseEntity.ok().build();
     }
 }

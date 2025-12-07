@@ -39,6 +39,22 @@ public class FirebaseAuthProvider implements IAuthProvider {
         });
     }
 
+    @Override
+    public String getVerifiedMobileNumberTemp(String idToken) {
+        try {
+            var firebaseToken = verifyTemp(idToken);
+            var userRecord = firebaseAuth.getUser(firebaseToken.getUid());
+            if (userRecord.getPhoneNumber() != null) {
+                return userRecord.getPhoneNumber().replace("+", "");
+            } else {
+                log.error("Failed to verify mobile number");
+                throw new UnAuthorized();
+            }
+        } catch (FirebaseAuthException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private CompletableFuture<FirebaseToken> verify(String idToken) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -48,5 +64,13 @@ public class FirebaseAuthProvider implements IAuthProvider {
                 throw new UnAuthorized();
             }
         });
+    }
+    private FirebaseToken verifyTemp(String idToken) {
+            try {
+                return firebaseAuth.verifyIdToken(idToken);
+            } catch (Exception authError) {
+                log.error("Failed to verify Id token: {}", idToken, authError);
+                throw new UnAuthorized();
+            }
     }
 }

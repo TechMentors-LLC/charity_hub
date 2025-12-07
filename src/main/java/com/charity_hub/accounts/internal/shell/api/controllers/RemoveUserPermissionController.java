@@ -24,12 +24,14 @@ public class RemoveUserPermissionController {
 
     @PostMapping("/v1/accounts/{userId}/remove-permission")
     @PreAuthorize("hasAnyAuthority('FULL_ACCESS')")
-    public DeferredResult<ResponseEntity<?>> handle(
+    public ResponseEntity<Void> handle(
             @PathVariable UUID userId,
             @RequestBody ChangePermissionRequest request
     ) {
-        return DeferredResults.from(changePermissionHandler.handle(
-                new ChangePermission(userId, request.permission(), false)
-        ).thenApply(ResponseEntity::ok));
+        ChangePermission command = new ChangePermission(userId, request.permission(), false);
+
+        changePermissionHandler.handle(command);
+        
+        return ResponseEntity.ok().build();
     }
 }

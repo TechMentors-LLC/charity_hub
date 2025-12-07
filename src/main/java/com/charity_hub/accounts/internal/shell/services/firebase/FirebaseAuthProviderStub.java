@@ -31,4 +31,13 @@ public class FirebaseAuthProviderStub implements IAuthProvider {
             return firebaseAuthProvider.getVerifiedMobileNumber(idToken);
         }
     }
+    @Override
+    public String getVerifiedMobileNumberTemp(String idToken) {
+        try {
+            return MobileNumber.create(idToken).value();
+        } catch (Exception e) {
+            return firebaseAuthProvider.getVerifiedMobileNumberTemp(idToken);
+        }
+    }
+
 }

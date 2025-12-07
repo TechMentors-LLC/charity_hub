@@ -22,13 +22,15 @@ public class RegisterFCMTokenController {
     }
 
     @PostMapping("/v1/accounts/register-fcm-token")
-    public DeferredResult<ResponseEntity<?>> handle(@RequestBody RegisterFCMTokenRequest request, @AuthenticationPrincipal AccessTokenPayload accessTokenPayload) {
+    public ResponseEntity<Void> handle(@RequestBody RegisterFCMTokenRequest request, @AuthenticationPrincipal AccessTokenPayload accessTokenPayload) {
+
         RegisterNotificationToken command =
                 new RegisterNotificationToken(request.fcmToken(),
                         accessTokenPayload.getDeviceId(),
                         accessTokenPayload.getUserId());
-        return DeferredResults.from(
-                registerNotificationTokenHandler.handle(command)
-                        .thenApply(result -> ResponseEntity.status(HttpStatus.CREATED).build()));
+
+                registerNotificationTokenHandler.handle(command);
+
+                return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

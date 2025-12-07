@@ -40,6 +40,15 @@ public class InvitationRepo implements IInvitationRepo {
             return null;
         });
     }
+    @Override
+    public void saveTemp(Invitation invitation) {
+            InvitationEntity entity = invitationMapper.toEntity(invitation);
+            collection.replaceOne(
+                    eq("inviterId", entity.inviterId()), // assuming getId() returns the document ID
+                    entity,
+                    new ReplaceOptions().upsert(true)
+            );
+    }
 
     @Override
     public CompletableFuture<Invitation> get(String mobileNumber) {
@@ -55,6 +64,10 @@ public class InvitationRepo implements IInvitationRepo {
         return CompletableFuture.supplyAsync(() ->
                 collection.find(eq("mobileNumber", mobileNumber)).first() != null
         );
+    }
+    @Override
+    public boolean hasInvitationTemp(String mobileNumber) {
+              return  collection.find(eq("mobileNumber", mobileNumber)).first() != null;
     }
 
     public CompletableFuture<List<InvitationEntity>> getAll() {

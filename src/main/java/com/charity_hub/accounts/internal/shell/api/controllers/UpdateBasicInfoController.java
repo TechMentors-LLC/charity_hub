@@ -22,12 +22,10 @@ public class UpdateBasicInfoController {
     }
 
     @PostMapping("/v1/accounts/update-basic-info")
-    public DeferredResult<ResponseEntity<?>> handle(@RequestBody UpdateBasicInfoRequest request, @AuthenticationPrincipal AccessTokenPayload accessTokenPayload) {
+    public ResponseEntity<BasicResponse> handle(@RequestBody UpdateBasicInfoRequest request, @AuthenticationPrincipal AccessTokenPayload accessTokenPayload) {
         UpdateBasicInfo command = new UpdateBasicInfo(accessTokenPayload.getUserId(), accessTokenPayload.getDeviceId(), request.fullName(), request.photoUrl());
-
-        return DeferredResults.from(
-                updateBasicInfoHandler.handle(command)
-                        .thenApply(accessToken -> ResponseEntity.ok(new BasicResponse(accessToken)))
-        );
+        
+        String accessToken = updateBasicInfoHandler.handle(command);
+        return ResponseEntity.ok(new BasicResponse(accessToken));
     }
 }

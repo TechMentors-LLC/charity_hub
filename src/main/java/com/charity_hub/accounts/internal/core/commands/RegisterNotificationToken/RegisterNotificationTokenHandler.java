@@ -1,14 +1,12 @@
 package com.charity_hub.accounts.internal.core.commands.RegisterNotificationToken;
 
 import com.charity_hub.accounts.internal.core.contracts.IAccountRepo;
-import com.charity_hub.shared.abstractions.CommandHandler;
+import com.charity_hub.shared.abstractions.VoidCommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.concurrent.CompletableFuture;
-
 @Service
-public class RegisterNotificationTokenHandler extends CommandHandler<RegisterNotificationToken, Void> {
+public class RegisterNotificationTokenHandler extends VoidCommandHandler<RegisterNotificationToken> {
     private final IAccountRepo accountRepo;
 
     public RegisterNotificationTokenHandler(IAccountRepo accountRepo) {
@@ -16,26 +14,19 @@ public class RegisterNotificationTokenHandler extends CommandHandler<RegisterNot
     }
 
     @Override
-    public CompletableFuture<Void> handle(
+    public void handle(
             RegisterNotificationToken command
     ) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                var identity = accountRepo.getById(command.userId()).join();
-                if (identity == null) {
-                    throw new NotFoundException("User with Id " + command.userId() + " not found");
-                }
+
+                var identity = accountRepo.getByIdTemp(command.userId())
+                        .orElseThrow(()-> new NotFoundException("User with Id " + command.userId() + " not found"));
 
                 identity.registerFCMToken(
                         command.deviceId(),
                         command.fcmToken()
                 );
 
-                accountRepo.save(identity);
-                return null;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+                accountRepo.saveTemp(identity);
+
     }
 }
