@@ -31,10 +31,13 @@ jobs:
       - name: 'Make gradlew executable'
         run: chmod +x ./gradlew
 
+      - name: 'Pre-pull MongoDB image for Testcontainers'
+        run: docker pull mongo:7.0
+
       - name: 'Run tests'
         env:
           TESTCONTAINERS_RYUK_DISABLED: 'true'
-        run: ./gradlew test --quiet --continue
+        run: ./gradlew test --continue
 
       - name: 'Upload test results'
         uses: 'actions/upload-artifact@v4'
