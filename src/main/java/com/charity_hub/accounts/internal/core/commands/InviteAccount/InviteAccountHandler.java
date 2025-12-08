@@ -4,6 +4,8 @@ import com.charity_hub.accounts.internal.core.contracts.IInvitationRepo;
 import com.charity_hub.accounts.internal.core.exceptions.AlreadyInvitedException;
 import com.charity_hub.accounts.internal.core.model.invitation.Invitation;
 import com.charity_hub.shared.abstractions.VoidCommandHandler;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,6 +17,8 @@ public class InviteAccountHandler extends VoidCommandHandler<InvitationAccount> 
     }
 
     @Override
+    @Timed(value = "charity_hub.handler.invite_account", description = "Time taken by InviteAccountHandler")
+    @Observed(name = "handler.invite_account", contextualName = "invite-account-handler")
     public void handle(InvitationAccount command) {
         logger.info("Processing invitation - MobileNumber: {}, InviterId: {}", 
                 command.mobileNumber(), command.inviterId());

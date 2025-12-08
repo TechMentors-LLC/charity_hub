@@ -3,6 +3,8 @@ package com.charity_hub.cases.internal.application.commands.Contribute;
 import com.charity_hub.cases.internal.domain.contracts.ICaseRepo;
 import com.charity_hub.cases.internal.domain.model.Case.CaseCode;
 import com.charity_hub.shared.abstractions.CommandHandler;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
 
 import com.charity_hub.shared.exceptions.NotFoundException;
@@ -16,6 +18,8 @@ public class ContributeHandler extends CommandHandler<Contribute, ContributeDefa
     }
 
     @Override
+    @Timed(value = "charity_hub.handler.contribute", description = "Time taken by ContributeHandler")
+    @Observed(name = "handler.contribute", contextualName = "contribute-handler")
     public ContributeDefaultResponse handle(Contribute command) {
         logger.info("Processing contribution - CaseCode: {}, UserId: {}, Amount: {}", 
                 command.caseCode(), command.userId(), command.amount());

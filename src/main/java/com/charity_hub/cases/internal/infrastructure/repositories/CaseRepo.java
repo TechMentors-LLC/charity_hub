@@ -64,6 +64,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
+    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.case.get_by_code", description = "Time taken to fetch case by code")
     public Optional<Case> getByCode(CaseCode caseCode) {
         logger.debug("Fetching case by code: {}", caseCode.value());
         CaseEntity entity = cases.find(new org.bson.Document("code", caseCode.value()))
@@ -79,6 +80,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
+    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.case.save", description = "Time taken to save case")
     public void save(Case case_) {
         logger.debug("Saving case: {}", case_.getCaseCode().value());
         List<Contribution> caseContributions = case_.getContributions();
@@ -121,6 +123,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
+    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.contribution.save", description = "Time taken to save contribution")
     public void save(Contribution contribution) {
         logger.debug("Saving contribution: {} - Status: {}", 
                 contribution.getId().value(), contribution.getContributionStatus());

@@ -4,6 +4,8 @@ import com.charity_hub.cases.internal.domain.contracts.ICaseRepo;
 import com.charity_hub.shared.abstractions.VoidCommandHandler;
 import com.charity_hub.shared.domain.ILogger;
 import com.charity_hub.shared.exceptions.NotFoundException;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,6 +20,8 @@ public class ConfirmContributionHandler extends VoidCommandHandler<ConfirmContri
     }
 
     @Override
+    @Timed(value = "charity_hub.handler.confirm_contribution", description = "Time taken by ConfirmContributionHandler")
+    @Observed(name = "handler.confirm_contribution", contextualName = "confirm-contribution-handler")
     public void handle(ConfirmContribution command) {
 
             var contribution = caseRepo.getContributionById(command.contributionId())
