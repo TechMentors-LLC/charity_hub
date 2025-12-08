@@ -4,6 +4,7 @@ import com.charity_hub.cases.shared.dtos.ContributionRemindedDTO;
 import com.charity_hub.ledger.internal.domain.contracts.INotificationService;
 import com.charity_hub.ledger.internal.application.eventHandlers.loggers.ContributionRemindedLogger;
 import com.charity_hub.shared.domain.IEventBus;
+import io.micrometer.core.annotation.Timed;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,7 @@ public class ContributionRemindedHandler {
         eventBus.subscribe(this, ContributionRemindedDTO.class, this::handle);
     }
 
+    @Timed(value = "charity_hub.event.contribution_reminded", description = "Time taken to handle ContributionReminded event")
     private void handle(ContributionRemindedDTO contribution) {
         logger.processingEvent(contribution);
         

@@ -5,6 +5,7 @@ import com.charity_hub.ledger.internal.domain.contracts.INotificationService;
 import com.charity_hub.ledger.internal.domain.model.Member;
 import com.charity_hub.ledger.internal.application.contracts.IMembersNetworkRepo;
 import com.charity_hub.ledger.internal.application.eventHandlers.loggers.AccountCreatedEventLogger;
+import io.micrometer.core.annotation.Timed;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -26,6 +27,7 @@ public class AccountCreatedEventHandler {
         this.logger = logger;
     }
 
+    @Timed(value = "charity_hub.event.account_created", description = "Time taken to handle AccountCreated event")
     public void accountCreatedHandler(AccountCreated account) {
         logger.processingAccount(account.id(), account.mobileNumber());
 
