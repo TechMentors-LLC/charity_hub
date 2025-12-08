@@ -4,6 +4,8 @@ import com.charity_hub.cases.internal.domain.contracts.ICaseRepo;
 import com.charity_hub.cases.internal.domain.model.Case.CaseCode;
 import com.charity_hub.shared.abstractions.VoidCommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,6 +17,8 @@ public class UpdateCaseHandler extends VoidCommandHandler<UpdateCase> {
     }
 
     @Override
+    @Timed(value = "charity_hub.handler.update_case", description = "Time taken by UpdateCaseHandler")
+    @Observed(name = "handler.update_case", contextualName = "update-case-handler")
     public void handle(UpdateCase command) {
         logger.info("Updating case - CaseCode: {}, Title: {}", command.caseCode(), command.title());
         

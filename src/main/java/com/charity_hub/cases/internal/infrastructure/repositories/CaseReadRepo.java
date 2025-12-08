@@ -33,12 +33,14 @@ public class CaseReadRepo implements ICaseReadRepo {
     }
 
     @Override
+    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.case_read.get_by_code", description = "Time taken to fetch case by code")
     public CaseEntity getByCode(int code) {
         logger.debug("Looking up case by code: {}", code);
         return cases.find(Filters.eq("code", code)).first();
     }
 
     @Override
+    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.case_read.get_by_codes", description = "Time taken to fetch cases by codes")
     public List<CaseEntity> getByCodes(List<Integer> codes) {
         logger.debug("Looking up cases by codes: {}", codes);
         List<CaseEntity> result = cases.find(Filters.in("code", codes))
@@ -48,6 +50,7 @@ public class CaseReadRepo implements ICaseReadRepo {
     }
 
     @Override
+    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.case_read.get_contributions", description = "Time taken to fetch contributions by case code")
     public List<ContributionEntity> getContributionsByCaseCode(int caseCode) {
         logger.debug("Looking up contributions for case code: {}", caseCode);
         List<ContributionEntity> result = contributions.find(Filters.eq("caseCode", caseCode))
@@ -57,6 +60,7 @@ public class CaseReadRepo implements ICaseReadRepo {
     }
 
     @Override
+    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.case_read.count", description = "Time taken to count cases")
     public int getCasesCount(Supplier<Bson> filter) {
         logger.debug("Counting cases with filter");
         Bson query = Filters.ne("status", CaseEntity.STATUS_DRAFT);
@@ -69,6 +73,7 @@ public class CaseReadRepo implements ICaseReadRepo {
     }
 
     @Override
+    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.case_read.search", description = "Time taken to search cases")
     public List<CaseEntity> search(
             int offset,
             int limit,

@@ -7,6 +7,8 @@ import com.charity_hub.cases.internal.infrastructure.db.CaseEntity;
 import com.charity_hub.cases.internal.application.contracts.ICaseReadRepo;
 import com.charity_hub.shared.abstractions.QueryHandler;
 import com.mongodb.client.model.Filters;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ public class GetAllCasesHandler implements QueryHandler<GetAllCasesQuery, GetCas
     }
 
     @Override
+    @Timed(value = "charity_hub.handler.get_all_cases", description = "Time taken by GetAllCasesHandler")
+    @Observed(name = "handler.get_all_cases", contextualName = "get-all-cases-handler")
     public GetCasesQueryResult handle(GetAllCasesQuery query) {
         Supplier<Bson> filter = filtersFrom(query);
 
