@@ -5,6 +5,7 @@ import com.charity_hub.cases.internal.application.commands.CreateCase.CaseRespon
 import com.charity_hub.cases.internal.application.commands.CreateCase.CreateCase;
 import com.charity_hub.cases.internal.application.commands.CreateCase.CreateCaseHandler;
 import com.charity_hub.shared.exceptions.GlobalExceptionHandler;
+import com.charity_hub.shared.observability.metrics.BusinessMetrics;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -42,6 +43,9 @@ class CreateCaseControllerTest {
 
     @MockBean
     private CreateCaseHandler createCaseHandler;
+
+    @MockBean
+    private BusinessMetrics businessMetrics;
 
     @Nested
     @DisplayName("POST /v1/cases")

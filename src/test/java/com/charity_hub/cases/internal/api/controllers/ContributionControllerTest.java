@@ -6,6 +6,7 @@ import com.charity_hub.cases.internal.application.commands.Contribute.Contribute
 import com.charity_hub.cases.internal.application.commands.Contribute.ContributeHandler;
 import com.charity_hub.shared.auth.AccessTokenPayload;
 import com.charity_hub.shared.exceptions.GlobalExceptionHandler;
+import com.charity_hub.shared.observability.metrics.BusinessMetrics;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -47,6 +48,9 @@ class ContributionControllerTest {
 
     @MockBean
     private ContributeHandler contributeHandler;
+
+    @MockBean
+    private BusinessMetrics businessMetrics;
 
     @Nested
     @DisplayName("POST /v1/cases/{caseCode}/contributions")

@@ -4,6 +4,10 @@ import com.charity_hub.accounts.internal.core.commands.RegisterNotificationToken
 import com.charity_hub.accounts.internal.core.commands.RegisterNotificationToken.RegisterNotificationTokenHandler;
 import com.charity_hub.accounts.internal.shell.api.dtos.RegisterFCMTokenRequest;
 import com.charity_hub.shared.auth.AccessTokenPayload;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class RegisterFCMTokenController {
+    private static final Logger log = LoggerFactory.getLogger(RegisterFCMTokenController.class);
     private final RegisterNotificationTokenHandler registerNotificationTokenHandler;
 
     public RegisterFCMTokenController(RegisterNotificationTokenHandler registerNotificationTokenHandler) {
@@ -20,15 +25,17 @@ public class RegisterFCMTokenController {
     }
 
     @PostMapping("/v1/accounts/register-fcm-token")
+    @Timed(value = "charity_hub.accounts.register_fcm_token", description = "Time taken to register FCM token")
+    @Observed(name = "accounts.register_fcm_token", contextualName = "register-fcm-token")
     public ResponseEntity<Void> handle(@RequestBody RegisterFCMTokenRequest request, @AuthenticationPrincipal AccessTokenPayload accessTokenPayload) {
-
+        log.info("Registering FCM token for user: {}", accessTokenPayload.getUserId());
         RegisterNotificationToken command =
                 new RegisterNotificationToken(request.fcmToken(),
                         accessTokenPayload.getDeviceId(),
                         accessTokenPayload.getUserId());
 
                 registerNotificationTokenHandler.handle(command);
-
+                log.info("FCM token registered successfully for user: {}", accessTokenPayload.getUserId());
                 return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

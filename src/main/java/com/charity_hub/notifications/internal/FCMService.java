@@ -24,6 +24,9 @@ public class FCMService implements NotificationApi {
     @Override
     public void notifyDevices(List<String> tokens, String title, String body) {
         logger.debug("Sending notification to {} devices - Title: {}", tokens.size(), title);
+        int successCount = 0;
+        int failureCount = 0;
+        
         for (String token : tokens) {
             Message message = buildMessage(title, body)
                     .setToken(token)
@@ -31,12 +34,14 @@ public class FCMService implements NotificationApi {
             try {
                 String messageId = FirebaseMessaging.getInstance().send(message);
                 logger.debug("Notification sent successfully to token: {} - MessageId: {}", token.substring(0, Math.min(10, token.length())) + "...", messageId);
+                successCount++;
             } catch (FirebaseMessagingException e) {
                 logger.error("Failed to send notification to token: {} - Error: {}", token.substring(0, Math.min(10, token.length())) + "...", e.getMessage());
+                failureCount++;
                 throw new RuntimeException(e);
             }
         }
-        logger.info("Successfully sent notifications to {} devices", tokens.size());
+        logger.info("Successfully sent notifications to {} devices (success: {}, failed: {})", tokens.size(), successCount, failureCount);
     }
 
     @Override
