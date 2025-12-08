@@ -3,7 +3,6 @@ package com.charity_hub.accounts.internal.shell.api.controllers;
 import com.charity_hub.accounts.internal.core.commands.ChangePermission.ChangePermission;
 import com.charity_hub.accounts.internal.core.commands.ChangePermission.ChangePermissionHandler;
 import com.charity_hub.accounts.internal.shell.api.dtos.ChangePermissionRequest;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,6 @@ public class AddUserPermissionController {
 
     @PostMapping("/v1/accounts/{userId}/add-permission")
     @PreAuthorize("hasAnyAuthority('FULL_ACCESS')")
-    @Timed(value = "charity_hub.accounts.add_permission", description = "Time taken to add permission")
     @Observed(name = "accounts.add_permission", contextualName = "add-permission")
     public ResponseEntity<Void> handle(
             @PathVariable UUID userId,

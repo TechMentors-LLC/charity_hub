@@ -4,7 +4,6 @@ import com.charity_hub.cases.shared.dtos.CaseDTO;
 import com.charity_hub.cases.shared.dtos.ContributionDTO;
 import com.charity_hub.ledger.internal.infrastructure.gateways.CasesGateway;
 import com.charity_hub.shared.abstractions.QueryHandler;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +20,6 @@ public class GetLedgerHandler implements QueryHandler<GetLedger, LedgerResponse>
     }
 
     @Override
-    @Timed(value = "charity_hub.handler.get_ledger", description = "Time taken by GetLedgerHandler")
     @Observed(name = "handler.get_ledger", contextualName = "get-ledger-handler")
     public LedgerResponse handle(GetLedger command) {
         var contributions = casesGateway.getContributions(command.userId());

@@ -3,7 +3,6 @@ package com.charity_hub.accounts.internal.core.commands.ChangePermission;
 import com.charity_hub.accounts.internal.core.contracts.IAccountRepo;
 import com.charity_hub.shared.abstractions.VoidCommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +15,6 @@ public class ChangePermissionHandler extends VoidCommandHandler<ChangePermission
     }
 
     @Override
-    @Timed(value = "charity_hub.handler.change_permission", description = "Time taken by ChangePermissionHandler")
     @Observed(name = "handler.change_permission", contextualName = "change-permission-handler")
     public void handle(ChangePermission command) {
                 String action = command.shouldAdd() ? "ADD" : "REMOVE";

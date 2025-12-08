@@ -3,7 +3,6 @@ package com.charity_hub.cases.internal.api.controllers;
 import com.charity_hub.cases.internal.api.dtos.PayContributionRequest;
 import com.charity_hub.cases.internal.application.commands.PayContribution.PayContribution;
 import com.charity_hub.cases.internal.application.commands.PayContribution.PayContributionHandler;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,6 @@ public class PayContributionController {
     }
 
     @PostMapping("/v1/contributions/{contributionId}/pay")
-    @Timed(value = "charity_hub.contributions.pay", description = "Time taken to mark contribution as paid")
     @Observed(name = "contributions.pay", contextualName = "pay-contribution")
     public ResponseEntity<Void> handle(
             @PathVariable UUID contributionId,

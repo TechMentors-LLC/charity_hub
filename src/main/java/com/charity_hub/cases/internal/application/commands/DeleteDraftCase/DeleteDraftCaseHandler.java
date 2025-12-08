@@ -4,7 +4,6 @@ import com.charity_hub.cases.internal.domain.contracts.ICaseRepo;
 import com.charity_hub.cases.internal.domain.model.Case.CaseCode;
 import com.charity_hub.shared.abstractions.VoidCommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +16,6 @@ public class DeleteDraftCaseHandler extends VoidCommandHandler<DeleteDraftCase> 
     }
 
     @Override
-    @Timed(value = "charity_hub.handler.delete_draft_case", description = "Time taken by DeleteDraftCaseHandler")
     @Observed(name = "handler.delete_draft_case", contextualName = "delete-draft-case-handler")
     public void handle(DeleteDraftCase command) {
         logger.info("Deleting draft case - CaseCode: {}", command.caseCode());

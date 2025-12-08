@@ -7,7 +7,6 @@ import com.charity_hub.accounts.internal.core.contracts.IJWTGenerator;
 import com.charity_hub.accounts.internal.core.model.account.Account;
 import com.charity_hub.shared.abstractions.CommandHandler;
 import com.charity_hub.shared.exceptions.BusinessRuleException;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,6 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
     }
 
     @Override
-    @Timed(value = "charity_hub.handler.authenticate", description = "Time taken by AuthenticateHandler")
     @Observed(name = "handler.authenticate", contextualName = "authenticate-handler")
     public AuthenticateResponse handle(Authenticate command) {
 

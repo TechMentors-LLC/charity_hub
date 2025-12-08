@@ -5,7 +5,6 @@ import com.charity_hub.accounts.internal.core.commands.UpdateBasicInfo.UpdateBas
 import com.charity_hub.accounts.internal.shell.api.dtos.BasicResponse;
 import com.charity_hub.accounts.internal.shell.api.dtos.UpdateBasicInfoRequest;
 import com.charity_hub.shared.auth.AccessTokenPayload;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,6 @@ public class UpdateBasicInfoController {
     }
 
     @PostMapping("/v1/accounts/update-basic-info")
-    @Timed(value = "charity_hub.accounts.update_basic_info", description = "Time taken to update basic info")
     @Observed(name = "accounts.update_basic_info", contextualName = "update-basic-info")
     public ResponseEntity<BasicResponse> handle(@RequestBody UpdateBasicInfoRequest request, @AuthenticationPrincipal AccessTokenPayload accessTokenPayload) {
         log.info("Updating basic info for user: {}", accessTokenPayload.getUserId());

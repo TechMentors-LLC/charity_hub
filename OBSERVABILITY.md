@@ -121,15 +121,25 @@ public class MyController {
 
 ### Using Annotations
 
-Add observability annotations to methods:
+**For Controllers and Handlers (with tracing):** Use `@Observed` - it provides timing, tracing, and spans:
+
+```java
+@Observed(name = "operation.name", contextualName = "operation-context")
+public void myOperation() {
+    // Your code - timing AND tracing are automatically recorded
+}
+```
+
+**For simple timing only (Repositories, utility methods):** Use `@Timed`:
 
 ```java
 @Timed(value = "operation.name", description = "Operation description")
-@Observed(name = "operation.name", contextualName = "operation-context")
-public void myOperation() {
-    // Your code
+public void myDatabaseQuery() {
+    // Simple timing without tracing overhead
 }
 ```
+
+> **Important:** Do NOT use both `@Timed` and `@Observed` on the same method. `@Observed` already includes timing, so using both creates duplicate metrics and wastes resources.
 
 ## Distributed Tracing
 

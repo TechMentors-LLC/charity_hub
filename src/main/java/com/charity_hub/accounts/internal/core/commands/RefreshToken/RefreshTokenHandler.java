@@ -5,7 +5,6 @@ import com.charity_hub.accounts.internal.core.contracts.IJWTGenerator;
 import com.charity_hub.shared.abstractions.CommandHandler;
 import com.charity_hub.shared.domain.ILogger;
 import com.charity_hub.shared.exceptions.UnAuthorized;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +21,6 @@ public class RefreshTokenHandler extends CommandHandler<RefreshToken, String> {
     }
 
     @Override
-    @Timed(value = "charity_hub.handler.refresh_token", description = "Time taken by RefreshTokenHandler")
     @Observed(name = "handler.refresh_token", contextualName = "refresh-token-handler")
     public String handle(RefreshToken command) {
             logger.info("RefreshTokenHandler: Processing command: {}", command);

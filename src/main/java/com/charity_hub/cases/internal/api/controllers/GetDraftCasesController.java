@@ -3,7 +3,6 @@ package com.charity_hub.cases.internal.api.controllers;
 import com.charity_hub.cases.internal.application.queries.GetDraftCases.GetDraftCases;
 import com.charity_hub.cases.internal.application.queries.GetDraftCases.GetDraftCasesHandler;
 import com.charity_hub.cases.internal.application.queries.GetDraftCases.GetDraftCasesResponse;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +21,6 @@ public class GetDraftCasesController {
     }
 
     @GetMapping("/v1/draft-cases")
-    @Timed(value = "charity_hub.cases.get_drafts", description = "Time taken to retrieve draft cases")
     @Observed(name = "cases.get_drafts", contextualName = "get-draft-cases")
     public ResponseEntity<GetDraftCasesResponse> handle() {
         log.debug("Retrieving draft cases");

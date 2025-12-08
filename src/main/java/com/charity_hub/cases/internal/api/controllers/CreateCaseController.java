@@ -5,7 +5,6 @@ import com.charity_hub.cases.internal.application.commands.CreateCase.CreateCase
 import com.charity_hub.cases.internal.application.commands.CreateCase.CaseResponse;
 import com.charity_hub.cases.internal.api.dtos.CreateCaseRequest;
 import com.charity_hub.shared.observability.metrics.BusinessMetrics;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,6 @@ public class CreateCaseController {
 
     @PostMapping("/v1/cases")
     @PreAuthorize("hasAnyAuthority('CREATE_CASES', 'FULL_ACCESS')")
-    @Timed(value = "charity_hub.cases.create", description = "Time taken to create a case")
     @Observed(name = "cases.create", contextualName = "create-case")
     public ResponseEntity<CaseResponse> createCase(@RequestBody CreateCaseRequest request) {
         log.info("Creating new case: {}", request.title());

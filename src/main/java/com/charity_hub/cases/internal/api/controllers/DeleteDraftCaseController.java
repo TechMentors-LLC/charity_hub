@@ -2,7 +2,6 @@ package com.charity_hub.cases.internal.api.controllers;
 
 import com.charity_hub.cases.internal.application.commands.DeleteDraftCase.DeleteDraftCase;
 import com.charity_hub.cases.internal.application.commands.DeleteDraftCase.DeleteDraftCaseHandler;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,6 @@ public class DeleteDraftCaseController {
 
     @DeleteMapping("/v1/cases/{caseCode}")
     @PreAuthorize("hasAnyAuthority('FULL_ACCESS')")
-    @Timed(value = "charity_hub.cases.delete_draft", description = "Time taken to delete a draft case")
     @Observed(name = "cases.delete_draft", contextualName = "delete-draft-case")
     public ResponseEntity<Void> handle(@PathVariable int caseCode) {
         log.info("Deleting draft case: {}", caseCode);

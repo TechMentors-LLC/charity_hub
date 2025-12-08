@@ -7,7 +7,6 @@ import com.charity_hub.cases.internal.application.queries.GetCase.IGetCaseHandle
 import com.charity_hub.cases.internal.infrastructure.gateways.AccountsGateway;
 import com.charity_hub.cases.internal.application.contracts.ICaseReadRepo;
 import com.charity_hub.shared.abstractions.QueryHandler;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +31,6 @@ public class GetCaseHandler implements QueryHandler<GetCaseQuery, GetCaseRespons
     }
 
     @Override
-    @Timed(value = "charity_hub.handler.get_case", description = "Time taken by GetCaseHandler")
     @Observed(name = "handler.get_case", contextualName = "get-case-handler")
     public GetCaseResponse handle(GetCaseQuery query) {
         var case_ = caseRepo.getByCode(query.caseCode());

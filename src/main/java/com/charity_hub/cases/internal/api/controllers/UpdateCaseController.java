@@ -3,7 +3,6 @@ package com.charity_hub.cases.internal.api.controllers;
 import com.charity_hub.cases.internal.application.commands.UpdateCase.UpdateCase;
 import com.charity_hub.cases.internal.application.commands.UpdateCase.UpdateCaseHandler;
 import com.charity_hub.cases.internal.api.dtos.UpdateCaseRequest;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,6 @@ public class UpdateCaseController {
     }
 
     @PutMapping("/v1/cases/{caseCode}")
-    @Timed(value = "charity_hub.cases.update", description = "Time taken to update a case")
     @Observed(name = "cases.update", contextualName = "update-case")
     public ResponseEntity<Void> handle(
             @PathVariable int caseCode,

@@ -4,7 +4,6 @@ import com.charity_hub.cases.internal.application.queries.GetCase.GetCaseQuery;
 import com.charity_hub.cases.internal.application.queries.GetCase.GetCaseResponse;
 import com.charity_hub.cases.internal.application.queries.GetCase.IGetCaseHandler;
 import com.charity_hub.shared.auth.AccessTokenPayload;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +25,6 @@ public class GetCaseController {
 
     @GetMapping("/v1/cases/{caseCode}")
     @PreAuthorize("hasAnyAuthority('FULL_ACCESS')")
-    @Timed(value = "charity_hub.cases.get", description = "Time taken to retrieve a case")
     @Observed(name = "cases.get", contextualName = "get-case")
     public ResponseEntity<GetCaseResponse> getCase(
             @PathVariable int caseCode,

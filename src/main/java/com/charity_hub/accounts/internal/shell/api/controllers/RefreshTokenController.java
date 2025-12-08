@@ -4,7 +4,6 @@ import com.charity_hub.accounts.internal.core.commands.RefreshToken.RefreshToken
 import com.charity_hub.accounts.internal.core.commands.RefreshToken.RefreshTokenHandler;
 import com.charity_hub.accounts.internal.core.commands.RefreshToken.RefreshTokenResponse;
 import com.charity_hub.shared.auth.RefreshTokenPayload;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +25,6 @@ public class RefreshTokenController {
     }
 
     @PostMapping("/v1/accounts/refresh-token")
-    @Timed(value = "charity_hub.accounts.refresh_token", description = "Time taken to refresh token")
     @Observed(name = "accounts.refresh_token", contextualName = "refresh-token")
     public ResponseEntity<RefreshTokenResponse> handle(
             @AuthenticationPrincipal RefreshTokenPayload refreshTokenPayload,

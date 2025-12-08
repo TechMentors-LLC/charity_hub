@@ -4,7 +4,6 @@ import com.charity_hub.accounts.internal.core.commands.RegisterNotificationToken
 import com.charity_hub.accounts.internal.core.commands.RegisterNotificationToken.RegisterNotificationTokenHandler;
 import com.charity_hub.accounts.internal.shell.api.dtos.RegisterFCMTokenRequest;
 import com.charity_hub.shared.auth.AccessTokenPayload;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,6 @@ public class RegisterFCMTokenController {
     }
 
     @PostMapping("/v1/accounts/register-fcm-token")
-    @Timed(value = "charity_hub.accounts.register_fcm_token", description = "Time taken to register FCM token")
     @Observed(name = "accounts.register_fcm_token", contextualName = "register-fcm-token")
     public ResponseEntity<Void> handle(@RequestBody RegisterFCMTokenRequest request, @AuthenticationPrincipal AccessTokenPayload accessTokenPayload) {
         log.info("Registering FCM token for user: {}", accessTokenPayload.getUserId());

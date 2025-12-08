@@ -6,7 +6,6 @@ import com.charity_hub.cases.internal.application.commands.Contribute.Contribute
 import com.charity_hub.cases.internal.api.dtos.ContributeRequest;
 import com.charity_hub.shared.auth.AccessTokenPayload;
 import com.charity_hub.shared.observability.metrics.BusinessMetrics;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,6 @@ public class ContributionController {
     }
 
     @PostMapping("/v1/cases/{caseCode}/contributions")
-    @Timed(value = "charity_hub.contributions.create", description = "Time taken to create a contribution")
     @Observed(name = "contributions.create", contextualName = "create-contribution")
     public ResponseEntity<ContributeDefaultResponse> contribute(
             @PathVariable int caseCode,

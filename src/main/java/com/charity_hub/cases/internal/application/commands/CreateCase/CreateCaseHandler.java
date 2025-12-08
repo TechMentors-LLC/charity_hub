@@ -5,7 +5,6 @@ import com.charity_hub.cases.internal.domain.model.Case.Case;
 import com.charity_hub.cases.internal.domain.model.Case.NewCaseProbs;
 import com.charity_hub.cases.internal.domain.model.Case.Status;
 import com.charity_hub.shared.abstractions.CommandHandler;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +17,6 @@ public class CreateCaseHandler extends CommandHandler<CreateCase, CaseResponse> 
     }
 
     @Override
-    @Timed(value = "charity_hub.handler.create_case", description = "Time taken by CreateCaseHandler")
     @Observed(name = "handler.create_case", contextualName = "create-case-handler")
     public CaseResponse handle(CreateCase command) {
         logger.info("Creating new case - Title: {}, Goal: {}, Publish: {}", 

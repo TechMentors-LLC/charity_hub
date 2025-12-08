@@ -4,7 +4,6 @@ import com.charity_hub.cases.internal.api.dtos.GetCasesRequest;
 import com.charity_hub.cases.internal.application.queries.GetAllCases.GetAllCasesQuery;
 import com.charity_hub.cases.internal.application.queries.GetAllCases.GetCasesQueryResult;
 import com.charity_hub.cases.internal.infrastructure.queryhandlers.GetAllCasesHandler;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,6 @@ public class GetAllCasesController {
     }
 
     @GetMapping("/v1/cases")
-    @Timed(value = "charity_hub.cases.get_all", description = "Time taken to retrieve all cases")
     @Observed(name = "cases.get_all", contextualName = "get-all-cases")
     public ResponseEntity<GetCasesQueryResult> getCases(@ModelAttribute GetCasesRequest request) {
         log.debug("Retrieving cases with offset: {}, limit: {}", request.offset(), request.limit());

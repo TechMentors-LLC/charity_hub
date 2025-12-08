@@ -112,25 +112,24 @@ public class MyController {
 }
 ```
 
-### Example 2: Using @Timed Annotation
+### Example 2: Using @Timed Annotation (for Repositories/Utilities)
+
+Use `@Timed` for simple timing without the overhead of distributed tracing:
 
 ```java
-@RestController
-public class ContributionController {
+@Repository
+public class ContributionRepository {
     
-    @PostMapping("/contributions")
-    @Timed(value = "charity_hub.contributions.process", 
-           description = "Time taken to process a contribution",
+    @Timed(value = "charity_hub.repo.contributions.save", 
+           description = "Time taken to save a contribution",
            histogram = true)
-    public ResponseEntity<ContributionResponse> processContribution(
-            @RequestBody ContributionRequest request) {
-        // Your business logic
-        return ResponseEntity.ok(response);
+    public void save(Contribution contribution) {
+        // Database operation
     }
 }
 ```
 
-### Example 3: Using @Observed for Tracing
+### Example 3: Using @Observed for Controllers/Handlers
 
 ```java
 @Service
@@ -146,7 +145,9 @@ public class PaymentService {
 }
 ```
 
-### Example 4: Combining Metrics and Tracing
+### Example 4: Combining @Observed with Custom Counters
+
+Use `@Observed` for timing/tracing and custom counters for business metrics:
 
 ```java
 @RestController
@@ -155,7 +156,8 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @PostMapping("/notifications/send")
-    @Timed(value = "charity_hub.notifications.send.duration")
+    // Use @Observed for controllers - it includes timing AND creates tracing spans
+    // Do NOT use @Timed together with @Observed (redundant)
     @Observed(name = "notification.send", contextualName = "send-notification")
     public ResponseEntity<NotificationResponse> sendNotification(
             @RequestBody NotificationRequest request) {
@@ -357,12 +359,20 @@ curl http://localhost:8080/actuator/health/firebase | jq
 
 3. **Keep Metric Names Consistent**: Use the `charity_hub.*` prefix for all custom metrics.
 
-4. **Use Histograms for Timings**: Enable histograms for latency metrics:
+4. **Use @Observed for Controllers/Handlers, @Timed for Repositories**:
    ```java
-   @Timed(value = "operation.name", histogram = true)
+   // Controllers/Handlers - use @Observed (includes timing + tracing)
+   @Observed(name = "handler.create_case", contextualName = "create-case-handler")
+   public void handle(CreateCase command) { ... }
+   
+   // Repositories - use @Timed (simple timing, no tracing overhead)
+   @Timed(value = "charity_hub.repo.case.save")
+   public void save(Case case_) { ... }
    ```
 
-5. **Monitor Error Rates**: Track both successes and failures:
+5. **Never use @Timed and @Observed together**: They are redundant. `@Observed` already includes timing metrics.
+
+6. **Monitor Error Rates**: Track both successes and failures:
    ```java
    try {
        // operation
@@ -373,7 +383,7 @@ curl http://localhost:8080/actuator/health/firebase | jq
    }
    ```
 
-6. **Set Appropriate Sampling**: In production, consider reducing trace sampling:
+7. **Set Appropriate Sampling**: In production, consider reducing trace sampling:
    ```properties
    management.tracing.sampling.probability=0.1
    ```

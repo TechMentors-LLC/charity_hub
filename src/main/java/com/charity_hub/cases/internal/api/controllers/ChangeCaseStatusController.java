@@ -2,7 +2,6 @@ package com.charity_hub.cases.internal.api.controllers;
 
 import com.charity_hub.cases.internal.application.commands.ChangeCaseStatus.ChangeCaseStatus;
 import com.charity_hub.cases.internal.application.commands.ChangeCaseStatus.ChangeCaseStatusHandler;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,6 @@ public class ChangeCaseStatusController {
 
     @PostMapping("/v1/cases/{caseCode}/open")
     @PreAuthorize("hasAnyAuthority('CREATE_CASES', 'FULL_ACCESS')")
-    @Timed(value = "charity_hub.cases.open", description = "Time taken to open a case")
     @Observed(name = "cases.open", contextualName = "open-case")
     public ResponseEntity<Void> open(@PathVariable int caseCode) {
         log.info("Opening case: {}", caseCode);
@@ -35,7 +33,6 @@ public class ChangeCaseStatusController {
 
     @PostMapping("/v1/cases/{caseCode}/close")
     @PreAuthorize("hasAnyAuthority('CREATE_CASES', 'FULL_ACCESS')")
-    @Timed(value = "charity_hub.cases.close", description = "Time taken to close a case")
     @Observed(name = "cases.close", contextualName = "close-case")
     public ResponseEntity<Void> close(@PathVariable int caseCode) {
         log.info("Closing case: {}", caseCode);

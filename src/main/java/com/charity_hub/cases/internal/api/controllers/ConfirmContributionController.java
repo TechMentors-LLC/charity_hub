@@ -2,7 +2,6 @@ package com.charity_hub.cases.internal.api.controllers;
 
 import com.charity_hub.cases.internal.application.commands.ConfirmContribution.ConfirmContribution;
 import com.charity_hub.cases.internal.application.commands.ConfirmContribution.ConfirmContributionHandler;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,6 @@ public class ConfirmContributionController {
     }
 
     @PostMapping("/v1/contributions/{contributionId}/confirm")
-    @Timed(value = "charity_hub.contributions.confirm", description = "Time taken to confirm a contribution")
     @Observed(name = "contributions.confirm", contextualName = "confirm-contribution")
     public ResponseEntity<Void> handle(@PathVariable UUID contributionId){
         log.info("Confirming contribution: {}", contributionId);

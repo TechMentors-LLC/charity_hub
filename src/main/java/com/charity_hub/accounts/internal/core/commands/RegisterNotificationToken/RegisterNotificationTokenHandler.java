@@ -3,7 +3,6 @@ package com.charity_hub.accounts.internal.core.commands.RegisterNotificationToke
 import com.charity_hub.accounts.internal.core.contracts.IAccountRepo;
 import com.charity_hub.shared.abstractions.VoidCommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +15,6 @@ public class RegisterNotificationTokenHandler extends VoidCommandHandler<Registe
     }
 
     @Override
-    @Timed(value = "charity_hub.handler.register_notification_token", description = "Time taken by RegisterNotificationTokenHandler")
     @Observed(name = "handler.register_notification_token", contextualName = "register-notification-token-handler")
     public void handle(
             RegisterNotificationToken command

@@ -4,7 +4,6 @@ import com.charity_hub.accounts.internal.core.commands.Authenticate.Authenticate
 import com.charity_hub.accounts.internal.core.commands.Authenticate.AuthenticateHandler;
 import com.charity_hub.accounts.internal.core.commands.Authenticate.AuthenticateResponse;
 import com.charity_hub.shared.observability.metrics.BusinessMetrics;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,6 @@ public class AuthController {
     }
 
     @PostMapping("/v1/accounts/authenticate")
-    @Timed(value = "charity_hub.authentication.request", description = "Time taken to authenticate user")
     @Observed(name = "authentication.request", contextualName = "authenticate-user")
     public ResponseEntity<AuthenticateResponse> login(@RequestBody Authenticate authenticate) {
         log.info("Processing authentication request");

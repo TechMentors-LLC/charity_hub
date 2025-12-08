@@ -2,7 +2,6 @@ package com.charity_hub.ledger.internal.api;
 
 import com.charity_hub.ledger.internal.application.queries.GetLedger.GetLedger;
 import com.charity_hub.ledger.internal.application.queries.GetLedger.GetLedgerHandler;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,6 @@ public class GetLedgerController {
 
     @PreAuthorize("hasAuthority('FULL_ACCESS')")
     @GetMapping("/v1/ledger/{userId}")
-    @Timed(value = "charity_hub.ledger.get", description = "Time taken to retrieve user ledger")
     @Observed(name = "ledger.get", contextualName = "get-ledger")
     public ResponseEntity<?> handle(@PathVariable UUID userId) {
         log.info("Retrieving ledger for user: {}", userId);

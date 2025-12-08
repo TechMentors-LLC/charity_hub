@@ -2,7 +2,6 @@ package com.charity_hub.accounts.internal.shell.api.controllers;
 
 import com.charity_hub.accounts.internal.core.commands.BlockAccount.BlockAccount;
 import com.charity_hub.accounts.internal.core.commands.BlockAccount.BlockAccountHandler;
-import io.micrometer.core.annotation.Timed;
 import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,6 @@ public class BlockAccountController {
 
     @PostMapping("/v1/accounts/{userId}/block")
     @PreAuthorize("hasAnyAuthority('FULL_ACCESS')")
-    @Timed(value = "charity_hub.accounts.block", description = "Time taken to block an account")
     @Observed(name = "accounts.block", contextualName = "block-account")
     public ResponseEntity<Void> handle(@PathVariable String userId) {
         log.info("Blocking account: {}", userId);
