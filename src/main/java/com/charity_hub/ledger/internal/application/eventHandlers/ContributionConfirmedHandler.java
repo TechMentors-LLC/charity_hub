@@ -29,6 +29,7 @@ public class ContributionConfirmedHandler {
         eventBus.subscribe(this, ContributionConfirmedDTO.class, this::handle);
     }
 
+    @io.micrometer.core.annotation.Timed(value = "charity_hub.event.contribution_confirmed", description = "Time taken to handle ContributionConfirmed event")
     private void handle(ContributionConfirmedDTO contribution) {
         logger.processingEvent(contribution);
 

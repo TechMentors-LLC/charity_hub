@@ -25,6 +25,7 @@ public class CaseOpenedHandler {
         eventBus.subscribe(this, CaseOpenedDTO.class, this::handle);
     }
 
+    @io.micrometer.core.annotation.Timed(value = "charity_hub.event.case_opened", description = "Time taken to handle CaseOpened event")
     private void handle(CaseOpenedDTO case_) {
         logger.processingEvent(case_);
 

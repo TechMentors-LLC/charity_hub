@@ -53,6 +53,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
+    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.case.next_code", description = "Time taken to generate next case code")
     public int nextCaseCode() {
         CaseEntity lastCase = cases.find()
                 .sort(new org.bson.Document("code", -1))
@@ -111,6 +112,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
+    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.case.delete", description = "Time taken to delete case")
     public void delete(CaseCode caseCode) {
         logger.info("Deleting case: {}", caseCode.value());
         cases.deleteOne(new org.bson.Document("code", caseCode.value()));
@@ -169,6 +171,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
+    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.contribution.get_by_id", description = "Time taken to fetch contribution by ID")
     public Optional<Contribution> getContributionById(UUID id) {
         logger.debug("Fetching contribution by ID: {}", id);
         ContributionEntity entity = contributions.find(

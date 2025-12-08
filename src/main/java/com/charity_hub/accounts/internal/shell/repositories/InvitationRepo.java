@@ -7,6 +7,7 @@ import com.charity_hub.accounts.internal.shell.db.InvitationEntity;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReplaceOptions;
+import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -31,6 +32,7 @@ public class InvitationRepo implements IInvitationRepo {
     }
 
     @Override
+    @Timed(value = "charity_hub.repo.invitation.save", description = "Time taken to save invitation")
     public void save(Invitation invitation) {
         logger.info("Saving invitation for mobile: {}", invitation.invitedMobileNumber().value());
         InvitationEntity entity = invitationMapper.toEntity(invitation);
@@ -43,6 +45,7 @@ public class InvitationRepo implements IInvitationRepo {
     }
 
     @Override
+    @Timed(value = "charity_hub.repo.invitation.get", description = "Time taken to fetch invitation")
     public Invitation get(String mobileNumber) {
         logger.debug("Looking up invitation for mobile: {}", mobileNumber);
         Invitation invitation = Optional.ofNullable(collection.find(eq("mobileNumber", mobileNumber)).first())
@@ -55,6 +58,7 @@ public class InvitationRepo implements IInvitationRepo {
     }
 
     @Override
+    @Timed(value = "charity_hub.repo.invitation.has_invitation", description = "Time taken to check invitation existence")
     public boolean hasInvitation(String mobileNumber) {
         logger.debug("Checking if invitation exists for mobile: {}", mobileNumber);
         boolean exists = collection.find(eq("mobileNumber", mobileNumber)).first() != null;

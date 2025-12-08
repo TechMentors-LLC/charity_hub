@@ -25,6 +25,7 @@ public class ContributionMadeHandler {
         eventBus.subscribe(this, ContributionMadeDTO.class, this::handle);
     }
 
+    @io.micrometer.core.annotation.Timed(value = "charity_hub.event.contribution_made", description = "Time taken to handle ContributionMade event")
     private void handle(ContributionMadeDTO contribution) {
         logger.processingEvent(contribution);
 
