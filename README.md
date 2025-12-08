@@ -71,6 +71,17 @@ The project is organized into several core modules:
   * Email notifications
   * Event tracking
 
+## Observability
+
+Charity Hub includes comprehensive observability features:
+
+* **Metrics**: Prometheus-compatible metrics for monitoring application and business operations
+* **Distributed Tracing**: OpenTelemetry integration for request tracing
+* **Health Checks**: Custom health indicators for MongoDB and Firebase
+* **Actuator Endpoints**: Spring Boot Actuator with extensive monitoring capabilities
+
+📊 See [OBSERVABILITY.md](./OBSERVABILITY.md) for detailed documentation on metrics, tracing, and monitoring.
+
 ## Technology Stack
 
 Charity Hub is built with modern technologies:
@@ -82,7 +93,8 @@ Charity Hub is built with modern technologies:
     "framework": "Spring Boot 3.3.5",
     "database": "MongoDB",
     "security": ["Spring Security", "JWT"],
-    "messaging": "Firebase Cloud Messaging"
+    "messaging": "Firebase Cloud Messaging",
+    "observability": ["Micrometer", "Prometheus", "OpenTelemetry"]
   }
 }
 ```

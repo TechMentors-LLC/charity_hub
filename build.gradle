@@ -49,6 +49,10 @@ dependencies {
     implementation ('com.google.firebase:firebase-admin:9.4.1')
 //    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
 //    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:${coroutinesVersion}")
+    // Observability dependencies
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+    runtimeOnly 'io.micrometer:micrometer-tracing-bridge-otel'
+    runtimeOnly 'io.opentelemetry:opentelemetry-exporter-otlp'
 //	runtimeOnly 'io.micrometer:micrometer-registry-datadog'
     runtimeOnly 'org.springframework.modulith:spring-modulith-actuator'
     runtimeOnly 'org.springframework.modulith:spring-modulith-observability'

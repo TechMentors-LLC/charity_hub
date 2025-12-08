@@ -1,0 +1,32 @@
+package com.charity_hub.shared.observability;
+
+import io.micrometer.core.aop.TimedAspect;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.observation.aop.ObservedAspect;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * Configuration for observability features in Charity Hub.
+ * Sets up aspects for @Timed and @Observed annotations.
+ */
+@Configuration
+public class ObservabilityConfiguration {
+
+    /**
+     * Enable support for @Timed annotation on methods.
+     */
+    @Bean
+    public TimedAspect timedAspect(MeterRegistry registry) {
+        return new TimedAspect(registry);
+    }
+
+    /**
+     * Enable support for @Observed annotation on methods.
+     */
+    @Bean
+    public ObservedAspect observedAspect(ObservationRegistry observationRegistry) {
+        return new ObservedAspect(observationRegistry);
+    }
+}
