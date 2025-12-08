@@ -18,12 +18,12 @@ public class UpdateBasicInfoHandler extends CommandHandler<UpdateBasicInfo,Strin
         this.jwtGenerator = jwtGenerator;
     }
 
-        @Override
-        @Timed(value = "charity_hub.handler.update_basic_info", description = "Time taken by UpdateBasicInfoHandler")
-        @Observed(name = "handler.update_basic_info", contextualName = "update-basic-info-handler")
-        public String handle(
+    @Override
+    @Timed(value = "charity_hub.handler.update_basic_info", description = "Time taken by UpdateBasicInfoHandler")
+    @Observed(name = "handler.update_basic_info", contextualName = "update-basic-info-handler")
+    public String handle(
             UpdateBasicInfo command
-        ) {
+    ) {
                 logger.info("Updating basic info - UserId: {}, DeviceId: {}", 
                         command.userId(), command.deviceId());
                 
