@@ -4,6 +4,7 @@ import com.charity_hub.cases.shared.dtos.CaseClosedDTO;
 import com.charity_hub.cases.internal.domain.contracts.INotificationService;
 import com.charity_hub.cases.internal.application.eventHandlers.loggers.CaseClosedLogger;
 import com.charity_hub.shared.domain.IEventBus;
+import io.micrometer.core.annotation.Timed;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,7 @@ public class CaseClosedHandler {
         eventBus.subscribe(this, CaseClosedDTO.class, this::handle);
     }
 
-    @io.micrometer.core.annotation.Timed(value = "charity_hub.event.case_closed", description = "Time taken to handle CaseClosed event")
+    @Timed(value = "charity_hub.event.case_closed", description = "Time taken to handle CaseClosed event")
     private void handle(CaseClosedDTO case_) {
         logger.processingEvent(case_);
 

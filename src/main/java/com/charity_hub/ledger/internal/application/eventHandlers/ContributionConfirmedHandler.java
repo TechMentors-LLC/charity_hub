@@ -4,6 +4,7 @@ import com.charity_hub.cases.shared.dtos.ContributionConfirmedDTO;
 import com.charity_hub.ledger.internal.domain.contracts.INotificationService;
 import com.charity_hub.ledger.internal.application.eventHandlers.loggers.ContributionConfirmedLogger;
 import com.charity_hub.shared.domain.IEventBus;
+import io.micrometer.core.annotation.Timed;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +30,7 @@ public class ContributionConfirmedHandler {
         eventBus.subscribe(this, ContributionConfirmedDTO.class, this::handle);
     }
 
-    @io.micrometer.core.annotation.Timed(value = "charity_hub.event.contribution_confirmed", description = "Time taken to handle ContributionConfirmed event")
+    @Timed(value = "charity_hub.event.contribution_confirmed", description = "Time taken to handle ContributionConfirmed event")
     private void handle(ContributionConfirmedDTO contribution) {
         logger.processingEvent(contribution);
 

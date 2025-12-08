@@ -4,6 +4,7 @@ import com.charity_hub.cases.shared.dtos.ContributionPaidDTO;
 import com.charity_hub.ledger.internal.domain.contracts.INotificationService;
 import com.charity_hub.ledger.internal.application.eventHandlers.loggers.ContributionPaidLogger;
 import com.charity_hub.shared.domain.IEventBus;
+import io.micrometer.core.annotation.Timed;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +30,7 @@ public class ContributionPaidHandler {
         eventBus.subscribe(this, ContributionPaidDTO.class, this::handle);
     }
 
-    @io.micrometer.core.annotation.Timed(value = "charity_hub.event.contribution_paid", description = "Time taken to handle ContributionPaid event")
+    @Timed(value = "charity_hub.event.contribution_paid", description = "Time taken to handle ContributionPaid event")
     private void handle(ContributionPaidDTO contribution) {
         logger.processingEvent(contribution);
 
