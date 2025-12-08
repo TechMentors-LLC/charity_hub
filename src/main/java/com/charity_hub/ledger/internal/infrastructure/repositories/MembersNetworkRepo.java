@@ -8,6 +8,7 @@ import com.charity_hub.ledger.internal.infrastructure.db.MemberMapper;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReplaceOptions;
+import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -27,7 +28,7 @@ public class MembersNetworkRepo implements IMembersNetworkRepo {
     }
 
     @Override
-    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.member.get_by_id", description = "Time taken to fetch member by ID")
+    @Timed(value = "charity_hub.repo.member.get_by_id", description = "Time taken to fetch member by ID")
     public Member getById(UUID id) {
         logger.debug("Looking up member by id: {}", id);
         MemberEntity entity = collection.find(eq("_id", id.toString())).first();
@@ -38,7 +39,7 @@ public class MembersNetworkRepo implements IMembersNetworkRepo {
     }
 
     @Override
-    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.member.delete", description = "Time taken to delete member")
+    @Timed(value = "charity_hub.repo.member.delete", description = "Time taken to delete member")
     public void delete(MemberId id) {
         logger.info("Deleting member with id: {}", id.value());
         collection.deleteOne(eq("_id", id.value().toString()));
@@ -46,7 +47,7 @@ public class MembersNetworkRepo implements IMembersNetworkRepo {
     }
 
     @Override
-    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.member.save", description = "Time taken to save member")
+    @Timed(value = "charity_hub.repo.member.save", description = "Time taken to save member")
     public void save(Member member) {
         logger.info("Saving member with id: {}", member.memberId().value());
         MemberEntity entity = MemberMapper.toDB(member);

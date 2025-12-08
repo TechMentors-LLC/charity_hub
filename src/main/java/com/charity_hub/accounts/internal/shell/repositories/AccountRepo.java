@@ -11,6 +11,7 @@ import com.charity_hub.shared.domain.IEventBus;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReplaceOptions;
+import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,7 +47,7 @@ public class AccountRepo implements IAccountRepo {
     }
 
     @Override
-    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.account.get_by_id", description = "Time taken to fetch account by ID")
+    @Timed(value = "charity_hub.repo.account.get_by_id", description = "Time taken to fetch account by ID")
     public Optional<Account> getById(UUID id) {
         logger.debug("Fetching account by ID: {}", id);
         return Optional.ofNullable(collection.find(eq("accountId", id.toString())).first())
@@ -54,7 +55,7 @@ public class AccountRepo implements IAccountRepo {
     }
 
     @Override
-    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.account.get_connections", description = "Time taken to fetch account connections")
+    @Timed(value = "charity_hub.repo.account.get_connections", description = "Time taken to fetch account connections")
     public List<Account> getConnections(UUID id) {
         logger.debug("Fetching connections for account: {}", id);
         return collection.find(eq("connections.userId", id.toString()))
@@ -63,7 +64,7 @@ public class AccountRepo implements IAccountRepo {
     }
 
     @Override
-    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.account.get_by_mobile", description = "Time taken to fetch account by mobile number")
+    @Timed(value = "charity_hub.repo.account.get_by_mobile", description = "Time taken to fetch account by mobile number")
     public Optional<Account> getByMobileNumber(String mobileNumber) {
         logger.debug("Fetching account by mobile number: {}", mobileNumber);
         return Optional.ofNullable(collection.find(eq("mobileNumber", mobileNumber)).first())
@@ -71,7 +72,7 @@ public class AccountRepo implements IAccountRepo {
     }
 
     @Override
-    @io.micrometer.core.annotation.Timed(value = "charity_hub.repo.account.save", description = "Time taken to save account")
+    @Timed(value = "charity_hub.repo.account.save", description = "Time taken to save account")
     public void save(Account account) {
         logger.debug("Saving account: {}", account.getId().value());
         AccountEntity entity = domainAccountMapper.toDB(account);
