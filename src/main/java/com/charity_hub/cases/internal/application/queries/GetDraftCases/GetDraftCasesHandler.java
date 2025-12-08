@@ -2,6 +2,8 @@ package com.charity_hub.cases.internal.application.queries.GetDraftCases;
 
 import com.charity_hub.cases.internal.application.contracts.ICaseReadRepo;
 import com.charity_hub.shared.abstractions.QueryHandler;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +18,8 @@ public class GetDraftCasesHandler implements QueryHandler<GetDraftCases, GetDraf
     }
 
     @Override
+    @Timed(value = "charity_hub.handler.get_draft_cases", description = "Time taken by GetDraftCasesHandler")
+    @Observed(name = "handler.get_draft_cases", contextualName = "get-draft-cases-handler")
     public GetDraftCasesResponse handle(GetDraftCases query) {
         List<GetDraftCasesResponse.DraftCase> draftCases = caseRepo.getDraftCases()
                 .stream()
