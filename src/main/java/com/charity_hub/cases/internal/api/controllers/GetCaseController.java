@@ -35,6 +35,6 @@ public class GetCaseController {
         log.info("Retrieving case: {}", caseCode);
         var response = getCaseHandler.handle(new GetCaseQuery(caseCode, accessTokenPayload));
         log.debug("Case retrieved successfully: {}", caseCode);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.ok(response);
     }
 }

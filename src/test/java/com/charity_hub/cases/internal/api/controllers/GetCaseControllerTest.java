@@ -49,7 +49,7 @@ class GetCaseControllerTest {
 
         @Test
         @WithMockUser(authorities = {"FULL_ACCESS"})
-        @DisplayName("should get case successfully and return 201")
+        @DisplayName("should get case successfully and return 200")
         void shouldGetCaseSuccessfully() throws Exception {
             // Arrange
             UUID userId = UUID.randomUUID();
@@ -74,7 +74,7 @@ class GetCaseControllerTest {
 
             // Act & Assert
             mockMvc.perform(get("/v1/cases/12345"))
-                    .andExpect(status().isCreated())
+                    .andExpect(status().isOk())
                     .andExpect(jsonPath("$.case.code").value(12345))
                     .andExpect(jsonPath("$.case.title").value("Test Case"))
                     .andExpect(jsonPath("$.case.goal").value(10000))
@@ -101,7 +101,7 @@ class GetCaseControllerTest {
 
             // Act
             mockMvc.perform(get("/v1/cases/54321"))
-                    .andExpect(status().isCreated());
+                    .andExpect(status().isOk());
 
             // Assert
             ArgumentCaptor<GetCaseQuery> captor = ArgumentCaptor.forClass(GetCaseQuery.class);
@@ -131,7 +131,7 @@ class GetCaseControllerTest {
 
             // Act & Assert
             mockMvc.perform(get("/v1/cases/12345"))
-                    .andExpect(status().isCreated())
+                    .andExpect(status().isOk())
                     .andExpect(jsonPath("$.case.contributions").isArray())
                     .andExpect(jsonPath("$.case.contributions[0].amount").value(1000))
                     .andExpect(jsonPath("$.case.contributions[0].contributor.fullName").value("John Doe"));
