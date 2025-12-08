@@ -4,6 +4,7 @@ import com.charity_hub.accounts.internal.core.commands.Authenticate.Authenticate
 import com.charity_hub.accounts.internal.core.commands.Authenticate.AuthenticateHandler;
 import com.charity_hub.accounts.internal.core.commands.Authenticate.AuthenticateResponse;
 import com.charity_hub.shared.exceptions.GlobalExceptionHandler;
+import com.charity_hub.shared.observability.TestObservabilityConfiguration;
 import com.charity_hub.shared.observability.metrics.BusinessMetrics;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AuthController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, TestObservabilityConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("AuthController Tests")
 class AuthControllerTest {

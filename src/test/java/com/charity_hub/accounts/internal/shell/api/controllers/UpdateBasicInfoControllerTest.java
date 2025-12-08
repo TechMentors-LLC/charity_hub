@@ -4,6 +4,7 @@ import com.charity_hub.accounts.internal.core.commands.UpdateBasicInfo.UpdateBas
 import com.charity_hub.accounts.internal.core.commands.UpdateBasicInfo.UpdateBasicInfoHandler;
 import com.charity_hub.accounts.internal.shell.api.dtos.UpdateBasicInfoRequest;
 import com.charity_hub.shared.exceptions.GlobalExceptionHandler;
+import com.charity_hub.shared.observability.TestObservabilityConfiguration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @WebMvcTest(UpdateBasicInfoController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, TestObservabilityConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("UpdateBasicInfoController Tests")
 class UpdateBasicInfoControllerTest {

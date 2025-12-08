@@ -3,6 +3,7 @@ package com.charity_hub.accounts.internal.shell.api.controllers;
 import com.charity_hub.accounts.internal.core.commands.ChangePermission.ChangePermissionHandler;
 import com.charity_hub.accounts.internal.shell.api.dtos.ChangePermissionRequest;
 import com.charity_hub.shared.exceptions.GlobalExceptionHandler;
+import com.charity_hub.shared.observability.TestObservabilityConfiguration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AddUserPermissionController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, TestObservabilityConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("AddUserPermissionController Tests")
 class AddUserPermissionControllerTest {

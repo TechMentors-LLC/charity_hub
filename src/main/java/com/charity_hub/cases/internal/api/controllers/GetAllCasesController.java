@@ -4,6 +4,10 @@ import com.charity_hub.cases.internal.api.dtos.GetCasesRequest;
 import com.charity_hub.cases.internal.application.queries.GetAllCases.GetAllCasesQuery;
 import com.charity_hub.cases.internal.application.queries.GetAllCases.GetCasesQueryResult;
 import com.charity_hub.cases.internal.infrastructure.queryhandlers.GetAllCasesHandler;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -11,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class GetAllCasesController {
-
+    private static final Logger log = LoggerFactory.getLogger(GetAllCasesController.class);
     private final GetAllCasesHandler getAllCasesHandler;
 
     public GetAllCasesController(GetAllCasesHandler getAllCasesHandler) {
@@ -19,7 +23,10 @@ public class GetAllCasesController {
     }
 
     @GetMapping("/v1/cases")
+    @Timed(value = "charity_hub.cases.get_all", description = "Time taken to retrieve all cases")
+    @Observed(name = "cases.get_all", contextualName = "get-all-cases")
     public ResponseEntity<GetCasesQueryResult> getCases(@ModelAttribute GetCasesRequest request) {
+        log.debug("Retrieving cases with offset: {}, limit: {}", request.offset(), request.limit());
         GetAllCasesQuery query = new GetAllCasesQuery(
                 request.code(),
                 request.tag(),
@@ -28,6 +35,7 @@ public class GetAllCasesController {
                 Math.min(Math.max(request.limit(), 1), 100)
         );
         var result = getAllCasesHandler.handle(query);
+        log.debug("Retrieved {} cases", result.cases().size());
         return ResponseEntity.ok(result);
     }
 }

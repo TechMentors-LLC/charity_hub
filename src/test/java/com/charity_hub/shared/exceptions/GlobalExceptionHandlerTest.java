@@ -1,5 +1,6 @@
 package com.charity_hub.shared.exceptions;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -23,7 +24,7 @@ class GlobalExceptionHandlerTest {
 
     @BeforeEach
     void setUp() {
-        handler = new GlobalExceptionHandler();
+        handler = new GlobalExceptionHandler(new SimpleMeterRegistry());
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRequestURI("/api/test");
         webRequest = new ServletWebRequest(request);

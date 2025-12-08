@@ -1,9 +1,11 @@
 package com.charity_hub.notifications.internal;
 
 import com.charity_hub.notifications.NotificationApi;
+import com.charity_hub.shared.observability.metrics.BusinessMetrics;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.messaging.*;
+import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -16,12 +18,15 @@ import java.util.List;
 public class FCMService implements NotificationApi {
     private static final Logger logger = LoggerFactory.getLogger(FCMService.class);
     private final ObjectMapper objectMapper;
+    private final BusinessMetrics businessMetrics;
 
-    public FCMService(ObjectMapper objectMapper) {
+    public FCMService(ObjectMapper objectMapper, BusinessMetrics businessMetrics) {
         this.objectMapper = objectMapper;
+        this.businessMetrics = businessMetrics;
     }
 
     @Override
+    @Timed(value = "charity_hub.notifications.notify_devices", description = "Time taken to notify devices")
     public void notifyDevices(List<String> tokens, String title, String body) {
         logger.debug("Sending notification to {} devices - Title: {}", tokens.size(), title);
         for (String token : tokens) {
@@ -36,10 +41,12 @@ public class FCMService implements NotificationApi {
                 throw new RuntimeException(e);
             }
         }
+        businessMetrics.recordNotificationSent();
         logger.info("Successfully sent notifications to {} devices", tokens.size());
     }
 
     @Override
+    @Timed(value = "charity_hub.notifications.notify_topic", description = "Time taken to notify topic subscribers")
     public void notifyTopicSubscribers(String topic, String event, Object extraJsonData, String title, String body) {
         logger.debug("Sending topic notification - Topic: {}, Event: {}, Title: {}", topic, event, title);
         Message message;
@@ -61,6 +68,7 @@ public class FCMService implements NotificationApi {
         try {
             String messageId = FirebaseMessaging.getInstance().send(message);
             logger.info("Topic notification sent successfully - Topic: {}, Event: {}, MessageId: {}", topic, event, messageId);
+            businessMetrics.recordNotificationSent();
         } catch (FirebaseMessagingException e) {
             logger.error("Failed to send topic notification - Topic: {}, Event: {}, Error: {}", topic, event, e.getMessage());
             throw new RuntimeException(e);
@@ -74,6 +82,7 @@ public class FCMService implements NotificationApi {
      * @param tokens The list of tokens to subscribe
      */
     @Override
+    @Timed(value = "charity_hub.notifications.subscribe_topic", description = "Time taken to subscribe to topic")
     public void subscribeToTopic(String topic, List<String> tokens) {
         logger.debug("Subscribing {} tokens to topic: {}", tokens.size(), topic);
         TopicManagementResponse response;

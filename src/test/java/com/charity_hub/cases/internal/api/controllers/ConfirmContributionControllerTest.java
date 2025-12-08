@@ -3,6 +3,7 @@ package com.charity_hub.cases.internal.api.controllers;
 import com.charity_hub.cases.internal.application.commands.ConfirmContribution.ConfirmContribution;
 import com.charity_hub.cases.internal.application.commands.ConfirmContribution.ConfirmContributionHandler;
 import com.charity_hub.shared.exceptions.GlobalExceptionHandler;
+import com.charity_hub.shared.observability.TestObservabilityConfiguration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ConfirmContributionController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, TestObservabilityConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("Confirm Contribution Controller Tests")
 class ConfirmContributionControllerTest {

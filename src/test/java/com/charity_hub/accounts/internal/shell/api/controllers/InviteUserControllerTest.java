@@ -4,6 +4,7 @@ import com.charity_hub.accounts.internal.core.commands.InviteAccount.InvitationA
 import com.charity_hub.accounts.internal.core.commands.InviteAccount.InviteAccountHandler;
 import com.charity_hub.accounts.internal.shell.api.dtos.InviteUserRequest;
 import com.charity_hub.shared.exceptions.GlobalExceptionHandler;
+import com.charity_hub.shared.observability.TestObservabilityConfiguration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 @WebMvcTest(InviteUserController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, TestObservabilityConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("InviteUserController Tests")
 class InviteUserControllerTest {

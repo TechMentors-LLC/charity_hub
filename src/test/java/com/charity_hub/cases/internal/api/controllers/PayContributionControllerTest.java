@@ -4,6 +4,7 @@ import com.charity_hub.cases.internal.api.dtos.PayContributionRequest;
 import com.charity_hub.cases.internal.application.commands.PayContribution.PayContribution;
 import com.charity_hub.cases.internal.application.commands.PayContribution.PayContributionHandler;
 import com.charity_hub.shared.exceptions.GlobalExceptionHandler;
+import com.charity_hub.shared.observability.TestObservabilityConfiguration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PayContributionController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, TestObservabilityConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("Pay Contribution Controller Tests")
 class PayContributionControllerTest {
