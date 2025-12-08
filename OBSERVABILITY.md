@@ -417,6 +417,31 @@ spec:
 2. Verify Firebase credentials are configured
 3. Review individual health indicator details
 
+## Deployment Infrastructure
+
+A complete Docker Compose stack for observability is available in the `deployment/docker/observability/` directory. This includes:
+
+- **Prometheus** - Metrics collection and alerting
+- **Grafana** - Pre-built dashboards and visualization
+- **Jaeger** - Distributed tracing UI
+- **AlertManager** - Alert routing and notifications
+
+### Quick Start
+
+```bash
+# Start the observability stack
+cd deployment/docker/observability
+docker-compose up -d
+
+# Access the services:
+# - Grafana:      http://localhost:3000 (admin/charity_hub_2024)
+# - Prometheus:   http://localhost:9090
+# - Jaeger:       http://localhost:16686
+# - AlertManager: http://localhost:9093
+```
+
+For detailed setup instructions, see the [Observability Stack README](deployment/docker/observability/README.md).
+
 ## Additional Resources
 
 - [Spring Boot Actuator Documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html)

@@ -1,0 +1,97 @@
+# Prometheus Alert Rules for Charity Hub
+
+groups:
+  - name: charity-hub-alerts
+    rules:
+      # High Error Rate Alert
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(charity_hub_exceptions_total[5m])) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | printf \"%.2f\" }} errors/second over the last 5 minutes"
+
+      # High Authentication Failure Rate
+      - alert: HighAuthFailureRate
+        expr: |
+          sum(rate(charity_hub_authentication_failures_total[5m])) / 
+          sum(rate(charity_hub_authentication_attempts_total[5m])) > 0.3
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High authentication failure rate"
+          description: "More than 30% of authentication attempts are failing"
+
+      # Application Down
+      - alert: ApplicationDown
+        expr: up{job="charity-hub"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Charity Hub application is down"
+          description: "The application has been unreachable for more than 1 minute"
+
+      # High Response Time
+      - alert: HighResponseTime
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(http_server_requests_seconds_bucket{job="charity-hub"}[5m])) by (le)
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is above 2 seconds"
+
+      # Low Heap Memory
+      - alert: LowHeapMemory
+        expr: |
+          jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "JVM heap memory is running low"
+          description: "Heap memory usage is above 90%"
+
+      # MongoDB Connection Issues
+      - alert: MongoDBConnectionIssue
+        expr: |
+          spring_data_mongodb_connections_active{job="charity-hub"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No active MongoDB connections"
+          description: "The application has no active MongoDB connections"
+
+  - name: business-alerts
+    rules:
+      # No Contributions in Last Hour
+      - alert: NoContributions
+        expr: |
+          increase(charity_hub_contributions_made_total[1h]) == 0
+        for: 1h
+        labels:
+          severity: info
+        annotations:
+          summary: "No contributions in the last hour"
+          description: "No new contributions have been made in the last hour"
+
+      # Spike in Case Creation
+      - alert: CaseCreationSpike
+        expr: |
+          rate(charity_hub_cases_created_total[5m]) > 
+          2 * avg_over_time(rate(charity_hub_cases_created_total[5m])[1h:5m])
+        for: 10m
+        labels:
+          severity: info
+        annotations:
+          summary: "Unusual spike in case creation"
+          description: "Case creation rate is significantly higher than average"
