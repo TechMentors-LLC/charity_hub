@@ -6,7 +6,7 @@ import com.charity_hub.accounts.internal.shell.db.AccountEntity;
 import com.charity_hub.accounts.internal.shell.repositories.mappers.AccountReadMapper;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ public class AccountReadRepo implements IAccountReadRepo {
     }
 
     @Override
-    @Timed(value = "charity_hub.repo.account_read.get_connections", description = "Time taken to fetch account connections")
+    @Observed(name = "charity_hub.repo.account_read.get_connections", contextualName = "account-read-repo-get-connections")
     public List<Account> getConnections(UUID id) {
         return collection.find(eq("connections.userId", id.toString()))
                 .map(accountReadMapper::toQueryModel)

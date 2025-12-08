@@ -112,22 +112,26 @@ public class MyController {
 }
 ```
 
-### Example 2: Using @Timed Annotation (for Repositories/Utilities)
+### Example 2: Using @Observed for Repositories (Recommended)
 
-Use `@Timed` for simple timing without the overhead of distributed tracing:
+Use `@Observed` for database operations to get full trace visibility:
 
 ```java
 @Repository
 public class ContributionRepository {
     
-    @Timed(value = "charity_hub.repo.contributions.save", 
-           description = "Time taken to save a contribution",
-           histogram = true)
+    @Observed(name = "charity_hub.repo.contributions.save", 
+              contextualName = "contribution-repo-save")
     public void save(Contribution contribution) {
-        // Database operation
+        // Database operation - will appear in trace waterfalls
     }
 }
 ```
+
+**Why @Observed for Repositories?**
+- When debugging "database is slow", you need to know WHICH request caused it
+- Trace context links the slow query back to the originating HTTP request
+- Essential for debugging cascading latency issues
 
 ### Example 3: Using @Observed for Controllers/Handlers
 
@@ -359,15 +363,19 @@ curl http://localhost:8080/actuator/health/firebase | jq
 
 3. **Keep Metric Names Consistent**: Use the `charity_hub.*` prefix for all custom metrics.
 
-4. **Use @Observed for Controllers/Handlers, @Timed for Repositories**:
+4. **Use @Observed for Controllers, Handlers, AND Repositories**:
    ```java
    // Controllers/Handlers - use @Observed (includes timing + tracing)
    @Observed(name = "handler.create_case", contextualName = "create-case-handler")
    public void handle(CreateCase command) { ... }
    
-   // Repositories - use @Timed (simple timing, no tracing overhead)
-   @Timed(value = "charity_hub.repo.case.save")
+   // Repositories - use @Observed (essential for tracing slow queries)
+   @Observed(name = "charity_hub.repo.case.save", contextualName = "case-repo-save")
    public void save(Case case_) { ... }
+   
+   // Only use @Timed for internal utilities where tracing overhead matters
+   @Timed(value = "charity_hub.util.parse")
+   private void parseInput() { ... }
    ```
 
 5. **Never use @Timed and @Observed together**: They are redundant. `@Observed` already includes timing metrics.

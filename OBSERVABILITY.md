@@ -121,7 +121,7 @@ public class MyController {
 
 ### Using Annotations
 
-**For Controllers and Handlers (with tracing):** Use `@Observed` - it provides timing, tracing, and spans:
+**For Controllers, Handlers, and Repositories (with tracing):** Use `@Observed` - it provides timing, tracing, and spans:
 
 ```java
 @Observed(name = "operation.name", contextualName = "operation-context")
@@ -130,16 +130,23 @@ public void myOperation() {
 }
 ```
 
-**For simple timing only (Repositories, utility methods):** Use `@Timed`:
+This is the preferred annotation for:
+- **Controllers** - HTTP request handling
+- **Handlers** - Business logic commands/queries
+- **Repositories** - Database operations (essential for debugging slow queries in trace waterfalls)
+
+**For simple timing only (internal utilities, tight loops):** Use `@Timed` only when you need simple timing without trace context overhead:
 
 ```java
 @Timed(value = "operation.name", description = "Operation description")
-public void myDatabaseQuery() {
+public void internalUtility() {
     // Simple timing without tracing overhead
 }
 ```
 
-> **Important:** Do NOT use both `@Timed` and `@Observed` on the same method. `@Observed` already includes timing, so using both creates duplicate metrics and wastes resources.
+> **Important:** 
+> - Do NOT use both `@Timed` and `@Observed` on the same method. `@Observed` already includes timing, so using both creates duplicate metrics.
+> - Prefer `@Observed` for Repositories because trace context shows you WHICH request caused a slow DB query.
 
 ## Distributed Tracing
 

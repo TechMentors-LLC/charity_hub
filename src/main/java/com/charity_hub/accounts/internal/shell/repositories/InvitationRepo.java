@@ -7,7 +7,7 @@ import com.charity_hub.accounts.internal.shell.db.InvitationEntity;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReplaceOptions;
-import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -32,7 +32,7 @@ public class InvitationRepo implements IInvitationRepo {
     }
 
     @Override
-    @Timed(value = "charity_hub.repo.invitation.save", description = "Time taken to save invitation")
+    @Observed(name = "charity_hub.repo.invitation.save", contextualName = "invitation-repo-save")
     public void save(Invitation invitation) {
         logger.info("Saving invitation for mobile: {}", invitation.invitedMobileNumber().value());
         InvitationEntity entity = invitationMapper.toEntity(invitation);
@@ -45,7 +45,7 @@ public class InvitationRepo implements IInvitationRepo {
     }
 
     @Override
-    @Timed(value = "charity_hub.repo.invitation.get", description = "Time taken to fetch invitation")
+    @Observed(name = "charity_hub.repo.invitation.get", contextualName = "invitation-repo-get")
     public Invitation get(String mobileNumber) {
         logger.debug("Looking up invitation for mobile: {}", mobileNumber);
         Invitation invitation = Optional.ofNullable(collection.find(eq("mobileNumber", mobileNumber)).first())
@@ -58,7 +58,7 @@ public class InvitationRepo implements IInvitationRepo {
     }
 
     @Override
-    @Timed(value = "charity_hub.repo.invitation.has_invitation", description = "Time taken to check invitation existence")
+    @Observed(name = "charity_hub.repo.invitation.has_invitation", contextualName = "invitation-repo-has-invitation")
     public boolean hasInvitation(String mobileNumber) {
         logger.debug("Checking if invitation exists for mobile: {}", mobileNumber);
         boolean exists = collection.find(eq("mobileNumber", mobileNumber)).first() != null;

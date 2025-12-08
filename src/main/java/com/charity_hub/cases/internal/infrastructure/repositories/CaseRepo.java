@@ -17,7 +17,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
-import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -54,7 +54,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
-    @Timed(value = "charity_hub.repo.case.next_code", description = "Time taken to generate next case code")
+    @Observed(name = "charity_hub.repo.case.next_code", contextualName = "case-repo-next-code")
     public int nextCaseCode() {
         CaseEntity lastCase = cases.find()
                 .sort(new org.bson.Document("code", -1))
@@ -66,7 +66,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
-    @Timed(value = "charity_hub.repo.case.get_by_code", description = "Time taken to fetch case by code")
+    @Observed(name = "charity_hub.repo.case.get_by_code", contextualName = "case-repo-get-by-code")
     public Optional<Case> getByCode(CaseCode caseCode) {
         logger.debug("Fetching case by code: {}", caseCode.value());
         CaseEntity entity = cases.find(new org.bson.Document("code", caseCode.value()))
@@ -82,7 +82,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
-    @Timed(value = "charity_hub.repo.case.save", description = "Time taken to save case")
+    @Observed(name = "charity_hub.repo.case.save", contextualName = "case-repo-save")
     public void save(Case case_) {
         logger.debug("Saving case: {}", case_.getCaseCode().value());
         List<Contribution> caseContributions = case_.getContributions();
@@ -113,7 +113,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
-    @Timed(value = "charity_hub.repo.case.delete", description = "Time taken to delete case")
+    @Observed(name = "charity_hub.repo.case.delete", contextualName = "case-repo-delete")
     public void delete(CaseCode caseCode) {
         logger.info("Deleting case: {}", caseCode.value());
         cases.deleteOne(new org.bson.Document("code", caseCode.value()));
@@ -126,7 +126,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
-    @Timed(value = "charity_hub.repo.contribution.save", description = "Time taken to save contribution")
+    @Observed(name = "charity_hub.repo.contribution.save", contextualName = "case-repo-save-contribution")
     public void save(Contribution contribution) {
         logger.debug("Saving contribution: {} - Status: {}", 
                 contribution.getId().value(), contribution.getContributionStatus());
@@ -172,7 +172,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
-    @Timed(value = "charity_hub.repo.contribution.get_by_id", description = "Time taken to fetch contribution by ID")
+    @Observed(name = "charity_hub.repo.contribution.get_by_id", contextualName = "case-repo-get-contribution-by-id")
     public Optional<Contribution> getContributionById(UUID id) {
         logger.debug("Fetching contribution by ID: {}", id);
         ContributionEntity entity = contributions.find(
