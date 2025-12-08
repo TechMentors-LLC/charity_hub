@@ -4,6 +4,7 @@ import com.charity_hub.accounts.internal.core.commands.Authenticate.Authenticate
 import com.charity_hub.accounts.internal.core.commands.Authenticate.AuthenticateHandler;
 import com.charity_hub.accounts.internal.core.commands.Authenticate.AuthenticateResponse;
 import com.charity_hub.shared.exceptions.GlobalExceptionHandler;
+import com.charity_hub.shared.observability.metrics.BusinessMetrics;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,9 @@ class AuthControllerTest {
 
     @MockBean
     private AuthenticateHandler authenticateHandler;
+
+    @MockBean
+    private BusinessMetrics businessMetrics;
 
     @Test
     @DisplayName("Should authenticate user and return tokens")
