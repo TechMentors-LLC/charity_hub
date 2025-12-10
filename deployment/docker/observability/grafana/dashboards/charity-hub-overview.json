@@ -58,11 +58,11 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.01 }, { "color": "red", "value": 0.05 }] }, "unit": "percentunit" } },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.01 }, { "color": "red", "value": 0.05 }] }, "unit": "percentunit", "noValue": "0%" } },
       "gridPos": { "h": 4, "w": 5, "x": 14, "y": 1 },
       "id": 5,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{job=\"charity-hub\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{job=\"charity-hub\"}[5m]))", "refId": "A" }],
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{job=\"charity-hub\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{job=\"charity-hub\"}[5m])) or vector(0)", "refId": "A" }],
       "title": "Error Rate",
       "type": "stat"
     },
@@ -100,7 +100,7 @@
       "gridPos": { "h": 4, "w": 6, "x": 6, "y": 6 },
       "id": 12,
       "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "expr": "charity_hub_cases_created_total{job=\"charity-hub\"}", "refId": "A" }],
+      "targets": [{ "expr": "charity_hub_cases_total{job=\"charity-hub\"}", "refId": "A" }],
       "title": "Total Cases Created",
       "type": "stat"
     },
