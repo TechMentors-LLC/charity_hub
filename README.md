@@ -1,4 +1,4 @@
-# [Charity Hub](https://github.com/M0Hatem/charity_hub_java) &middot; [![GitHub license](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/M0Hatem/charity_hub_java/blob/main/LICENSE) [![Java Version](https://img.shields.io/badge/Java-17-orange.svg)](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html) [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.5-brightgreen.svg)](https://spring.io/projects/spring-boot)
+# [Charity Hub](https://github.com/TechMentors-LLC/charity_hub) &middot; [![GitHub license](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/TechMentors-LLC/charity_hub/blob/main/LICENSE) [![Java Version](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html) [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.5-brightgreen.svg)](https://spring.io/projects/spring-boot) [![CI](https://github.com/TechMentors-LLC/charity_hub/actions/workflows/test.yml/badge.svg)](https://github.com/TechMentors-LLC/charity_hub/actions)
 
 Charity Hub is a robust Spring Boot platform for managing charitable cases and contributions.
 
@@ -11,14 +11,14 @@ Charity Hub is a robust Spring Boot platform for managing charitable cases and c
 ## Installation
 
 Charity Hub requires the following prerequisites:
-* Java 17 or higher
+* Java 21 or higher
 * MongoDB
 * Firebase Admin credentials
 
 Get started in minutes:
 ```bash
 # Clone the repository
-git clone https://github.com/hibrahem/charity_hub.git
+git clone https://github.com/TechMentors-LLC/charity_hub.git
 
 # Build the project
 ./gradlew build
@@ -34,7 +34,7 @@ To run this application, you need to set up a Firebase account and obtain the `a
 - Go to the [Firebase Console](https://console.firebase.google.com/).
 - Click on "Add project" and follow the on-screen instructions to create a new Firebase project.
 
-3. **Add Firebase to Your Application:**
+2. **Add Firebase to Your Application:**
 - In the Firebase project dashboard, click on the gear icon next to "Project Overview" and select "Project settings".
 - Navigate to the "Service accounts" tab.
 - Click on "Generate new private key" under the "Firebase Admin SDK" section.
@@ -89,7 +89,7 @@ Charity Hub is built with modern technologies:
 ```json
 {
   "backend": {
-    "language": "Java 17",
+    "language": "Java 21",
     "framework": "Spring Boot 3.3.5",
     "database": "MongoDB",
     "security": ["Spring Security", "JWT"],
