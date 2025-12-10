@@ -38,7 +38,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> {
             try {
                 auth
-                    .requestMatchers(new AntPathRequestMatcher("/actuator")).permitAll()
+                    .requestMatchers(new AntPathRequestMatcher("/actuator/**")).permitAll()
                     .requestMatchers(new AntPathRequestMatcher("/v1/accounts/authenticate")).permitAll()
                     .requestMatchers(new AntPathRequestMatcher("/error")).permitAll()
                     .anyRequest().authenticated();
