@@ -5,9 +5,8 @@ services:
     container_name: charity-hub-mongo
     ports:
       - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: "5467"
+    env_file:
+      - .env
     command: [ "--replSet", "rs0", "--bind_ip_all", "--keyFile", "/etc/mongo-keyfile" ]
     volumes:
       - mongodb_data:/data/db
@@ -23,12 +22,16 @@ volumes:
   mongodb_data:
 
     # Setup:
-    # 1. Create keyfile (run once):
+    # 1. Copy environment file:
+    #    cp .env.example .env
+    #    # Edit .env and change passwords
+    #
+    # 2. Create keyfile (run once):
     #    openssl rand -base64 756 > mongo-keyfile
     #    chmod 400 mongo-keyfile
     #
-    # 2. Start container:
+    # 3. Start container:
     #    docker-compose up -d
     #
-    # 3. Initialize replica set:
-    #    docker exec -it charity-hub-mongo mongosh -u admin -p 5467 --authenticationDatabase admin --eval "rs.initiate()"
+    # 4. Initialize replica set:
+    #    docker exec -it charity-hub-mongo mongosh -u admin -p YOUR_PASSWORD --authenticationDatabase admin --eval "rs.initiate()"
