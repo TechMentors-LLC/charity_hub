@@ -80,6 +80,9 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter:1.19.3'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 
+    // OpenAPI/Swagger Documentation
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
 }
 
