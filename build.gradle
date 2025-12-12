@@ -1,7 +1,5 @@
 plugins {
     id 'java'
-//    id 'org.jetbrains.kotlin.jvm' version '1.9.24'
-//    id 'org.jetbrains.kotlin.plugin.spring' version '1.9.24'
     id 'org.springframework.boot' version '3.3.5'
     id 'io.spring.dependency-management' version '1.1.6'
 }
@@ -21,28 +19,26 @@ repositories {
 
 ext {
     set('springModulithVersion', "1.2.2")
+    set('bucket4jVersion', "8.10.1")
 }
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-//    implementation 'org.jetbrains.kotlin:kotlin-reflect'
     implementation 'org.springframework.modulith:spring-modulith-starter-core'
     implementation 'org.springframework.modulith:spring-modulith-starter-mongodb'
     implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
     implementation 'io.opentelemetry:opentelemetry-sdk-logs'
-    
 
-    // mongo
-//    implementation ("org.litote.kmongo:kmongo:4.1.2")
-//    implementation ("org.litote.kmongo:kmongo-async:4.1.2")
-//    implementation ("org.litote.kmongo:kmongo-coroutine:4.1.2")
+    // MongoDB driver
     implementation 'org.mongodb:mongodb-driver-sync'
 
-    //jwt
+    // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
     implementation 'org.projectlombok:lombok:1.18.30'
 
@@ -50,9 +46,13 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
     runtimeOnly 'org.bouncycastle:bcprov-jdk18on:1.76'
 
-    implementation ('com.google.firebase:firebase-admin:9.4.1')
-//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
-//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:${coroutinesVersion}")
+    // Firebase
+    implementation 'com.google.firebase:firebase-admin:9.4.1'
+
+    // Rate Limiting
+    implementation "com.bucket4j:bucket4j-core:${bucket4jVersion}"
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+
     // Observability dependencies
     runtimeOnly 'io.micrometer:micrometer-registry-otlp'
     runtimeOnly 'io.micrometer:micrometer-tracing-bridge-otel'
@@ -63,13 +63,11 @@ dependencies {
     implementation 'io.opentelemetry:opentelemetry-api-incubator:1.37.0-alpha'
     // GCP Cloud Trace exporter for production
     runtimeOnly 'com.google.cloud.opentelemetry:exporter-trace:0.27.0'
-//	runtimeOnly 'io.micrometer:micrometer-registry-datadog'
     runtimeOnly 'org.springframework.modulith:spring-modulith-actuator'
     runtimeOnly 'org.springframework.modulith:spring-modulith-observability'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-//    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
-    implementation ('org.springframework.modulith:spring-modulith-starter-test')
+    implementation 'org.springframework.modulith:spring-modulith-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
@@ -90,6 +88,7 @@ dependencyManagement {
         mavenBom "org.springframework.modulith:spring-modulith-bom:${springModulithVersion}"
     }
 }
+
 sourceSets {
     main {
         java {
@@ -100,12 +99,6 @@ sourceSets {
         }
     }
 }
-//
-//kotlin {
-//    compilerOptions {
-//        freeCompilerArgs.addAll '-Xjsr305=strict'
-//    }
-//}
 
 tasks.named('test') {
     useJUnitPlatform()
