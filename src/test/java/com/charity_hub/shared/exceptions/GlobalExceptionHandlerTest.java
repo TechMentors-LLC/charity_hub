@@ -31,77 +31,99 @@ class GlobalExceptionHandlerTest {
     }
 
     @Nested
-    @DisplayName("When handling application exceptions")
-    class AppExceptionHandling {
+    @DisplayName("When handling BusinessRuleException")
+    class BusinessRuleExceptionHandling {
 
         @Test
         @DisplayName("Should return CONFLICT for BusinessRuleException")
         void shouldReturnConflictForBusinessRuleException() {
             BusinessRuleException exception = new BusinessRuleException("Business rule violated");
 
-            ResponseEntity<Object> response = handler.handleAppException(exception, webRequest);
+            ResponseEntity<Map<String, String>> response = handler.handleBusinessRule(exception, webRequest);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-            assertThat(response.getBody()).isInstanceOf(Map.class);
-            @SuppressWarnings("unchecked")
-            Map<String, String> body = (Map<String, String>) response.getBody();
-            assertThat(body.get("description")).isEqualTo("Business rule violated");
+            assertThat(response.getBody()).containsEntry("description", "Business rule violated");
         }
+    }
+
+    @Nested
+    @DisplayName("When handling BadRequestException")
+    class BadRequestExceptionHandling {
 
         @Test
         @DisplayName("Should return BAD_REQUEST for BadRequestException")
         void shouldReturnBadRequestForBadRequestException() {
             BadRequestException exception = new BadRequestException("Invalid input");
 
-            ResponseEntity<Object> response = handler.handleAppException(exception, webRequest);
+            ResponseEntity<Map<String, String>> response = handler.handleBadRequest(exception, webRequest);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(response.getBody()).isNotNull();
+            assertThat(response.getBody().get("description")).contains("Invalid input");
         }
+    }
+
+    @Nested
+    @DisplayName("When handling UnAuthorized exception")
+    class UnAuthorizedExceptionHandling {
 
         @Test
         @DisplayName("Should return UNAUTHORIZED for UnAuthorized exception")
         void shouldReturnUnauthorizedForUnAuthorizedException() {
             UnAuthorized exception = new UnAuthorized("Access denied");
 
-            ResponseEntity<Object> response = handler.handleAppException(exception, webRequest);
+            ResponseEntity<Map<String, String>> response = handler.handleUnauthorized(exception, webRequest);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+            assertThat(response.getBody()).containsEntry("description", "Unauthorized: Access denied");
         }
+    }
+
+    @Nested
+    @DisplayName("When handling NotFoundException")
+    class NotFoundExceptionHandling {
 
         @Test
         @DisplayName("Should return NOT_FOUND for NotFoundException")
         void shouldReturnNotFoundForNotFoundException() {
             NotFoundException exception = new NotFoundException("Resource not found");
 
-            ResponseEntity<Object> response = handler.handleAppException(exception, webRequest);
+            ResponseEntity<Map<String, String>> response = handler.handleNotFound(exception, webRequest);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+            assertThat(response.getBody()).containsEntry("description", "Not Found: Resource not found");
         }
+    }
+
+    @Nested
+    @DisplayName("When handling generic Exception")
+    class GenericExceptionHandling {
 
         @Test
         @DisplayName("Should return INTERNAL_SERVER_ERROR for unknown exceptions")
         void shouldReturnInternalServerErrorForUnknownExceptions() {
             RuntimeException exception = new RuntimeException("Unexpected error");
 
-            ResponseEntity<Object> response = handler.handleAppException(exception, webRequest);
+            ResponseEntity<Map<String, String>> response = handler.handleGenericException(exception, webRequest);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+            assertThat(response.getBody()).containsEntry("description", "An unexpected error occurred");
         }
     }
 
     @Nested
-    @DisplayName("When handling BusinessRuleException specifically")
-    class BusinessRuleExceptionHandling {
+    @DisplayName("When handling RateLimitExceededException")
+    class RateLimitExceptionHandling {
 
         @Test
-        @DisplayName("Should return CONFLICT with error message")
-        void shouldReturnConflictWithErrorMessage() {
-            BusinessRuleException exception = new BusinessRuleException("Cannot perform this action");
+        @DisplayName("Should return TOO_MANY_REQUESTS for RateLimitExceededException")
+        void shouldReturnTooManyRequestsForRateLimitException() {
+            RateLimitExceededException exception = new RateLimitExceededException("Rate limit exceeded");
 
-            ResponseEntity<Map<String, String>> response = handler.handleBusinessRule(exception);
+            ResponseEntity<Map<String, String>> response = handler.handleRateLimitExceeded(exception);
 
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-            assertThat(response.getBody()).containsEntry("description", "Cannot perform this action");
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS);
+            assertThat(response.getBody()).containsEntry("description", "Rate limit exceeded");
         }
     }
 
@@ -113,8 +135,7 @@ class GlobalExceptionHandlerTest {
         @DisplayName("Should return BAD_REQUEST with parameter name")
         void shouldReturnBadRequestWithParameterName() {
             MethodArgumentTypeMismatchException exception = new MethodArgumentTypeMismatchException(
-                    "invalidValue", String.class, "userId", null, new RuntimeException("type mismatch")
-            );
+                    "invalidValue", String.class, "userId", null, new RuntimeException("type mismatch"));
 
             ResponseEntity<Map<String, String>> response = handler.handleMethodArgumentTypeMismatch(exception);
 
