@@ -5,6 +5,7 @@ import com.charity_hub.accounts.internal.core.commands.Authenticate.Authenticate
 import com.charity_hub.accounts.internal.core.commands.Authenticate.AuthenticateResponse;
 import com.charity_hub.shared.observability.metrics.BusinessMetrics;
 import io.micrometer.observation.annotation.Observed;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final AuthenticateHandler authenticateHandler;
     private final BusinessMetrics businessMetrics;
-    private final Logger log = LoggerFactory.getLogger(this.getClass().getSimpleName());
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     public AuthController(AuthenticateHandler authenticateHandler, BusinessMetrics businessMetrics) {
         this.authenticateHandler = authenticateHandler;
@@ -25,10 +26,10 @@ public class AuthController {
 
     @PostMapping("/v1/accounts/authenticate")
     @Observed(name = "authentication.request", contextualName = "authenticate-user")
-    public ResponseEntity<AuthenticateResponse> login(@RequestBody Authenticate authenticate) {
+    public ResponseEntity<AuthenticateResponse> login(@Valid @RequestBody Authenticate authenticate) {
         log.info("Processing authentication request");
         businessMetrics.recordAuthenticationAttempt();
-        
+
         try {
             AuthenticateResponse response = authenticateHandler.handle(authenticate);
             businessMetrics.recordAuthenticationSuccess();
@@ -37,6 +38,5 @@ public class AuthController {
             businessMetrics.recordAuthenticationFailure();
             throw e;
         }
-     }
+    }
 }
-

@@ -5,6 +5,7 @@ import com.charity_hub.cases.internal.domain.model.Case.CaseCode;
 import com.charity_hub.shared.abstractions.CommandHandler;
 import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.charity_hub.shared.exceptions.NotFoundException;
 
@@ -17,11 +18,12 @@ public class ContributeHandler extends CommandHandler<Contribute, ContributeDefa
     }
 
     @Override
+    @Transactional
     @Observed(name = "handler.contribute", contextualName = "contribute-handler")
     public ContributeDefaultResponse handle(Contribute command) {
-        logger.info("Processing contribution - CaseCode: {}, UserId: {}, Amount: {}", 
+        logger.info("Processing contribution - CaseCode: {}, UserId: {}, Amount: {}",
                 command.caseCode(), command.userId(), command.amount());
-        
+
         var case_ = caseRepo.getByCode(new CaseCode(command.caseCode()))
                 .orElseThrow(() -> {
                     logger.warn("Case not found for contribution - CaseCode: {}", command.caseCode());
@@ -29,9 +31,9 @@ public class ContributeHandler extends CommandHandler<Contribute, ContributeDefa
                 });
 
         var contribution = case_.contribute(command.userId(), command.amount());
-        
+
         caseRepo.save(case_);
-        logger.info("Contribution created successfully - ContributionId: {}, CaseCode: {}, Amount: {}", 
+        logger.info("Contribution created successfully - ContributionId: {}, CaseCode: {}, Amount: {}",
                 contribution.contributionId(), command.caseCode(), command.amount());
         return new ContributeDefaultResponse(contribution.contributionId());
     }

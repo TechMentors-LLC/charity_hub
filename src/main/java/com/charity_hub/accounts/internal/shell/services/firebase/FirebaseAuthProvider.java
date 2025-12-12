@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 public class FirebaseAuthProvider implements IAuthProvider {
 
     private final FirebaseAuth firebaseAuth;
-    protected final Logger log = LoggerFactory.getLogger(this.getClass().getSimpleName());
+    private static final Logger log = LoggerFactory.getLogger(FirebaseAuthProvider.class);
 
     public FirebaseAuthProvider(FirebaseAuth firebaseAuth) {
         this.firebaseAuth = firebaseAuth;

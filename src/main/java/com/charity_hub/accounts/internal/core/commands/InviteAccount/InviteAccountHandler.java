@@ -6,6 +6,7 @@ import com.charity_hub.accounts.internal.core.model.invitation.Invitation;
 import com.charity_hub.shared.abstractions.VoidCommandHandler;
 import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class InviteAccountHandler extends VoidCommandHandler<InvitationAccount> {
@@ -16,11 +17,12 @@ public class InviteAccountHandler extends VoidCommandHandler<InvitationAccount> 
     }
 
     @Override
+    @Transactional
     @Observed(name = "handler.invite_account", contextualName = "invite-account-handler")
     public void handle(InvitationAccount command) {
-        logger.info("Processing invitation - MobileNumber: {}, InviterId: {}", 
+        logger.info("Processing invitation - MobileNumber: {}, InviterId: {}",
                 command.mobileNumber(), command.inviterId());
-        
+
         boolean hasInvitation = invitationRepo.hasInvitation(command.mobileNumber());
 
         if (hasInvitation) {
@@ -30,11 +32,10 @@ public class InviteAccountHandler extends VoidCommandHandler<InvitationAccount> 
 
         Invitation newInvitation = Invitation.of(
                 command.mobileNumber(),
-                command.inviterId()
-        );
+                command.inviterId());
 
         invitationRepo.save(newInvitation);
-        logger.info("Invitation created successfully - MobileNumber: {}, InviterId: {}", 
+        logger.info("Invitation created successfully - MobileNumber: {}, InviterId: {}",
                 command.mobileNumber(), command.inviterId());
     }
 }

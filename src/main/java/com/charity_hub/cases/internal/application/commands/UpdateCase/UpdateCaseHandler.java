@@ -6,6 +6,7 @@ import com.charity_hub.shared.abstractions.VoidCommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
 import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UpdateCaseHandler extends VoidCommandHandler<UpdateCase> {
@@ -16,10 +17,11 @@ public class UpdateCaseHandler extends VoidCommandHandler<UpdateCase> {
     }
 
     @Override
+    @Transactional
     @Observed(name = "handler.update_case", contextualName = "update-case-handler")
     public void handle(UpdateCase command) {
         logger.info("Updating case - CaseCode: {}, Title: {}", command.caseCode(), command.title());
-        
+
         var case_ = caseRepo.getByCode(new CaseCode(command.caseCode()))
                 .orElseThrow(() -> {
                     logger.warn("Case not found for update - CaseCode: {}", command.caseCode());
@@ -31,8 +33,7 @@ public class UpdateCaseHandler extends VoidCommandHandler<UpdateCase> {
                 command.description(),
                 command.goal(),
                 command.acceptZakat(),
-                command.documents()
-        );
+                command.documents());
         caseRepo.save(case_);
         logger.info("Case updated successfully - CaseCode: {}", command.caseCode());
     }

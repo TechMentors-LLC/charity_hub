@@ -6,9 +6,10 @@ import com.charity_hub.shared.abstractions.CommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
 import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class UpdateBasicInfoHandler extends CommandHandler<UpdateBasicInfo,String> {
+public class UpdateBasicInfoHandler extends CommandHandler<UpdateBasicInfo, String> {
     private final IAccountRepo accountRepo;
     private final IJWTGenerator jwtGenerator;
 
@@ -18,29 +19,28 @@ public class UpdateBasicInfoHandler extends CommandHandler<UpdateBasicInfo,Strin
     }
 
     @Override
+    @Transactional
     @Observed(name = "handler.update_basic_info", contextualName = "update-basic-info-handler")
     public String handle(
-            UpdateBasicInfo command
-    ) {
-                logger.info("Updating basic info - UserId: {}, DeviceId: {}", 
-                        command.userId(), command.deviceId());
-                
-                var identity = accountRepo.getById(command.userId())
-                        .orElseThrow(() -> {
-                            logger.warn("Account not found for profile update - UserId: {}", command.userId());
-                            return new NotFoundException("User with Id " + command.userId() + " not found");
-                        });
+            UpdateBasicInfo command) {
+        logger.info("Updating basic info - UserId: {}, DeviceId: {}",
+                command.userId(), command.deviceId());
 
-                String accessToken = identity.updateBasicInfo(
-                    command.deviceId(),
-                    command.fullName(),
-                    command.photoUrl(),
-                    jwtGenerator
-                );
+        var identity = accountRepo.getById(command.userId())
+                .orElseThrow(() -> {
+                    logger.warn("Account not found for profile update - UserId: {}", command.userId());
+                    return new NotFoundException("User with Id " + command.userId() + " not found");
+                });
 
-                accountRepo.save(identity);
-                logger.info("Basic info updated successfully - UserId: {}", command.userId());
-                return accessToken;
+        String accessToken = identity.updateBasicInfo(
+                command.deviceId(),
+                command.fullName(),
+                command.photoUrl(),
+                jwtGenerator);
+
+        accountRepo.save(identity);
+        logger.info("Basic info updated successfully - UserId: {}", command.userId());
+        return accessToken;
 
     }
 }

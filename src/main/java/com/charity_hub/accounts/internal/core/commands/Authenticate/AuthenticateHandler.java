@@ -11,7 +11,7 @@ import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthenticateHandler extends CommandHandler<Authenticate, AuthenticateResponse> {
@@ -20,14 +20,13 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
     private final IAuthProvider authProvider;
     private final IJWTGenerator jwtGenerator;
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticateHandler.class);
 
     public AuthenticateHandler(
             IAccountRepo accountRepo,
             IInvitationRepo invitationRepo,
             IAuthProvider authProvider,
-            IJWTGenerator jwtGenerator
-    ) {
+            IJWTGenerator jwtGenerator) {
         this.accountRepo = accountRepo;
         this.invitationRepo = invitationRepo;
         this.authProvider = authProvider;
@@ -35,6 +34,7 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
     }
 
     @Override
+    @Transactional
     @Observed(name = "handler.authenticate", contextualName = "authenticate-handler")
     public AuthenticateResponse handle(Authenticate command) {
 
@@ -50,8 +50,7 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
         var tokens = account.authenticate(
                 command.deviceId(),
                 command.deviceType(),
-                jwtGenerator
-        );
+                jwtGenerator);
 
         accountRepo.save(account);
         logger.info("Authentication successful - MobileNumber: {}, DeviceId: {}", mobileNumber, command.deviceId());
@@ -87,7 +86,6 @@ public class AuthenticateHandler extends CommandHandler<Authenticate, Authentica
                 mobileNumber,
                 request.deviceId(),
                 request.deviceType(),
-                isAdmin
-        );
+                isAdmin);
     }
 }

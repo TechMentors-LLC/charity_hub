@@ -6,6 +6,7 @@ import com.charity_hub.cases.internal.application.commands.CreateCase.CaseRespon
 import com.charity_hub.cases.internal.api.dtos.CreateCaseRequest;
 import com.charity_hub.shared.observability.metrics.BusinessMetrics;
 import io.micrometer.observation.annotation.Observed;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,7 @@ public class CreateCaseController {
     @PostMapping("/v1/cases")
     @PreAuthorize("hasAnyAuthority('CREATE_CASES', 'FULL_ACCESS')")
     @Observed(name = "cases.create", contextualName = "create-case")
-    public ResponseEntity<CaseResponse> createCase(@RequestBody CreateCaseRequest request) {
+    public ResponseEntity<CaseResponse> createCase(@Valid @RequestBody CreateCaseRequest request) {
         log.info("Creating new case: {}", request.title());
         CreateCase createCommand = new CreateCase(
                 request.title(),
@@ -37,8 +38,7 @@ public class CreateCaseController {
                 request.goal(),
                 request.publish(),
                 request.acceptZakat(),
-                request.documents()
-        );
+                request.documents());
 
         var response = createCaseHandler.handle(createCommand);
         businessMetrics.recordCaseCreation();

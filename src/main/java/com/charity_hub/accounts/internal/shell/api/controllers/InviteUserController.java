@@ -5,6 +5,7 @@ import com.charity_hub.accounts.internal.core.commands.InviteAccount.InviteAccou
 import com.charity_hub.accounts.internal.shell.api.dtos.InviteUserRequest;
 import com.charity_hub.shared.auth.AccessTokenPayload;
 import io.micrometer.observation.annotation.Observed;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -25,11 +26,11 @@ public class InviteUserController {
     @PostMapping("/v1/accounts/invite")
     @Observed(name = "accounts.invite", contextualName = "invite-user")
     public ResponseEntity<Void> handle(
-            @RequestBody InviteUserRequest inviteUserRequest,
-            @AuthenticationPrincipal AccessTokenPayload accessTokenPayload
-    ) {
+            @Valid @RequestBody InviteUserRequest inviteUserRequest,
+            @AuthenticationPrincipal AccessTokenPayload accessTokenPayload) {
         log.info("Inviting user with mobile number: {}", inviteUserRequest.mobileNumber());
-        InvitationAccount command = new InvitationAccount(inviteUserRequest.mobileNumber(), accessTokenPayload.getUserId());
+        InvitationAccount command = new InvitationAccount(inviteUserRequest.mobileNumber(),
+                accessTokenPayload.getUserId());
         inviteAccountHandler.handle(command);
         log.info("User invitation processed successfully");
         return ResponseEntity.ok().build();
