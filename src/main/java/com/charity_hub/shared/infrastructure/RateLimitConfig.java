@@ -53,9 +53,10 @@ public class RateLimitConfig {
      */
     public Bucket newBucket() {
         return Bucket.builder()
-                .addLimit(Bandwidth.simple(
-                        properties.maxRequests(),
-                        Duration.ofSeconds(properties.windowSeconds())))
+                .addLimit(Bandwidth.builder()
+                        .capacity(properties.maxRequests())
+                        .refillGreedy(properties.maxRequests(), Duration.ofSeconds(properties.windowSeconds()))
+                        .build())
                 .build();
     }
 
@@ -64,9 +65,10 @@ public class RateLimitConfig {
      */
     public Bucket newAuthBucket() {
         return Bucket.builder()
-                .addLimit(Bandwidth.simple(
-                        properties.authMaxRequests(),
-                        Duration.ofSeconds(properties.authWindowSeconds())))
+                .addLimit(Bandwidth.builder()
+                        .capacity(properties.authMaxRequests())
+                        .refillGreedy(properties.authMaxRequests(), Duration.ofSeconds(properties.authWindowSeconds()))
+                        .build())
                 .build();
     }
 }

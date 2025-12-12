@@ -1,7 +1,6 @@
 package com.charity_hub.shared.infrastructure;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import com.charity_hub.shared.exceptions.RateLimitExceededException;
 import io.github.bucket4j.Bucket;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
