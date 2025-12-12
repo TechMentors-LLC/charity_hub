@@ -1,21 +1,19 @@
 package com.charity_hub.notifications.internal;
 
-import com.charity_hub.notifications.NotificationApi;
 import com.charity_hub.shared.observability.metrics.BusinessMetrics;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.charity_hub.notifications.shared.INotificationsAPI;
 import com.google.firebase.messaging.*;
-import io.micrometer.core.annotation.Timed;
+import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Component
-@ConditionalOnProperty(name = "firebase.test-mode", havingValue = "false", matchIfMissing = true)
-public class FCMService implements NotificationApi {
+@Service
+public class FCMService implements INotificationsAPI {
     private static final Logger logger = LoggerFactory.getLogger(FCMService.class);
     private final ObjectMapper objectMapper;
     private final BusinessMetrics businessMetrics;
@@ -26,7 +24,7 @@ public class FCMService implements NotificationApi {
     }
 
     @Override
-    @Timed(value = "charity_hub.notifications.notify_devices", description = "Time taken to notify devices")
+    @Observed(name = "notification.devices", contextualName = "notify-devices")
     public void notifyDevices(List<String> tokens, String title, String body) {
         logger.debug("Sending notification to {} devices - Title: {}", tokens.size(), title);
         for (String token : tokens) {
@@ -35,9 +33,11 @@ public class FCMService implements NotificationApi {
                     .build();
             try {
                 String messageId = FirebaseMessaging.getInstance().send(message);
-                logger.debug("Notification sent successfully to token: {} - MessageId: {}", token.substring(0, Math.min(10, token.length())) + "...", messageId);
+                logger.debug("Notification sent successfully to token: {} - MessageId: {}",
+                        token.substring(0, Math.min(10, token.length())) + "...", messageId);
             } catch (FirebaseMessagingException e) {
-                logger.error("Failed to send notification to token: {} - Error: {}", token.substring(0, Math.min(10, token.length())) + "...", e.getMessage());
+                logger.error("Failed to send notification to token: {} - Error: {}",
+                        token.substring(0, Math.min(10, token.length())) + "...", e.getMessage());
                 throw new RuntimeException(e);
             }
         }
@@ -46,7 +46,7 @@ public class FCMService implements NotificationApi {
     }
 
     @Override
-    @Timed(value = "charity_hub.notifications.notify_topic", description = "Time taken to notify topic subscribers")
+    @Observed(name = "notification.topic", contextualName = "notify-topic-subscribers")
     public void notifyTopicSubscribers(String topic, String event, Object extraJsonData, String title, String body) {
         logger.debug("Sending topic notification - Topic: {}, Event: {}, Title: {}", topic, event, title);
         Message message;
@@ -64,13 +64,14 @@ public class FCMService implements NotificationApi {
                 .putData("data", payload)
                 .build();
 
-
         try {
             String messageId = FirebaseMessaging.getInstance().send(message);
-            logger.info("Topic notification sent successfully - Topic: {}, Event: {}, MessageId: {}", topic, event, messageId);
+            logger.info("Topic notification sent successfully - Topic: {}, Event: {}, MessageId: {}", topic, event,
+                    messageId);
             businessMetrics.recordNotificationSent();
         } catch (FirebaseMessagingException e) {
-            logger.error("Failed to send topic notification - Topic: {}, Event: {}, Error: {}", topic, event, e.getMessage());
+            logger.error("Failed to send topic notification - Topic: {}, Event: {}, Error: {}", topic, event,
+                    e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -82,7 +83,7 @@ public class FCMService implements NotificationApi {
      * @param tokens The list of tokens to subscribe
      */
     @Override
-    @Timed(value = "charity_hub.notifications.subscribe_topic", description = "Time taken to subscribe to topic")
+    @Observed(name = "notification.subscribe", contextualName = "subscribe-to-topic")
     public void subscribeToTopic(String topic, List<String> tokens) {
         logger.debug("Subscribing {} tokens to topic: {}", tokens.size(), topic);
         TopicManagementResponse response;
@@ -93,7 +94,7 @@ public class FCMService implements NotificationApi {
             throw new RuntimeException(e);
         }
         if (response.getFailureCount() > 0) {
-            logger.warn("Topic subscription partially failed - Topic: {}, Success: {}, Failed: {}", 
+            logger.warn("Topic subscription partially failed - Topic: {}, Success: {}, Failed: {}",
                     topic, response.getSuccessCount(), response.getFailureCount());
         } else {
             logger.info("{} tokens were subscribed successfully to topic: {}", response.getSuccessCount(), topic);
@@ -115,8 +116,7 @@ public class FCMService implements NotificationApi {
         builder.setApnsConfig(
                 ApnsConfig.builder()
                         .setAps(Aps.builder().build())
-                        .build()
-        );
+                        .build());
     }
 
     private void androidConfig(Message.Builder builder) {
@@ -126,8 +126,7 @@ public class FCMService implements NotificationApi {
                         .setNotification(AndroidNotification.builder()
                                 .setIcon("stock_ticker_update")
                                 .setColor("#f45342")
-                                .build()
-                        ).build()
-        );
+                                .build())
+                        .build());
     }
 }
