@@ -43,3 +43,4 @@ out/
 ### Secrets ###
 secrets.properties
 cert/
+mongo-keyfile
