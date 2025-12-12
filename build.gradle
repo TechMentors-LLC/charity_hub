@@ -56,7 +56,8 @@ dependencies {
     runtimeOnly 'io.opentelemetry:opentelemetry-exporter-otlp'
 
     // Logback Appender for SigNoz
-    runtimeOnly 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:1.32.0-alpha'
+    // Logback Appender for SigNoz
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:1.32.0-alpha'
     // GCP Cloud Trace exporter for production
     runtimeOnly 'com.google.cloud.opentelemetry:exporter-trace:0.27.0'
 //	runtimeOnly 'io.micrometer:micrometer-registry-datadog'

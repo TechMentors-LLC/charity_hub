@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-    
-    <!-- ═══════════════════════════════════════════════════════════════════════════
-         DEVELOPMENT PROFILE - Human Readable
-         - Pretty colors for IntelliJ/Terminal
-         - Full trace IDs for debugging
-         - DEBUG level for detailed troubleshooting
-         ═══════════════════════════════════════════════════════════════════════════ -->
+
+    <appender name="OTEL" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+        <captureExperimentalAttributes>true</captureExperimentalAttributes>
+        <captureCodeAttributes>true</captureCodeAttributes>
+        <captureMarkerAttribute>true</captureMarkerAttribute>
+        <captureKeyValuePairAttributes>true</captureKeyValuePairAttributes>
+    </appender>
+
     <springProfile name="default | dev | local | test">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
@@ -16,50 +17,38 @@
                 </pattern>
             </encoder>
         </appender>
-        
-        <!-- Dev: Show more detail for our code -->
+
         <logger name="com.charity_hub" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
-        </logger>
-        
-        <!-- Quiet down noisy libraries in dev -->
+            <appender-ref ref="OTEL"/> </logger>
+
         <logger name="org.springframework" level="INFO"/>
         <logger name="org.mongodb" level="INFO"/>
         <logger name="io.micrometer" level="INFO"/>
-        
+
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
-        </root>
+            <appender-ref ref="OTEL"/> </root>
     </springProfile>
 
-    <!-- ═══════════════════════════════════════════════════════════════════════════
-         PRODUCTION PROFILE - Machine Readable
-         - No colors (breaks log parsers)
-         - Structured format with trace IDs
-         - INFO level only (logs cost money)
-         - Optimized for ELK/Loki/CloudWatch parsing
-         ═══════════════════════════════════════════════════════════════════════════ -->
     <springProfile name="prod | production | staging">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-                <!-- Structured text format: timestamp | level | traceId | spanId | logger | message -->
                 <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ} | %-5level | %X{traceId:-NO_TRACE} | %X{spanId:-NO_SPAN} | %logger{40} | %msg%n</pattern>
             </encoder>
         </appender>
-        
-        <!-- Prod: Only INFO and above for our code -->
+
         <logger name="com.charity_hub" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
-        </logger>
-        
-        <!-- Quiet down libraries even more in prod -->
+            <appender-ref ref="OTEL"/> </logger>
+
         <logger name="org.springframework" level="WARN"/>
         <logger name="org.mongodb" level="WARN"/>
         <logger name="io.micrometer" level="WARN"/>
         <logger name="org.apache" level="WARN"/>
-        
+
         <root level="WARN">
             <appender-ref ref="CONSOLE"/>
-        </root>
+            <appender-ref ref="OTEL"/> </root>
     </springProfile>
 </configuration>
