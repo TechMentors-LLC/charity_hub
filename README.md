@@ -73,14 +73,32 @@ The project is organized into several core modules:
 
 ## Observability
 
-Charity Hub includes comprehensive observability features:
+Charity Hub uses **SigNoz** as the observability backend for Metrics, Traces, and Logs. The application is pre-configured to send telemetry data to SigNoz running on `localhost`.
 
-* **Metrics**: Prometheus-compatible metrics for monitoring application and business operations
-* **Distributed Tracing**: OpenTelemetry integration for request tracing
-* **Health Checks**: Custom health indicators for MongoDB and Firebase
-* **Actuator Endpoints**: Spring Boot Actuator with extensive monitoring capabilities
+### 1. Install SigNoz
+We recommend using the official Docker setup:
 
-📊 See [OBSERVABILITY.md](./OBSERVABILITY.md) for detailed documentation on metrics, tracing, and monitoring.
+```bash
+# Clone the SigNoz repository
+git clone -b main https://github.com/SigNoz/signoz.git
+cd signoz/deploy/
+
+# Run the installation script
+./install.sh
+```
+
+Once installed, the SigNoz UI will be available at http://localhost:8080.
+
+### 2. Connect the Application
+The application is already configured to send data to the default SigNoz OTLP endpoint (`http://localhost:4318`). Simply run the application:
+
+```bash
+./gradlew bootRun
+```
+
+Generate some traffic, and you will see the `charity-hub` service in the SigNoz dashboard with correlated Metrics, Traces, and Logs.
+
+For more details on using SigNoz, refer to the official documentation.
 
 ## Technology Stack
 
