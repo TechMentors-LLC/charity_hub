@@ -71,6 +71,32 @@ The project is organized into several core modules:
   * Email notifications
   * Event tracking
 
+## Architecture
+
+Charity Hub follows **Clean Architecture** with **Spring Modulith** for modular design:
+
+```
+charity_hub/
+├── accounts/       # User accounts, authentication, permissions
+├── cases/          # Charity cases and contributions  
+├── ledger/         # Financial records and member network
+├── notifications/  # Push notifications (FCM)
+└── shared/         # Common abstractions, auth, infrastructure
+```
+
+Each module follows a consistent internal structure:
+- `api/` - Controllers and DTOs
+- `application/` - Commands, queries, and use cases
+- `domain/` - Entities, events, and domain logic
+- `infrastructure/` - Database and external service implementations
+
+## API Documentation
+
+OpenAPI/Swagger documentation is available at:
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **OpenAPI JSON**: http://localhost:8080/v3/api-docs
+
+
 ## Observability
 
 Charity Hub uses **SigNoz** as the observability backend for Metrics, Traces, and Logs. The application is pre-configured to send telemetry data to SigNoz running on `localhost`.
