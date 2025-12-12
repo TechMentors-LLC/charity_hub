@@ -32,6 +32,9 @@ dependencies {
 //    implementation 'org.jetbrains.kotlin:kotlin-reflect'
     implementation 'org.springframework.modulith:spring-modulith-starter-core'
     implementation 'org.springframework.modulith:spring-modulith-starter-mongodb'
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+    implementation 'io.opentelemetry:opentelemetry-sdk-logs'
+    
 
     // mongo
 //    implementation ("org.litote.kmongo:kmongo:4.1.2")
@@ -53,11 +56,11 @@ dependencies {
     // Observability dependencies
     runtimeOnly 'io.micrometer:micrometer-registry-otlp'
     runtimeOnly 'io.micrometer:micrometer-tracing-bridge-otel'
-    runtimeOnly 'io.opentelemetry:opentelemetry-exporter-otlp'
 
     // Logback Appender for SigNoz
-    // Logback Appender for SigNoz
-    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:1.32.0-alpha'
+    implementation 'io.opentelemetry.instrumentation:opentelemetry-logback-appender-1.0:2.3.0-alpha'
+    // Required for Logback appender to handle log body/attributes
+    implementation 'io.opentelemetry:opentelemetry-api-incubator:1.37.0-alpha'
     // GCP Cloud Trace exporter for production
     runtimeOnly 'com.google.cloud.opentelemetry:exporter-trace:0.27.0'
 //	runtimeOnly 'io.micrometer:micrometer-registry-datadog'
