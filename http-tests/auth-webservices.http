@@ -41,6 +41,8 @@ Content-Type: application/json
     client.assert(response.status === 200)
     // We don't strictly need to keep User B's token unless we want to act as them.
     // But this step ensures the account is created and linked to User A.
+    client.global.set("accessToken", response.body.accessToken)
+    client.global.set("refreshToken", response.body.refreshToken)
 %}
 
 ### Get connections (As User A)
