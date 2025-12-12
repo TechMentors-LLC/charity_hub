@@ -4,7 +4,6 @@ import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.observation.ObservationRegistry;
 import io.micrometer.observation.aop.ObservedAspect;
-import io.opentelemetry.api.OpenTelemetry; // Import 1
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
@@ -41,18 +40,21 @@ public class ObservabilityConfiguration {
         return new ObservedAspect(observationRegistry);
     }
 
+    @SuppressWarnings("null")
     @Bean
-    OtlpHttpLogRecordExporter otlpLogRecordExporter(@Value("${otel.exporter.otlp.logs.endpoint:http://localhost:4318/v1/logs}") String endpoint) {
+    OtlpHttpLogRecordExporter otlpLogRecordExporter(
+            @Value("${otel.exporter.otlp.logs.endpoint:http://localhost:4318/v1/logs}") String endpoint) {
         return OtlpHttpLogRecordExporter.builder()
                 .setEndpoint(endpoint)
                 .build();
     }
 
+    @SuppressWarnings("null")
     @Bean
-    SdkLoggerProvider sdkLoggerProvider(OtlpHttpLogRecordExporter logExporter, @Value("${spring.application.name:charity-hub}") String serviceName) {
+    SdkLoggerProvider sdkLoggerProvider(OtlpHttpLogRecordExporter logExporter,
+            @Value("${spring.application.name:charity-hub}") String serviceName) {
         Resource resource = Resource.getDefault().merge(
-                Resource.create(Attributes.of(AttributeKey.stringKey("service.name"), serviceName))
-        );
+                Resource.create(Attributes.of(AttributeKey.stringKey("service.name"), serviceName)));
 
         return SdkLoggerProvider.builder()
                 .setResource(resource)
@@ -61,12 +63,16 @@ public class ObservabilityConfiguration {
     }
 
     /**
-     * GLUE CODE: Connects the Spring-managed OpenTelemetry instance to the Logback Appender.
-     * Without this, the Appender in logback-spring.xml doesn't know where to send logs.
+     * GLUE CODE: Connects the Spring-managed OpenTelemetry instance to the Logback
+     * Appender.
+     * Without this, the Appender in logback-spring.xml doesn't know where to send
+     * logs.
      */
+    @SuppressWarnings("null")
     @Bean
     public InitializingBean installOtelAppender(SdkLoggerProvider sdkLoggerProvider) {
-        // We create a dedicated OpenTelemetrySdk instance for logging to ensure the LoggerProvider is correctly attached
+        // We create a dedicated OpenTelemetrySdk instance for logging to ensure the
+        // LoggerProvider is correctly attached
         OpenTelemetrySdk loggingOpenTelemetry = OpenTelemetrySdk.builder()
                 .setLoggerProvider(sdkLoggerProvider)
                 .build();
