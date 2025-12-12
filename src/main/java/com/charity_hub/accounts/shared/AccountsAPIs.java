@@ -1,42 +1,37 @@
 package com.charity_hub.accounts.shared;
 
-import com.charity_hub.accounts.internal.shell.repositories.InvitationRepo;
-import com.charity_hub.accounts.internal.shell.repositories.ReadAccountRepo;
+import com.charity_hub.accounts.internal.application.contracts.IAccountReadRepo;
+import com.charity_hub.accounts.internal.application.contracts.IInvitationRepo;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Component
 public class AccountsAPIs implements IAccountsAPI {
-    private final InvitationRepo invitationRepo;
-    private final ReadAccountRepo readAccountRepo;
-    private final DTOAccountMapper dtoAccountMapper;
+    private final IInvitationRepo invitationRepo;
+    private final IAccountReadRepo accountReadRepo;
 
-    public AccountsAPIs(InvitationRepo invitationRepo, ReadAccountRepo readAccountRepo, DTOAccountMapper dtoAccountMapper) {
+    public AccountsAPIs(IInvitationRepo invitationRepo, IAccountReadRepo accountReadRepo) {
         this.invitationRepo = invitationRepo;
-        this.readAccountRepo = readAccountRepo;
-        this.dtoAccountMapper = dtoAccountMapper;
+        this.accountReadRepo = accountReadRepo;
     }
 
     @Override
     public InvitationResponse getInvitationByMobileNumber(String mobileNumber) {
         var invitation = invitationRepo.get(mobileNumber);
-        if (invitation == null) return null;
+        if (invitation == null)
+            return null;
         return new InvitationResponse(invitation.invitedMobileNumber().value(), invitation.inviterId());
     }
 
     @Override
     public AccountDTO getById(UUID id) {
-        return dtoAccountMapper.toDTO(readAccountRepo.getById(id));
+        return accountReadRepo.getById(id);
     }
 
     @Override
     public List<AccountDTO> getAccountsByIds(List<UUID> ids) {
-        return readAccountRepo.getAccountsByIds(ids)
-                .stream()
-                .map(dtoAccountMapper::toDTO)
-                .collect(Collectors.toList());
+        return accountReadRepo.getAccountsByIds(ids);
     }
 }

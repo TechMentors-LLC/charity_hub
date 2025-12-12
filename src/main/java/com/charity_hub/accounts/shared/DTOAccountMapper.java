@@ -1,7 +1,7 @@
 package com.charity_hub.accounts.shared;
 
-import com.charity_hub.accounts.internal.shell.db.AccountEntity;
-import com.charity_hub.accounts.internal.shell.db.DeviceEntity;
+import com.charity_hub.accounts.internal.infrastructure.db.AccountEntity;
+import com.charity_hub.accounts.internal.infrastructure.db.DeviceEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
@@ -15,7 +15,6 @@ public class DTOAccountMapper {
                 entity.mobileNumber(),
                 entity.fullName() != null ? entity.fullName() : "بدون إسم",
                 entity.photoUrl() != null ? entity.photoUrl() : "",
-                entity.devices().stream().map(DeviceEntity::fcmToken).collect(Collectors.toList())
-        );
+                entity.devices().stream().map(DeviceEntity::fcmToken).collect(Collectors.toList()));
     }
 }
