@@ -1,0 +1,41 @@
+package com.charity_hub.accounts.internal.application.commands.InviteAccount;
+
+import com.charity_hub.accounts.internal.application.contracts.IInvitationRepo;
+import com.charity_hub.accounts.internal.domain.exceptions.AlreadyInvitedException;
+import com.charity_hub.accounts.internal.domain.model.invitation.Invitation;
+import com.charity_hub.shared.abstractions.VoidCommandHandler;
+import io.micrometer.observation.annotation.Observed;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class InviteAccountHandler extends VoidCommandHandler<InvitationAccount> {
+    private final IInvitationRepo invitationRepo;
+
+    public InviteAccountHandler(IInvitationRepo invitationRepo) {
+        this.invitationRepo = invitationRepo;
+    }
+
+    @Override
+    @Transactional
+    @Observed(name = "handler.invite_account", contextualName = "invite-account-handler")
+    public void handle(InvitationAccount command) {
+        logger.info("Processing invitation - MobileNumber: {}, InviterId: {}",
+                command.mobileNumber(), command.inviterId());
+
+        boolean hasInvitation = invitationRepo.hasInvitation(command.mobileNumber());
+
+        if (hasInvitation) {
+            logger.warn("Duplicate invitation attempt - MobileNumber: {} already invited", command.mobileNumber());
+            throw new AlreadyInvitedException("already invited");
+        }
+
+        Invitation newInvitation = Invitation.of(
+                command.mobileNumber(),
+                command.inviterId());
+
+        invitationRepo.save(newInvitation);
+        logger.info("Invitation created successfully - MobileNumber: {}, InviterId: {}",
+                command.mobileNumber(), command.inviterId());
+    }
+}
