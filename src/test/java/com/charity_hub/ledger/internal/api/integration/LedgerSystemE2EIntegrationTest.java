@@ -84,7 +84,7 @@ public class LedgerSystemE2EIntegrationTest {
         // ====================================================================
         // STEP 1: Create Root Account with Member and Ledger
         // ====================================================================
-        Account rootAccount = Account.newAccount("1000000000", "device-root", "ANDROID", true);
+        Account rootAccount = Account.newAccount("1000000000", "device-root-12345", "ANDROID", true);
         accountRepo.save(rootAccount);
         UUID rootId = rootAccount.getId().value();
 
@@ -110,7 +110,7 @@ public class LedgerSystemE2EIntegrationTest {
         // ====================================================================
         // STEP 2: Create Child Account with Parent Relationship
         // ====================================================================
-        Account childAccount = Account.newAccount("2000000000", "device-child", "ANDROID", false);
+        Account childAccount = Account.newAccount("2000000000", "device-child-1234", "ANDROID", false);
         accountRepo.save(childAccount);
         UUID childId = childAccount.getId().value();
 
