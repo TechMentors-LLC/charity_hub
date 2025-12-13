@@ -12,11 +12,11 @@ services:
       - mongodb_data:/data/db
       - ./mongo-keyfile:/etc/mongo-keyfile:ro
     healthcheck:
-      test: mongosh --eval "db.adminCommand('ping')" || exit 1
+      test: [ "CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok" ]
       interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
 
   # Auto-initialize replica set (runs once then exits)
   mongo-init:
