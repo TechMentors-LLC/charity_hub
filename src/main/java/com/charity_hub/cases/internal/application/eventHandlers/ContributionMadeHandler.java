@@ -8,13 +8,14 @@ import io.micrometer.core.annotation.Timed;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("casesContributionMadeHandler")
 public class ContributionMadeHandler {
     private final IEventBus eventBus;
     private final INotificationService notificationService;
     private final ContributionMadeLogger logger;
 
-    public ContributionMadeHandler(IEventBus eventBus, INotificationService notificationService, ContributionMadeLogger logger) {
+    public ContributionMadeHandler(IEventBus eventBus, INotificationService notificationService,
+            ContributionMadeLogger logger) {
         this.eventBus = eventBus;
         this.notificationService = notificationService;
         this.logger = logger;
@@ -37,4 +38,4 @@ public class ContributionMadeHandler {
             logger.notificationFailed(contribution.caseCode(), contribution.amount(), e);
         }
     }
-} 
+}

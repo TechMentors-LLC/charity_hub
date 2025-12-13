@@ -1,10 +1,9 @@
 package com.charity_hub.ledger.internal.application.eventHandlers;
 
-import com.charity_hub.cases.shared.dtos.ContributionConfirmedDTO;
+import com.charity_hub.cases.shared.dtos.ContributionMadeDTO;
 import com.charity_hub.ledger.internal.application.contracts.ILedgerRepository;
 import com.charity_hub.ledger.internal.application.contracts.IMembersNetworkRepo;
-import com.charity_hub.ledger.internal.domain.contracts.INotificationService;
-import com.charity_hub.ledger.internal.application.eventHandlers.loggers.ContributionConfirmedLogger;
+import com.charity_hub.ledger.internal.application.eventHandlers.loggers.ContributionMadeLogger;
 import com.charity_hub.ledger.internal.domain.model.*;
 import com.charity_hub.shared.domain.IEventBus;
 import io.micrometer.observation.annotation.Observed;
@@ -13,36 +12,42 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-@Service
-public class ContributionConfirmedHandler {
+/**
+ * Handles ContributionMade events to update ledger state.
+ * 
+ * When a member makes a contribution:
+ * 1. Credits the member's dueAmount (they now owe this to parent)
+ * 2. Credits the member's dueNetworkAmount (for their network tracking)
+ * 3. Cascades dueNetworkAmount credit to all ancestors up the tree
+ */
+@Service("ledgerContributionMadeHandler")
+public class ContributionMadeHandler {
     private final IEventBus eventBus;
     private final ILedgerRepository ledgerRepository;
     private final IMembersNetworkRepo membersNetworkRepo;
-    private final INotificationService notificationService;
-    private final ContributionConfirmedLogger logger;
+    private final ContributionMadeLogger logger;
 
-    public ContributionConfirmedHandler(
+    public ContributionMadeHandler(
             IEventBus eventBus,
             ILedgerRepository ledgerRepository,
             IMembersNetworkRepo membersNetworkRepo,
-            INotificationService notificationService,
-            ContributionConfirmedLogger logger) {
+            ContributionMadeLogger logger) {
         this.eventBus = eventBus;
         this.ledgerRepository = ledgerRepository;
         this.membersNetworkRepo = membersNetworkRepo;
-        this.notificationService = notificationService;
         this.logger = logger;
     }
 
     @PostConstruct
     public void start() {
         logger.handlerRegistered();
-        eventBus.subscribe(this, ContributionConfirmedDTO.class, this::handle);
+        eventBus.subscribe(this, ContributionMadeDTO.class, this::handle);
     }
 
-    @Observed(name = "ledger.event.contribution_confirmed", contextualName = "contribution-confirmed-handler")
-    private void handle(ContributionConfirmedDTO contribution) {
+    @Observed(name = "ledger.event.contribution_made", contextualName = "contribution-made-handler")
+    private void handle(ContributionMadeDTO contribution) {
         logger.processingEvent(contribution);
 
         try {
@@ -68,47 +73,33 @@ public class ContributionConfirmedHandler {
                     ServiceType.CONTRIBUTION,
                     ServiceTransactionId.from(contribution.id()));
 
-            logger.settlingChildObligation(contribution.contributorId(), contribution.amount());
-
-            // Debit contributor's dueAmount and dueNetworkAmount (obligation settled)
-            contributorLedger.debitDueAmount(contributionAmount, service);
-            contributorLedger.debitNetworkAmount(networkAmount, service);
+            // Credit contributor's dueAmount and dueNetworkAmount
+            logger.creditingChildLedger(contribution.contributorId(), contribution.amount());
+            contributorLedger.creditDueAmount(contributionAmount, service);
+            contributorLedger.creditNetworkAmount(networkAmount, service);
             ledgerRepository.save(contributorLedger);
 
-            // Cascade debit dueNetworkAmount to all ancestors
+            // Cascade dueNetworkAmount to all ancestors
             List<MemberId> ancestors = contributorMember.ancestors();
             if (!ancestors.isEmpty()) {
                 List<UUID> ancestorUUIDs = ancestors.stream()
                         .map(MemberId::value)
-                        .collect(java.util.stream.Collectors.toList());
+                        .collect(Collectors.toList());
                 logger.cascadingToAncestors(contribution.contributorId(), ancestorUUIDs, contribution.amount());
 
                 for (MemberId ancestorId : ancestors) {
                     Ledger ancestorLedger = ledgerRepository.findByMemberId(ancestorId);
                     if (ancestorLedger != null) {
-                        ancestorLedger.debitNetworkAmount(networkAmount, service);
+                        ancestorLedger.creditNetworkAmount(networkAmount, service);
                         ledgerRepository.save(ancestorLedger);
-                        logger.ancestorLedgerUpdated(ancestorId.value(), -contribution.amount());
+                        logger.ancestorLedgerUpdated(ancestorId.value(), contribution.amount());
                     }
                 }
             }
 
-            // Credit parent's dueAmount (parent now owes this up the tree)
-            if (contributorMember.parent() != null) {
-                Ledger parentLedger = ledgerRepository.findByMemberId(contributorMember.parent());
-                if (parentLedger != null) {
-                    parentLedger.creditDueAmount(contributionAmount, service);
-                    ledgerRepository.save(parentLedger);
-                    logger.parentObligationCreated(contributorMember.parent().value(), contribution.amount());
-                }
-            }
-
             logger.eventProcessedSuccessfully(contribution.id(), contribution.contributorId());
-            notificationService.notifyContributionConfirmed(contribution);
-            logger.notificationSent(contribution.id(), contribution.contributorId());
         } catch (Exception e) {
-            logger.notificationFailed(contribution.id(), contribution.contributorId(), e);
+            logger.eventProcessingFailed(contribution.id(), contribution.contributorId(), e);
         }
     }
-
 }
