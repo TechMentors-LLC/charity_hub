@@ -9,10 +9,14 @@ import com.charity_hub.accounts.shared.AccountDTO;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import io.micrometer.observation.annotation.Observed;
+import org.bson.Document;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -23,22 +27,45 @@ import static com.mongodb.client.model.Filters.in;
 @Repository
 public class AccountReadRepo implements IAccountReadRepo {
 
+    private static final Logger logger = LoggerFactory.getLogger(AccountReadRepo.class);
     private static final String ACCOUNTS_COLLECTION = "accounts";
+    private static final String CONNECTIONS_COLLECTION = "connections";
 
     private final MongoCollection<AccountEntity> collection;
+    private final MongoCollection<Document> connectionsCollection;
     private final AccountReadMapper accountReadMapper;
 
     public AccountReadRepo(
             MongoDatabase mongoDatabase,
             AccountReadMapper accountReadMapper) {
         this.collection = mongoDatabase.getCollection(ACCOUNTS_COLLECTION, AccountEntity.class);
+        this.connectionsCollection = mongoDatabase.getCollection(CONNECTIONS_COLLECTION);
         this.accountReadMapper = accountReadMapper;
     }
 
     @Override
     @Observed(name = "charity_hub.repo.account_read.get_connections", contextualName = "account-read-repo-get-connections")
     public List<Account> getConnections(UUID id) {
-        return collection.find(eq("connections.userId", id.toString()))
+        // First, look up the member in the connections collection to get their children
+        Document member = connectionsCollection.find(eq("_id", id.toString())).first();
+
+        if (member == null) {
+            logger.debug("No member found in connections collection for id: {}", id);
+            return Collections.emptyList();
+        }
+
+        @SuppressWarnings("unchecked")
+        List<String> children = member.getList("children", String.class);
+
+        if (children == null || children.isEmpty()) {
+            logger.debug("Member {} has no children", id);
+            return Collections.emptyList();
+        }
+
+        logger.debug("Found {} children for member {}", children.size(), id);
+
+        // Fetch account details for all children
+        return collection.find(in("accountId", children))
                 .map(accountReadMapper::toQueryModel)
                 .into(new ArrayList<>());
     }
