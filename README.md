@@ -93,8 +93,9 @@ Each module follows a consistent internal structure:
 ## API Documentation
 
 OpenAPI/Swagger documentation is available at:
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
-- **OpenAPI JSON**: http://localhost:8080/v3/api-docs
+- **Hosted API Docs**: [SwaggerHub - Charity Hub API](https://app.swaggerhub.com/apis/techs-08c/carity-hub/v1.0.0)
+- **Local Swagger UI**: http://localhost:8080/swagger-ui.html
+- **Local OpenAPI JSON**: http://localhost:8080/v3/api-docs
 
 
 ## Observability
