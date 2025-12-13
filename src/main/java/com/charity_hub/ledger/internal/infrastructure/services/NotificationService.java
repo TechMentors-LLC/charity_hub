@@ -8,33 +8,33 @@ import com.charity_hub.cases.shared.dtos.ContributionRemindedDTO;
 import com.charity_hub.ledger.internal.domain.contracts.INotificationService;
 import com.charity_hub.ledger.internal.domain.model.Member;
 import com.charity_hub.ledger.internal.infrastructure.repositories.MembersNetworkRepo;
-import com.charity_hub.notifications.NotificationApi;
-import com.charity_hub.shared.domain.ILogger;
+import com.charity_hub.notifications.shared.INotificationsAPI;
 import com.charity_hub.shared.infrastructure.MessageService;
-import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
-@Component("ledgerNotificationService")
+@Service("LedgerNotificationService")
 public class NotificationService implements INotificationService {
+
+    private final Logger logger = LoggerFactory.getLogger(NotificationService.class);
+
     private final MembersNetworkRepo membersNetworkRepo;
-    private final NotificationApi notificationApi;
+    private final INotificationsAPI notificationApi;
     private final IAccountsAPI accountsAPI;
-    private final ILogger logger;
     private final MessageService messageService;
 
     public NotificationService(
             MembersNetworkRepo membersNetworkRepo,
-            NotificationApi notificationApi,
+            INotificationsAPI notificationApi,
             IAccountsAPI accountsAPI,
-            ILogger logger,
-            MessageService messageService
-    ) {
+            MessageService messageService) {
         this.membersNetworkRepo = membersNetworkRepo;
         this.notificationApi = notificationApi;
         this.accountsAPI = accountsAPI;
-        this.logger = logger;
         this.messageService = messageService;
     }
 
@@ -58,8 +58,7 @@ public class NotificationService implements INotificationService {
         notificationApi.notifyDevices(
                 accountTokens,
                 messageService.getMessage("notification.contribution.pending.title"),
-                messageService.getMessage("notification.contribution.pending.body", contributor.fullName())
-        );
+                messageService.getMessage("notification.contribution.pending.body", contributor.fullName()));
     }
 
     @Override
@@ -82,8 +81,7 @@ public class NotificationService implements INotificationService {
         notificationApi.notifyDevices(
                 accountTokens,
                 messageService.getMessage("notification.contribution.confirmed.title"),
-                messageService.getMessage("notification.contribution.confirmed.body", contributor.fullName())
-        );
+                messageService.getMessage("notification.contribution.confirmed.body", contributor.fullName()));
     }
 
     @Override
@@ -99,8 +97,7 @@ public class NotificationService implements INotificationService {
         notificationApi.notifyDevices(
                 accountTokens,
                 messageService.getMessage("notification.contribution.reminder.title"),
-                messageService.getMessage("notification.contribution.reminder.body")
-        );
+                messageService.getMessage("notification.contribution.reminder.body"));
     }
 
     @Override
@@ -122,13 +119,13 @@ public class NotificationService implements INotificationService {
         notificationApi.notifyDevices(
                 accountTokens,
                 messageService.getMessage("notification.connection.added.title", invited.fullName()),
-                messageService.getMessage("notification.connection.added.body")
-        );
+                messageService.getMessage("notification.connection.added.body"));
     }
 
     private AccountDTO getConnection(UUID userId) {
         var member = membersNetworkRepo.getById(userId);
-        if (member == null) return null;
+        if (member == null)
+            return null;
         return accountsAPI.getById(member.parent().value());
     }
 }

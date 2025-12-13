@@ -23,8 +23,7 @@ class MemberTest {
                 new MemberId(parentId),
                 new MemberId(grandParentId),
                 List.of(new MemberId(grandParentId)),
-                Collections.emptyList()
-        );
+                Collections.emptyList());
 
         Member newMember = Member.newMember(parent, newMemberId);
 
@@ -44,8 +43,7 @@ class MemberTest {
                 new MemberId(memberId),
                 new MemberId(parentId),
                 List.of(new MemberId(parentId)),
-                Collections.emptyList()
-        );
+                Collections.emptyList());
 
         List<MemberId> ancestors = member.ancestors();
 
@@ -63,8 +61,7 @@ class MemberTest {
                 new MemberId(memberId),
                 new MemberId(parentId),
                 Collections.emptyList(),
-                List.of(new MemberId(childId))
-        );
+                List.of(new MemberId(childId)));
 
         List<MemberId> children = member.children();
 
@@ -82,12 +79,71 @@ class MemberTest {
                 new MemberId(memberId),
                 new MemberId(parentId),
                 List.of(new MemberId(parentId)),
-                List.of(new MemberId(childId))
-        );
+                List.of(new MemberId(childId)));
 
         assertThat(member.memberIdValue()).isEqualTo(memberId.toString());
         assertThat(member.parentId()).isEqualTo(parentId.toString());
         assertThat(member.ancestorsIds()).containsExactly(parentId.toString());
         assertThat(member.childrenIds()).containsExactly(childId.toString());
+    }
+
+    @Test
+    @DisplayName("Should create root member without parent or ancestors")
+    void shouldCreateRootMemberWithoutParent() {
+        UUID memberId = UUID.randomUUID();
+
+        Member root = Member.newRootMember(memberId);
+
+        assertThat(root.memberId().value()).isEqualTo(memberId);
+        assertThat(root.parent()).isNull();
+        assertThat(root.ancestors()).isEmpty();
+        assertThat(root.children()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("Should return null parentId for root member")
+    void shouldReturnNullParentIdForRoot() {
+        UUID memberId = UUID.randomUUID();
+
+        Member root = Member.newRootMember(memberId);
+
+        assertThat(root.parentId()).isNull();
+    }
+
+    @Test
+    @DisplayName("Should add child and return new member instance")
+    void shouldAddChildAndReturnNewInstance() {
+        UUID parentId = UUID.randomUUID();
+        UUID childId = UUID.randomUUID();
+
+        Member parent = Member.newRootMember(parentId);
+        Member updatedParent = parent.addChild(new MemberId(childId));
+
+        // Original parent should remain unchanged
+        assertThat(parent.children()).isEmpty();
+
+        // Updated parent should have the child
+        assertThat(updatedParent.children()).hasSize(1);
+        assertThat(updatedParent.children().get(0).value()).isEqualTo(childId);
+    }
+
+    @Test
+    @DisplayName("Should preserve existing children when adding new child")
+    void shouldPreserveExistingChildren() {
+        UUID parentId = UUID.randomUUID();
+        UUID child1Id = UUID.randomUUID();
+        UUID child2Id = UUID.randomUUID();
+
+        Member parent = new Member(
+                new MemberId(parentId),
+                null,
+                Collections.emptyList(),
+                List.of(new MemberId(child1Id)));
+
+        Member updatedParent = parent.addChild(new MemberId(child2Id));
+
+        assertThat(updatedParent.children()).hasSize(2);
+        assertThat(updatedParent.childrenIds()).containsExactly(
+                child1Id.toString(), child2Id.toString());
     }
 }

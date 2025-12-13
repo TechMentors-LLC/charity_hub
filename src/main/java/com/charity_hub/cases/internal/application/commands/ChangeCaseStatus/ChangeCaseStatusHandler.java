@@ -4,7 +4,9 @@ import com.charity_hub.cases.internal.domain.contracts.ICaseRepo;
 import com.charity_hub.cases.internal.domain.model.Case.CaseCode;
 import com.charity_hub.shared.abstractions.VoidCommandHandler;
 import com.charity_hub.shared.exceptions.NotFoundException;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class ChangeCaseStatusHandler extends VoidCommandHandler<ChangeCaseStatus> {
@@ -15,23 +17,25 @@ public class ChangeCaseStatusHandler extends VoidCommandHandler<ChangeCaseStatus
     }
 
     @Override
+    @Transactional
+    @Observed(name = "handler.change_case_status", contextualName = "change-case-status-handler")
     public void handle(ChangeCaseStatus command) {
-            String action = command.isActionOpen() ? "OPEN" : "CLOSE";
-            logger.info("Changing case status - CaseCode: {}, Action: {}", command.caseCode(), action);
-            
-            var case_ = caseRepo.getByCode(new CaseCode(command.caseCode()))
-                    .orElseThrow(() -> {
-                        logger.warn("Case not found for status change - CaseCode: {}", command.caseCode());
-                        return new NotFoundException("This case is not found");
-                    });
+        String action = command.isActionOpen() ? "OPEN" : "CLOSE";
+        logger.info("Changing case status - CaseCode: {}, Action: {}", command.caseCode(), action);
 
-            if (command.isActionOpen()) {
-                case_.open();
-            } else {
-                case_.close();
-            }
+        var case_ = caseRepo.getByCode(new CaseCode(command.caseCode()))
+                .orElseThrow(() -> {
+                    logger.warn("Case not found for status change - CaseCode: {}", command.caseCode());
+                    return new NotFoundException("This case is not found");
+                });
 
-            caseRepo.save(case_);
-            logger.info("Case status changed successfully - CaseCode: {}, NewStatus: {}", command.caseCode(), action);
+        if (command.isActionOpen()) {
+            case_.open();
+        } else {
+            case_.close();
+        }
+
+        caseRepo.save(case_);
+        logger.info("Case status changed successfully - CaseCode: {}, NewStatus: {}", command.caseCode(), action);
     }
 }

@@ -1,6 +1,7 @@
 package com.charity_hub.cases.internal.domain.model.Contribution;
 
 import com.charity_hub.cases.internal.domain.events.ContributionConfirmed;
+import com.charity_hub.cases.internal.domain.events.ContributionMade;
 import com.charity_hub.cases.internal.domain.events.ContributionPaid;
 import com.charity_hub.cases.internal.domain.model.Case.CaseCode;
 import com.charity_hub.shared.domain.model.AggregateRoot;
@@ -27,8 +28,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
             MoneyValue moneyValue,
             ContributionStatus contributionStatus,
             Date contributionDate,
-            String paymentProof
-    ) {
+            String paymentProof) {
         super(id);
         this.contributorId = contributorId;
         this.caseId = caseCode;
@@ -41,17 +41,17 @@ public class Contribution extends AggregateRoot<ContributionId> {
     public static Contribution new_(
             UUID contributorId,
             int caseCode,
-            int amount
-    ) {
-        return new Contribution(
+            int amount) {
+        Contribution contribution = new Contribution(
                 ContributionId.generate(),
                 contributorId,
                 new CaseCode(caseCode),
                 MoneyValue.of(amount),
                 ContributionStatus.PLEDGED,
                 new Date(),
-                null
-        );
+                null);
+        contribution.raiseEvent(ContributionMade.from(contribution));
+        return contribution;
     }
 
     public static Contribution create(
@@ -59,8 +59,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
             int caseCode,
             int amount,
             ContributionStatus contributionStatus,
-            Date contributionDate
-    ) {
+            Date contributionDate) {
         return create(
                 UUID.randomUUID(),
                 contributorId,
@@ -68,8 +67,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
                 amount,
                 contributionStatus,
                 contributionDate,
-                null
-        );
+                null);
     }
 
     public static Contribution create(
@@ -78,8 +76,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
             int caseCode,
             int amount,
             ContributionStatus contributionStatus,
-            Date contributionDate
-    ) {
+            Date contributionDate) {
         return create(
                 id,
                 contributorId,
@@ -87,8 +84,7 @@ public class Contribution extends AggregateRoot<ContributionId> {
                 amount,
                 contributionStatus,
                 contributionDate,
-                null
-        );
+                null);
     }
 
     public static Contribution create(
@@ -98,8 +94,19 @@ public class Contribution extends AggregateRoot<ContributionId> {
             int amount,
             ContributionStatus contributionStatus,
             Date contributionDate,
-            String paymentProof
-    ) {
+            String paymentProof) {
+        // This method is used by the Mapper for reconstitution.
+        // We generally shouldn't raise events here for reconstitution.
+        // If we need to create a new contribution with a specific ID, we should use a
+        // specific method.
+        // Assuming this creates a NEW one... but Mapper uses it.
+        // The safest fix is to remove the event raising from here OR provide a separate
+        // reconstitute method.
+        // Since I'm adding `reconstitute` below, I will keep this as is or deprecate
+        // it?
+        // Actually, looking at usages, this method with `if (PLEDGED)` was recently
+        // added.
+        // I will change this to NOT raise events, as `new_` is for new contributions.
         return new Contribution(
                 new ContributionId(id),
                 contributorId,
@@ -107,13 +114,31 @@ public class Contribution extends AggregateRoot<ContributionId> {
                 MoneyValue.of(amount),
                 contributionStatus,
                 contributionDate != null ? contributionDate : new Date(),
-                paymentProof
-        );
+                paymentProof);
+    }
+
+    public static Contribution reconstitute(
+            UUID id,
+            UUID contributorId,
+            int caseCode,
+            int amount,
+            ContributionStatus contributionStatus,
+            Date contributionDate,
+            String paymentProof) {
+        return new Contribution(
+                new ContributionId(id),
+                contributorId,
+                new CaseCode(caseCode),
+                MoneyValue.of(amount),
+                contributionStatus,
+                contributionDate != null ? contributionDate : new Date(),
+                paymentProof);
     }
 
     /**
-    * @param paymentProof Optional. The payment proof document or reference, may be null if not provided.
-    * */
+     * @param paymentProof Optional. The payment proof document or reference, may be
+     *                     null if not provided.
+     */
 
     public void pay(@Nullable String paymentProof) {
         if (contributionStatus.isNotPledged()) {

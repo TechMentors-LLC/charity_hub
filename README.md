@@ -1,4 +1,4 @@
-# [Charity Hub](https://github.com/M0Hatem/charity_hub_java) &middot; [![GitHub license](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/M0Hatem/charity_hub_java/blob/main/LICENSE) [![Java Version](https://img.shields.io/badge/Java-17-orange.svg)](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html) [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.5-brightgreen.svg)](https://spring.io/projects/spring-boot)
+# [Charity Hub](https://github.com/TechMentors-LLC/charity_hub) &middot; [![GitHub license](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/TechMentors-LLC/charity_hub/blob/main/LICENSE) [![Java Version](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html) [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.5-brightgreen.svg)](https://spring.io/projects/spring-boot) [![CI](https://github.com/TechMentors-LLC/charity_hub/actions/workflows/test.yml/badge.svg)](https://github.com/TechMentors-LLC/charity_hub/actions)
 
 Charity Hub is a robust Spring Boot platform for managing charitable cases and contributions.
 
@@ -11,14 +11,14 @@ Charity Hub is a robust Spring Boot platform for managing charitable cases and c
 ## Installation
 
 Charity Hub requires the following prerequisites:
-* Java 17 or higher
+* Java 21 or higher
 * MongoDB
 * Firebase Admin credentials
 
 Get started in minutes:
 ```bash
 # Clone the repository
-git clone https://github.com/hibrahem/charity_hub.git
+git clone https://github.com/TechMentors-LLC/charity_hub.git
 
 # Build the project
 ./gradlew build
@@ -34,7 +34,7 @@ To run this application, you need to set up a Firebase account and obtain the `a
 - Go to the [Firebase Console](https://console.firebase.google.com/).
 - Click on "Add project" and follow the on-screen instructions to create a new Firebase project.
 
-3. **Add Firebase to Your Application:**
+2. **Add Firebase to Your Application:**
 - In the Firebase project dashboard, click on the gear icon next to "Project Overview" and select "Project settings".
 - Navigate to the "Service accounts" tab.
 - Click on "Generate new private key" under the "Firebase Admin SDK" section.
@@ -71,6 +71,62 @@ The project is organized into several core modules:
   * Email notifications
   * Event tracking
 
+## Architecture
+
+Charity Hub follows **Clean Architecture** with **Spring Modulith** for modular design:
+
+```
+charity_hub/
+├── accounts/       # User accounts, authentication, permissions
+├── cases/          # Charity cases and contributions  
+├── ledger/         # Financial records and member network
+├── notifications/  # Push notifications (FCM)
+└── shared/         # Common abstractions, auth, infrastructure
+```
+
+Each module follows a consistent internal structure:
+- `api/` - Controllers and DTOs
+- `application/` - Commands, queries, and use cases
+- `domain/` - Entities, events, and domain logic
+- `infrastructure/` - Database and external service implementations
+
+## API Documentation
+
+OpenAPI/Swagger documentation is available at:
+- **Hosted API Docs**: [SwaggerHub - Charity Hub API](https://app.swaggerhub.com/apis/techs-08c/carity-hub/v1.0.0)
+- **Local Swagger UI**: http://localhost:8080/swagger-ui.html
+- **Local OpenAPI JSON**: http://localhost:8080/v3/api-docs
+
+
+## Observability
+
+Charity Hub uses **SigNoz** as the observability backend for Metrics, Traces, and Logs. The application is pre-configured to send telemetry data to SigNoz running on `localhost`.
+
+### 1. Install SigNoz
+We recommend using the official Docker setup:
+
+```bash
+# Clone the SigNoz repository
+git clone -b main https://github.com/SigNoz/signoz.git
+cd signoz/deploy/
+
+# Run the installation script
+./install.sh
+```
+
+Once installed, the SigNoz UI will be available at http://localhost:8080.
+
+### 2. Connect the Application
+The application is already configured to send data to the default SigNoz OTLP endpoint (`http://localhost:4318`). Simply run the application:
+
+```bash
+./gradlew bootRun
+```
+
+Generate some traffic, and you will see the `charity-hub` service in the SigNoz dashboard with correlated Metrics, Traces, and Logs.
+
+For more details on using SigNoz, refer to the official documentation.
+
 ## Technology Stack
 
 Charity Hub is built with modern technologies:
@@ -78,11 +134,12 @@ Charity Hub is built with modern technologies:
 ```json
 {
   "backend": {
-    "language": "Java 17",
+    "language": "Java 21",
     "framework": "Spring Boot 3.3.5",
     "database": "MongoDB",
     "security": ["Spring Security", "JWT"],
-    "messaging": "Firebase Cloud Messaging"
+    "messaging": "Firebase Cloud Messaging",
+    "observability": ["Micrometer", "Prometheus", "OpenTelemetry"]
   }
 }
 ```

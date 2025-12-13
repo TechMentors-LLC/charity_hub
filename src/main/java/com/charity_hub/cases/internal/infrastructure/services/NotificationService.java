@@ -7,7 +7,7 @@ import com.charity_hub.cases.internal.domain.contracts.ICaseRepo;
 import com.charity_hub.cases.internal.domain.contracts.INotificationService;
 import com.charity_hub.cases.internal.domain.model.Case.Case;
 import com.charity_hub.cases.internal.domain.model.Case.CaseCode;
-import com.charity_hub.notifications.NotificationApi;
+import com.charity_hub.notifications.shared.INotificationsAPI;
 import com.charity_hub.shared.domain.ILogger;
 import com.charity_hub.shared.infrastructure.MessageService;
 import lombok.SneakyThrows;
@@ -18,18 +18,17 @@ import java.util.Random;
 
 @Component("casesNotificationService")
 public class NotificationService implements INotificationService {
-    private final NotificationApi notificationApi;
+    private final INotificationsAPI notificationApi;
     private final ICaseRepo caseRepo;
     private final ILogger logger;
     private final MessageService messageService;
     private final Random random = new Random();
 
     public NotificationService(
-            NotificationApi notificationApi,
+            INotificationsAPI notificationApi,
             ICaseRepo caseRepo,
             ILogger logger,
-            MessageService messageService
-    ) {
+            MessageService messageService) {
         this.notificationApi = notificationApi;
         this.caseRepo = caseRepo;
         this.logger = logger;
@@ -46,16 +45,14 @@ public class NotificationService implements INotificationService {
     public void notifyCaseOpened(CaseOpenedDTO case_) {
         var payload = new NotificationPayload(
                 case_.caseCode(),
-                case_.title()
-        );
+                case_.title());
 
         notificationApi.notifyTopicSubscribers(
                 "CaseUpdates",
                 "caseCreated",
                 payload,
                 messageService.getMessage("notification.case.new.title"),
-                case_.description()
-        );
+                case_.description());
     }
 
     @SneakyThrows
@@ -74,16 +71,14 @@ public class NotificationService implements INotificationService {
 
         var payload = new NotificationPayload(
                 case_.caseCode(),
-                case_.title()
-        );
+                case_.title());
 
         notificationApi.notifyTopicSubscribers(
                 "CaseUpdates",
                 "caseClosed",
                 payload,
                 title,
-                messageService.getMessage("notification.case.closed.body")
-        );
+                messageService.getMessage("notification.case.closed.body"));
     }
 
     @SneakyThrows
@@ -98,9 +93,9 @@ public class NotificationService implements INotificationService {
 
         Case case_ = caseOpt.get();
 
-        String title = case_.getContributions().size() == 1 ?
-                messageService.getMessage("notification.contribution.first", contribution.amount()) :
-                messageService.getMessage("notification.contribution.additional", contribution.amount());
+        String title = case_.getContributions().size() == 1
+                ? messageService.getMessage("notification.contribution.first", contribution.amount())
+                : messageService.getMessage("notification.contribution.additional", contribution.amount());
 
         String[] messages = messageService.getMessage("notification.contribution.messages").split(",");
         String randomMessage = messages[random.nextInt(messages.length)];
@@ -108,28 +103,24 @@ public class NotificationService implements INotificationService {
         var payload = new ContributionNotificationPayload(
                 case_.getId().value(),
                 case_.getTitle(),
-                contribution.amount()
-        );
+                contribution.amount());
 
         notificationApi.notifyTopicSubscribers(
                 "CaseUpdates",
                 "contributionMade",
                 payload,
                 title,
-                randomMessage
-        );
+                randomMessage);
     }
 
     private record NotificationPayload(
             int caseCode,
-            String caseTitle
-    ) {
+            String caseTitle) {
     }
 
     private record ContributionNotificationPayload(
             int caseCode,
             String caseTitle,
-            int amount
-    ) {
+            int amount) {
     }
 }

@@ -17,6 +17,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
+import io.micrometer.observation.annotation.Observed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
@@ -43,8 +44,7 @@ public class CaseRepo implements ICaseRepo {
             MongoDatabase mongoDatabase,
             IEventBus eventBus,
             CaseMapper caseMapper,
-            ContributionMapper contributionMapper
-    ) {
+            ContributionMapper contributionMapper) {
         this.cases = mongoDatabase.getCollection(CASES_COLLECTION, CaseEntity.class);
         this.contributions = mongoDatabase.getCollection(CONTRIBUTION_COLLECTION, ContributionEntity.class);
         this.eventBus = eventBus;
@@ -53,6 +53,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
+    @Observed(name = "charity_hub.repo.case.next_code", contextualName = "case-repo-next-code")
     public int nextCaseCode() {
         CaseEntity lastCase = cases.find()
                 .sort(new org.bson.Document("code", -1))
@@ -64,6 +65,7 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
+    @Observed(name = "charity_hub.repo.case.get_by_code", contextualName = "case-repo-get-by-code")
     public Optional<Case> getByCode(CaseCode caseCode) {
         logger.debug("Fetching case by code: {}", caseCode.value());
         CaseEntity entity = cases.find(new org.bson.Document("code", caseCode.value()))
@@ -73,42 +75,40 @@ public class CaseRepo implements ICaseRepo {
             return Optional.empty();
         }
         return Optional.of(caseMapper.toDomain(
-            entity,
-            getContributionsByCaseCode(new CaseCode(entity.code()))
-        ));
+                entity,
+                getContributionsByCaseCode(new CaseCode(entity.code()))));
     }
 
     @Override
+    @Observed(name = "charity_hub.repo.case.save", contextualName = "case-repo-save")
     public void save(Case case_) {
         logger.debug("Saving case: {}", case_.getCaseCode().value());
         List<Contribution> caseContributions = case_.getContributions();
         if (!caseContributions.isEmpty()) {
             logger.debug("Saving {} contributions for case: {}", caseContributions.size(), case_.getCaseCode().value());
-            List<com.mongodb.client.model.ReplaceOneModel<ContributionEntity>> updates =
-                caseContributions.stream()
+            List<com.mongodb.client.model.ReplaceOneModel<ContributionEntity>> updates = caseContributions.stream()
                     .map(contribution -> new com.mongodb.client.model.ReplaceOneModel<>(
-                        new org.bson.Document("_id", contribution.getId().value().toString()),
-                        contributionMapper.toDB(contribution),
-                        new ReplaceOptions().upsert(true)
-                    ))
+                            new org.bson.Document("_id", contribution.getId().value().toString()),
+                            contributionMapper.toDB(contribution),
+                            new ReplaceOptions().upsert(true)))
                     .collect(Collectors.toList());
 
             contributions.bulkWrite(updates);
         }
 
         cases.replaceOne(
-            new org.bson.Document("code", case_.getCaseCode().value()),
-            caseMapper.toDB(case_),
-            new ReplaceOptions().upsert(true)
-        );
+                new org.bson.Document("code", case_.getCaseCode().value()),
+                caseMapper.toDB(case_),
+                new ReplaceOptions().upsert(true));
         logger.info("Case saved successfully: {}", case_.getCaseCode().value());
 
         case_.occurredEvents().stream()
-            .map(event -> CaseEventsMapper.map((CaseEvent) event))
-            .forEach(eventBus::push);
+                .map(event -> CaseEventsMapper.map((CaseEvent) event))
+                .forEach(eventBus::push);
     }
 
     @Override
+    @Observed(name = "charity_hub.repo.case.delete", contextualName = "case-repo-delete")
     public void delete(CaseCode caseCode) {
         logger.info("Deleting case: {}", caseCode.value());
         cases.deleteOne(new org.bson.Document("code", caseCode.value()));
@@ -121,16 +121,18 @@ public class CaseRepo implements ICaseRepo {
     }
 
     @Override
+    @Observed(name = "charity_hub.repo.contribution.save", contextualName = "case-repo-save-contribution")
     public void save(Contribution contribution) {
-        logger.debug("Saving contribution: {} - Status: {}", 
+        logger.debug("Saving contribution: {} - Status: {}",
                 contribution.getId().value(), contribution.getContributionStatus());
-        
+
         // Check if this is a status change (pay or confirm operation)
         if (contribution.getContributionStatus() == ContributionStatus.PAID ||
-            contribution.getContributionStatus() == ContributionStatus.CONFIRMED) {
+                contribution.getContributionStatus() == ContributionStatus.CONFIRMED) {
             // Update status and paymentProof if provided
             var updates = new ArrayList<org.bson.conversions.Bson>();
-            updates.add(Updates.set("status", contributionMapper.getContributionStatusCode(contribution.getContributionStatus())));
+            updates.add(Updates.set("status",
+                    contributionMapper.getContributionStatusCode(contribution.getContributionStatus())));
 
             // If paymentProof is provided, update it as well
             if (contribution.getPaymentProof() != null) {
@@ -138,39 +140,39 @@ public class CaseRepo implements ICaseRepo {
             }
 
             var updateResult = contributions.updateOne(
-                new org.bson.Document("_id", contribution.getId().value().toString()),
-                Updates.combine(updates),
-                new UpdateOptions().upsert(false)
-            );
+                    new org.bson.Document("_id", contribution.getId().value().toString()),
+                    Updates.combine(updates),
+                    new UpdateOptions().upsert(false));
 
             // Check if the update modified any documents
             if (updateResult.getModifiedCount() == 0 && updateResult.getMatchedCount() == 0) {
-                logger.error("Failed to update contribution status - ContributionId: {} does not exist", 
+                logger.error("Failed to update contribution status - ContributionId: {} does not exist",
                         contribution.getId().value());
                 throw new IllegalStateException("Failed to update contribution status: Contribution does not exist.");
             }
-            logger.info("Contribution status updated - ContributionId: {}, NewStatus: {}", 
+            logger.info("Contribution status updated - ContributionId: {}, NewStatus: {}",
                     contribution.getId().value(), contribution.getContributionStatus());
         } else {
             // For other operations, replace the entire document
             contributions.replaceOne(
-                new org.bson.Document("_id", contribution.getId().value().toString()),
-                contributionMapper.toDB(contribution),
-                new ReplaceOptions().upsert(true)
-            );
+                    new org.bson.Document("_id", contribution.getId().value().toString()),
+                    contributionMapper.toDB(contribution),
+                    new ReplaceOptions().upsert(true));
             logger.info("Contribution saved - ContributionId: {}", contribution.getId().value());
         }
 
-        contribution.occurredEvents()
-            .forEach(eventBus::push);
+        // Map domain events to DTOs before publishing (same as Case events)
+        contribution.occurredEvents().stream()
+                .map(event -> CaseEventsMapper.map((CaseEvent) event))
+                .forEach(eventBus::push);
     }
 
     @Override
+    @Observed(name = "charity_hub.repo.contribution.get_by_id", contextualName = "case-repo-get-contribution-by-id")
     public Optional<Contribution> getContributionById(UUID id) {
         logger.debug("Fetching contribution by ID: {}", id);
         ContributionEntity entity = contributions.find(
-            new org.bson.Document("_id", id.toString())
-        ).first();
+                new org.bson.Document("_id", id.toString())).first();
 
         if (entity == null) {
             logger.debug("Contribution not found: {}", id);

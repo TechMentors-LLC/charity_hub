@@ -25,8 +25,7 @@ public class AccountsGateway implements IAccountGateway {
         }
         return new InvitationResponse(
                 account.invitedMobileNumber(),
-                account.inviterId()
-        );
+                account.inviterId());
     }
 
     @Override

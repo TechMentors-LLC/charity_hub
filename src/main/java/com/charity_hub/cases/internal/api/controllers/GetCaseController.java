@@ -4,7 +4,9 @@ import com.charity_hub.cases.internal.application.queries.GetCase.GetCaseQuery;
 import com.charity_hub.cases.internal.application.queries.GetCase.GetCaseResponse;
 import com.charity_hub.cases.internal.application.queries.GetCase.IGetCaseHandler;
 import com.charity_hub.shared.auth.AccessTokenPayload;
-import org.springframework.http.HttpStatus;
+import io.micrometer.observation.annotation.Observed;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class GetCaseController {
-
+    private static final Logger log = LoggerFactory.getLogger(GetCaseController.class);
     private final IGetCaseHandler getCaseHandler;
 
     public GetCaseController(IGetCaseHandler getCaseHandler) {
@@ -23,11 +25,13 @@ public class GetCaseController {
 
     @GetMapping("/v1/cases/{caseCode}")
     @PreAuthorize("hasAnyAuthority('FULL_ACCESS')")
+    @Observed(name = "cases.get", contextualName = "get-case")
     public ResponseEntity<GetCaseResponse> getCase(
             @PathVariable int caseCode,
             @AuthenticationPrincipal AccessTokenPayload accessTokenPayload) {
-
+        log.info("Retrieving case: {}", caseCode);
         var response = getCaseHandler.handle(new GetCaseQuery(caseCode, accessTokenPayload));
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        log.debug("Case retrieved successfully: {}", caseCode);
+        return ResponseEntity.ok(response);
     }
 }

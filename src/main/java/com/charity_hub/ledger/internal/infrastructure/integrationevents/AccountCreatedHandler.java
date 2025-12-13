@@ -5,6 +5,7 @@ import com.charity_hub.ledger.internal.application.eventHandlers.AccountCreated.
 import com.charity_hub.ledger.internal.application.eventHandlers.AccountCreated.AccountCreatedEventHandler;
 import com.charity_hub.shared.domain.IEventBus;
 import com.charity_hub.shared.domain.ILogger;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,12 +23,15 @@ public class AccountCreatedHandler {
         this.accountCreatedEventHandler = accountCreatedEventHandler;
     }
 
+    @PostConstruct
     public void start() {
+        logger.info("Registering AccountCreatedHandler for Member/Ledger creation");
         eventBus.subscribe(this, AccountEventDto.AccountCreatedDTO.class, this::addConnection);
     }
 
     private void addConnection(AccountEventDto.AccountCreatedDTO account) {
-        logger.info("AddConnection Service received AccountCreated event, add the connection this account {}", account.id());
+        logger.info("AddConnection Service received AccountCreated event, add the connection this account {}",
+                account.id());
         accountCreatedEventHandler.accountCreatedHandler(new AccountCreated(account.id(), account.mobileNumber()));
     }
 }

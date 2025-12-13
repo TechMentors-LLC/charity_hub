@@ -5,6 +5,8 @@ import com.charity_hub.cases.internal.application.commands.CreateCase.CaseRespon
 import com.charity_hub.cases.internal.application.commands.CreateCase.CreateCase;
 import com.charity_hub.cases.internal.application.commands.CreateCase.CreateCaseHandler;
 import com.charity_hub.shared.exceptions.GlobalExceptionHandler;
+import com.charity_hub.shared.observability.TestObservabilityConfiguration;
+import com.charity_hub.shared.observability.metrics.BusinessMetrics;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -30,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CreateCaseController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, TestObservabilityConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
 class CreateCaseControllerTest {
 
@@ -42,6 +44,9 @@ class CreateCaseControllerTest {
 
     @MockBean
     private CreateCaseHandler createCaseHandler;
+
+    @MockBean
+    private BusinessMetrics businessMetrics;
 
     @Nested
     @DisplayName("POST /v1/cases")

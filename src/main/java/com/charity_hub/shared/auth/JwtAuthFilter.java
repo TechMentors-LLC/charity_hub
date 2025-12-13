@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtVerifier jwtVerifier;
     private final ObjectMapper mapper;
-    private final Logger log = LoggerFactory.getLogger(this.getClass().getSimpleName());
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthFilter.class);
 
     public JwtAuthFilter(JwtVerifier jwtVerifier, ObjectMapper mapper) {
         this.jwtVerifier = jwtVerifier;
@@ -35,8 +35,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+            FilterChain filterChain) throws ServletException, IOException {
         try {
             String token = resolveTokenFromAuthHeader(request);
 
@@ -61,28 +60,25 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
 
             var authentication = new UsernamePasswordAuthenticationToken(
-                payload,
-                null,
-                payload instanceof AccessTokenPayload ? 
-                    ((AccessTokenPayload) payload).getPermissions().stream()
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList()) : 
-                    List.of()
-            );
-            
+                    payload,
+                    null,
+                    payload instanceof AccessTokenPayload ? ((AccessTokenPayload) payload).getPermissions().stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .collect(Collectors.toList()) : List.of());
+
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            
+
             filterChain.doFilter(request, response);
 
         } catch (Exception e) {
             log.error("Error processing JWT token", e);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            
+
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("description", "Invalid token");
-            
+
             mapper.writeValue(response.getWriter(), errorResponse);
         }
     }

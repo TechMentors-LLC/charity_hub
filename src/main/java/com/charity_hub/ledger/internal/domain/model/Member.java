@@ -15,8 +15,15 @@ public record Member(MemberId memberId, MemberId parent, List<MemberId> ancestor
                 new MemberId(memberId),
                 parent.memberId(),
                 newAncestors,
-                Collections.emptyList()
-        );
+                Collections.emptyList());
+    }
+
+    public static Member newRootMember(UUID memberId) {
+        return new Member(
+                new MemberId(memberId),
+                null, // Root has no parent
+                Collections.emptyList(), // Root has no ancestors
+                Collections.emptyList());
     }
 
     public List<String> ancestorsIds() {
@@ -26,7 +33,7 @@ public record Member(MemberId memberId, MemberId parent, List<MemberId> ancestor
     }
 
     public String parentId() {
-        return parent().value().toString();
+        return parent() != null ? parent().value().toString() : null;
     }
 
     public List<String> childrenIds() {
@@ -47,5 +54,15 @@ public record Member(MemberId memberId, MemberId parent, List<MemberId> ancestor
     @Override
     public List<MemberId> children() {
         return Collections.unmodifiableList(children);
+    }
+
+    public Member addChild(MemberId childId) {
+        List<MemberId> newChildren = new ArrayList<>(children);
+        newChildren.add(childId);
+        return new Member(
+                memberId(),
+                parent(),
+                ancestors(),
+                Collections.unmodifiableList(newChildren));
     }
 }

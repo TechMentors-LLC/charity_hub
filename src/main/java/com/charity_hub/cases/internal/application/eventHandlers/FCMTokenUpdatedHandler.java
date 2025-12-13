@@ -4,6 +4,7 @@ import com.charity_hub.accounts.shared.AccountEventDto;
 import com.charity_hub.cases.internal.domain.contracts.INotificationService;
 import com.charity_hub.cases.internal.application.loggers.FCMTokenLogger;
 import com.charity_hub.shared.domain.IEventBus;
+import io.micrometer.core.annotation.Timed;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,7 @@ public class FCMTokenUpdatedHandler {
         eventBus.subscribe(this, AccountEventDto.FCMTokenUpdatedDTO.class, this::handle);
     }
 
+    @Timed(value = "charity_hub.event.fcm_token_updated", description = "Time taken to handle FCMTokenUpdated event")
     public void handle(AccountEventDto.FCMTokenUpdatedDTO event) {
         if (event.deviceFCMToken() == null) {
             logger.nullTokenReceived();

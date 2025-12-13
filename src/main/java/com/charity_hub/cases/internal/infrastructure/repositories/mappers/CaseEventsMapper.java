@@ -10,8 +10,7 @@ public class CaseEventsMapper {
             return new CaseOpenedDTO(
                     e.caseCode().value(),
                     e.title(),
-                    e.description()
-            );
+                    e.description());
         }
 
         if (event instanceof CaseClosed e) {
@@ -19,15 +18,14 @@ public class CaseEventsMapper {
                     e.caseCode().value(),
                     e.title(),
                     e.goal(),
-                    e.totalValue()
-            );
+                    e.totalValue());
         }
 
         if (event instanceof ContributionConfirmed e) {
             return new ContributionConfirmedDTO(
                     e.id().value(),
-                    e.contributorId()
-            );
+                    e.contributorId(),
+                    e.amount());
         }
 
         if (event instanceof ContributionMade e) {
@@ -35,22 +33,20 @@ public class CaseEventsMapper {
                     e.id().value(),
                     e.contributorId(),
                     e.caseCode().value(),
-                    e.moneyValue().value()
-            );
+                    e.moneyValue().value());
         }
 
         if (event instanceof ContributionPaid e) {
             return new ContributionPaidDTO(
                     e.id().value(),
-                    e.contributorId()
-            );
+                    e.contributorId(),
+                    e.amount());
         }
 
         if (event instanceof ContributionReminded e) {
             return new ContributionRemindedDTO(
                     e.id().value(),
-                    e.contributorId()
-            );
+                    e.contributorId());
         }
 
         throw new IllegalArgumentException("Unknown event type");

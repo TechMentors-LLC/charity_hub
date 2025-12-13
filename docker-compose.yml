@@ -1,0 +1,53 @@
+services:
+  # MongoDB with Replica Set support (required for transactions)
+  mongodb:
+    image: mongo:7
+    container_name: charity-hub-mongo
+    ports:
+      - "27017:27017"
+    env_file:
+      - secrets.properties
+    command: [ "--replSet", "rs0", "--bind_ip_all", "--keyFile", "/etc/mongo-keyfile" ]
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-keyfile:/etc/mongo-keyfile:ro
+    healthcheck:
+      test: [ "CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # Auto-initialize replica set (runs once then exits)
+  mongo-init:
+    image: mongo:7
+    container_name: charity-hub-mongo-init
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    env_file:
+      - secrets.properties
+    entrypoint: >
+      mongosh --host mongodb -u admin -p SecureMongoPass2025! --authenticationDatabase admin --eval "
+        try {
+          rs.status();
+          print('Replica set already initialized');
+        } catch(e) {
+          rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'mongodb:27017'}]});
+          print('Replica set initialized successfully');
+        }
+      "
+    restart: "no"
+
+volumes:
+  mongodb_data:
+
+    # Setup:
+    # 1. Edit secrets.properties and set your passwords
+    #
+    # 2. Create keyfile (run once):
+    #    openssl rand -base64 756 > mongo-keyfile
+    #    chmod 400 mongo-keyfile
+    #
+    # 3. Start containers (replica set initializes automatically):
+    #    docker-compose up -d
