@@ -71,4 +71,14 @@ public class AccountReadRepo implements IAccountReadRepo {
                 entity.photoUrl() != null ? entity.photoUrl() : "",
                 entity.devices().stream().map(DeviceEntity::fcmToken).collect(Collectors.toList()));
     }
+
+    @Override
+    @Observed(name = "charity_hub.repo.account_read.is_admin", contextualName = "account-read-repo-is-admin")
+    public boolean isAdmin(UUID id) {
+        AccountEntity entity = collection.find(eq("accountId", id.toString())).first();
+        if (entity == null || entity.permissions() == null) {
+            return false;
+        }
+        return entity.permissions().contains("FULL_ACCESS");
+    }
 }

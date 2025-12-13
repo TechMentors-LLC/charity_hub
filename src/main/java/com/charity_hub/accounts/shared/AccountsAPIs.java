@@ -34,4 +34,9 @@ public class AccountsAPIs implements IAccountsAPI {
     public List<AccountDTO> getAccountsByIds(List<UUID> ids) {
         return accountReadRepo.getAccountsByIds(ids);
     }
+
+    @Override
+    public boolean isAdmin(UUID userId) {
+        return accountReadRepo.isAdmin(userId);
+    }
 }

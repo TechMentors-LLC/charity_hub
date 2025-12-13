@@ -12,4 +12,6 @@ public interface IAccountReadRepo {
     AccountDTO getById(UUID id);
 
     List<AccountDTO> getAccountsByIds(List<UUID> ids);
+
+    boolean isAdmin(UUID id);
 }
