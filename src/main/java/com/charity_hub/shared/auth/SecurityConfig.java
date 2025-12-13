@@ -36,6 +36,9 @@ public class SecurityConfig {
                         .requestMatchers(new AntPathRequestMatcher("/actuator/**")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/v1/accounts/authenticate")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/error")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/swagger-ui/**")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/v3/api-docs/**")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/swagger-ui.html")).permitAll()
                         .anyRequest().authenticated();
             } catch (Exception e) {
                 throw new RuntimeException("Error configuring security rules", e);
