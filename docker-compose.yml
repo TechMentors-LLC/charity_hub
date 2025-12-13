@@ -6,32 +6,48 @@ services:
     ports:
       - "27017:27017"
     env_file:
-      - .env
+      - secrets.properties
     command: [ "--replSet", "rs0", "--bind_ip_all", "--keyFile", "/etc/mongo-keyfile" ]
     volumes:
       - mongodb_data:/data/db
       - ./mongo-keyfile:/etc/mongo-keyfile:ro
     healthcheck:
-      test: mongosh --eval "rs.status()" || exit 1
+      test: mongosh --eval "db.adminCommand('ping')" || exit 1
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 10s
+
+  # Auto-initialize replica set (runs once then exits)
+  mongo-init:
+    image: mongo:7
+    container_name: charity-hub-mongo-init
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    env_file:
+      - secrets.properties
+    entrypoint: >
+      mongosh --host mongodb -u admin -p SecureMongoPass2025! --authenticationDatabase admin --eval "
+        try {
+          rs.status();
+          print('Replica set already initialized');
+        } catch(e) {
+          rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'mongodb:27017'}]});
+          print('Replica set initialized successfully');
+        }
+      "
+    restart: "no"
 
 volumes:
   mongodb_data:
 
     # Setup:
-    # 1. Copy environment file:
-    #    cp .env.example .env
-    #    # Edit .env and change passwords
+    # 1. Edit secrets.properties and set your passwords
     #
     # 2. Create keyfile (run once):
     #    openssl rand -base64 756 > mongo-keyfile
     #    chmod 400 mongo-keyfile
     #
-    # 3. Start container:
+    # 3. Start containers (replica set initializes automatically):
     #    docker-compose up -d
-    #
-    # 4. Initialize replica set:
-    #    docker exec -it charity-hub-mongo mongosh -u admin -p YOUR_PASSWORD --authenticationDatabase admin --eval "rs.initiate()"
