@@ -2,6 +2,7 @@ package com.charity_hub.cases.internal.api.controllers;
 
 import com.charity_hub.cases.internal.application.commands.ConfirmContribution.ConfirmContribution;
 import com.charity_hub.cases.internal.application.commands.ConfirmContribution.ConfirmContributionHandler;
+import com.charity_hub.shared.auth.AccessTokenPayload;
 import com.charity_hub.shared.exceptions.GlobalExceptionHandler;
 import com.charity_hub.shared.observability.TestObservabilityConfiguration;
 import org.junit.jupiter.api.DisplayName;
@@ -11,9 +12,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -24,79 +29,102 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ConfirmContributionController.class)
-@Import({GlobalExceptionHandler.class, TestObservabilityConfiguration.class})
+@Import({ GlobalExceptionHandler.class, TestObservabilityConfiguration.class })
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("Confirm Contribution Controller Tests")
 class ConfirmContributionControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @MockBean
-    private ConfirmContributionHandler handler;
+        @MockBean
+        private ConfirmContributionHandler handler;
 
-    @Test
-    @WithMockUser
-    @DisplayName("Should confirm contribution successfully")
-    void shouldConfirmContribution() throws Exception {
-        // Given
-        UUID contributionId = UUID.randomUUID();
-        
-        doNothing().when(handler).handle(any(ConfirmContribution.class));
+        @Test
+        @DisplayName("Should confirm contribution successfully")
+        void shouldConfirmContribution() throws Exception {
+                // Given
+                UUID userId = UUID.randomUUID();
+                UUID contributionId = UUID.randomUUID();
+                setSecurityContext(createAccessTokenPayload(userId));
 
-        // When & Then
-        mockMvc.perform(post("/v1/contributions/{contributionId}/confirm", contributionId))
-                .andExpect(status().isOk());
+                doNothing().when(handler).handle(any(ConfirmContribution.class));
 
-        // Verify handler was called with correct command
-        verify(handler).handle(argThat(command ->
-                command.contributionId().equals(contributionId)
-        ));
-    }
+                // When & Then
+                mockMvc.perform(post("/v1/contributions/{contributionId}/confirm", contributionId))
+                                .andExpect(status().isOk());
 
-    @Test
-    @WithMockUser
-    @DisplayName("Should confirm contribution without requiring request body")
-    void shouldConfirmContributionWithoutBody() throws Exception {
-        // Given
-        UUID contributionId = UUID.randomUUID();
-        
-        doNothing().when(handler).handle(any(ConfirmContribution.class));
+                // Verify handler was called with correct command
+                verify(handler).handle(argThat(command -> command.contributionId().equals(contributionId)));
+        }
 
-        // When & Then
-        mockMvc.perform(post("/v1/contributions/{contributionId}/confirm", contributionId))
-                .andExpect(status().isOk());
+        @Test
+        @DisplayName("Should confirm contribution without requiring request body")
+        void shouldConfirmContributionWithoutBody() throws Exception {
+                // Given
+                UUID userId = UUID.randomUUID();
+                UUID contributionId = UUID.randomUUID();
+                setSecurityContext(createAccessTokenPayload(userId));
 
-        // Verify no request body is needed
-        verify(handler).handle(argThat(command ->
-                command.contributionId().equals(contributionId)
-        ));
-    }
+                doNothing().when(handler).handle(any(ConfirmContribution.class));
 
-    @Test
-    @DisplayName("Should return 400 when contribution ID is invalid")
-    void shouldReturn400WhenContributionIdIsInvalid() throws Exception {
-        // When & Then
-        mockMvc.perform(post("/v1/contributions/{contributionId}/confirm", "invalid-uuid"))
-                .andExpect(status().isBadRequest());
-    }
+                // When & Then
+                mockMvc.perform(post("/v1/contributions/{contributionId}/confirm", contributionId))
+                                .andExpect(status().isOk());
 
-    @Test
-    @WithMockUser
-    @DisplayName("Should handle contribution ID correctly")
-    void shouldHandleContributionIdCorrectly() throws Exception {
-        // Given
-        UUID contributionId = UUID.randomUUID();
-        
-        doNothing().when(handler).handle(any(ConfirmContribution.class));
+                // Verify no request body is needed
+                verify(handler).handle(argThat(command -> command.contributionId().equals(contributionId)));
+        }
 
-        // When
-        mockMvc.perform(post("/v1/contributions/{contributionId}/confirm", contributionId))
-                .andExpect(status().isOk());
+        @Test
+        @DisplayName("Should return 400 when contribution ID is invalid")
+        void shouldReturn400WhenContributionIdIsInvalid() throws Exception {
+                // When & Then
+                mockMvc.perform(post("/v1/contributions/{contributionId}/confirm", "invalid-uuid"))
+                                .andExpect(status().isBadRequest());
+        }
 
-        // Then - Verify contribution ID is passed correctly
-        verify(handler).handle(argThat(command -> 
-                command.contributionId().equals(contributionId)
-        ));
-    }
+        @Test
+        @DisplayName("Should handle contribution ID correctly")
+        void shouldHandleContributionIdCorrectly() throws Exception {
+                // Given
+                UUID userId = UUID.randomUUID();
+                UUID contributionId = UUID.randomUUID();
+                setSecurityContext(createAccessTokenPayload(userId));
+
+                doNothing().when(handler).handle(any(ConfirmContribution.class));
+
+                // When
+                mockMvc.perform(post("/v1/contributions/{contributionId}/confirm", contributionId))
+                                .andExpect(status().isOk());
+
+                // Then - Verify contribution ID is passed correctly
+                verify(handler).handle(argThat(command -> command.contributionId().equals(contributionId)));
+        }
+
+        private AccessTokenPayload createAccessTokenPayload(UUID userId) {
+                return new AccessTokenPayload(
+                                "test-audience",
+                                "test-jwt-id",
+                                new Date(System.currentTimeMillis() + 3600000),
+                                new Date(),
+                                userId.toString(),
+                                "Test User",
+                                "http://photo.url",
+                                false,
+                                "+1234567890",
+                                "test-device-id",
+                                List.of("CONFIRM_CONTRIBUTION"));
+        }
+
+        private void setSecurityContext(AccessTokenPayload accessTokenPayload) {
+                var authorities = accessTokenPayload.getPermissions().stream()
+                                .map(SimpleGrantedAuthority::new)
+                                .toList();
+                var authentication = new UsernamePasswordAuthenticationToken(
+                                accessTokenPayload,
+                                null,
+                                authorities);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
 }

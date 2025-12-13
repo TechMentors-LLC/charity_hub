@@ -56,11 +56,10 @@ class GetLedgerHandlerTest {
         long date = System.currentTimeMillis();
 
         List<ContributionDTO> contributions = List.of(
-                new ContributionDTO(contributionId, userId.toString(), caseCode, 1000, 1, date, null)
-        );
+                new ContributionDTO(contributionId, userId.toString(), caseCode, 1000, 1, date, null));
         List<CaseDTO> cases = List.of(
-                new CaseDTO(caseCode, "Charity Case", "Description", 10000, 0, 1, true, date, date, Collections.emptyList(), Collections.emptyList(), 0)
-        );
+                new CaseDTO(caseCode, "Charity Case", "Description", 10000, 0, 1, true, date, date,
+                        Collections.emptyList(), Collections.emptyList(), 0));
 
         when(casesGateway.getContributions(userId)).thenReturn(new ArrayList<>(contributions));
         when(casesGateway.getCasesByIds(List.of(caseCode))).thenReturn(cases);
@@ -85,11 +84,10 @@ class GetLedgerHandlerTest {
 
         // status = 2 means PAID
         List<ContributionDTO> contributions = List.of(
-                new ContributionDTO(contributionId, userId.toString(), caseCode, 500, 2, date, null)
-        );
+                new ContributionDTO(contributionId, userId.toString(), caseCode, 500, 2, date, null));
         List<CaseDTO> cases = List.of(
-                new CaseDTO(caseCode, "Test Case", "Description", 5000, 0, 1, true, date, date, Collections.emptyList(), Collections.emptyList(), 0)
-        );
+                new CaseDTO(caseCode, "Test Case", "Description", 5000, 0, 1, true, date, date, Collections.emptyList(),
+                        Collections.emptyList(), 0));
 
         when(casesGateway.getContributions(userId)).thenReturn(new ArrayList<>(contributions));
         when(casesGateway.getCasesByIds(List.of(caseCode))).thenReturn(cases);
@@ -101,23 +99,22 @@ class GetLedgerHandlerTest {
     }
 
     @Test
-    @DisplayName("Should throw when case not found for contribution")
-    void shouldThrowWhenCaseNotFoundForContribution() {
+    @DisplayName("Should return 'Unknown Case' when case not found for contribution")
+    void shouldReturnUnknownCaseWhenCaseNotFoundForContribution() {
         String contributionId = UUID.randomUUID().toString();
         int caseCode = 12345;
         long date = System.currentTimeMillis();
 
         List<ContributionDTO> contributions = List.of(
-                new ContributionDTO(contributionId, userId.toString(), caseCode, 1000, 1, date, null)
-        );
+                new ContributionDTO(contributionId, userId.toString(), caseCode, 1000, 1, date, null));
 
         when(casesGateway.getContributions(userId)).thenReturn(new ArrayList<>(contributions));
         when(casesGateway.getCasesByIds(List.of(caseCode))).thenReturn(new ArrayList<>());
 
         GetLedger query = new GetLedger(userId);
+        LedgerResponse response = handler.handle(query);
 
-        assertThatThrownBy(() -> handler.handle(query))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Case not found");
+        assertThat(response.contributions()).hasSize(1);
+        assertThat(response.contributions().get(0).caseName()).isEqualTo("Unknown Case");
     }
 }
