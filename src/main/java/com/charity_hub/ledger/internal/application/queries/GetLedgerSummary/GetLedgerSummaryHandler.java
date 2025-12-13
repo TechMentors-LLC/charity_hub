@@ -1,5 +1,7 @@
 package com.charity_hub.ledger.internal.application.queries.GetLedgerSummary;
 
+import com.charity_hub.cases.shared.dtos.ContributionDTO;
+import com.charity_hub.ledger.internal.application.contracts.ICasesGateway;
 import com.charity_hub.ledger.internal.application.contracts.IAccountGateway;
 import com.charity_hub.ledger.internal.application.contracts.ILedgerRepository;
 import com.charity_hub.ledger.internal.domain.model.Ledger;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -21,60 +24,97 @@ public class GetLedgerSummaryHandler implements QueryHandler<GetLedgerSummary, L
     private final ILedgerRepository ledgerRepository;
     private final MembersNetworkRepo membersNetworkRepo;
     private final IAccountGateway accountGateway;
+    private final ICasesGateway casesGateway;
+
+    // From ContributionEntity: PLEDGED=1, PAID=2, CONFIRMED=3
+    private static final int STATUS_PAID = 2;
+    private static final int STATUS_CONFIRMED = 3;
 
     public GetLedgerSummaryHandler(
             ILedgerRepository ledgerRepository,
             MembersNetworkRepo membersNetworkRepo,
-            IAccountGateway accountGateway) {
+            IAccountGateway accountGateway,
+            ICasesGateway casesGateway) {
         this.ledgerRepository = ledgerRepository;
         this.membersNetworkRepo = membersNetworkRepo;
         this.accountGateway = accountGateway;
+        this.casesGateway = casesGateway;
     }
 
     @Override
     @Observed(name = "handler.get_ledger_summary", contextualName = "get-ledger-summary-handler")
     public LedgerSummaryDefaultResponse handle(GetLedgerSummary command) {
-        // Get user's ledger
+        // Get user's ledger for dueAmount (includes own pledges + network transfers)
         MemberId memberId = new MemberId(command.userId());
         Ledger userLedger = ledgerRepository.findByMemberId(memberId);
-
         int dueAmount = userLedger != null ? userLedger.getDueAmount().value() : 0;
-        int dueNetworkAmount = userLedger != null ? userLedger.getDueNetworkAmount().value() : 0;
+
+        // Get user's contributions stats
+        List<ContributionDTO> userContributions = casesGateway.getContributions(command.userId());
+        int paidAmount = calculateAmountByStatus(userContributions, STATUS_PAID);
+        int confirmedAmount = calculateAmountByStatus(userContributions, STATUS_CONFIRMED);
+
+        // Pledged = What I owe (dueAmount) minus what I've already paid (pending
+        // confirmation)
+        // This shows: own unpaid pledges + network transfers received
+        int pledgedAmount = Math.max(0, dueAmount - paidAmount);
 
         // Get connections and their ledger summaries
         List<AccountDTO> connections = getConnections(command.userId());
         List<LedgerSummaryDefaultResponse.ConnectionLedger> connectionLedgers = new ArrayList<>();
 
-        for (AccountDTO connection : connections) {
-            MemberId connectionId = new MemberId(UUID.fromString(connection.id()));
-            Ledger connectionLedger = ledgerRepository.findByMemberId(connectionId);
+        if (!connections.isEmpty()) {
+            List<UUID> connectionIds = connections.stream().map(c -> UUID.fromString(c.id())).toList();
+            // Bulk fetch contributions for connections
+            List<ContributionDTO> allConnectionContributions = casesGateway.getContributions(connectionIds);
 
-            int connectionDue = connectionLedger != null ? connectionLedger.getDueAmount().value() : 0;
-            int connectionNetwork = connectionLedger != null ? connectionLedger.getDueNetworkAmount().value() : 0;
+            Map<String, List<ContributionDTO>> contributionsByUserId = allConnectionContributions.stream()
+                    .collect(Collectors.groupingBy(ContributionDTO::contributorId));
 
-            connectionLedgers.add(new LedgerSummaryDefaultResponse.ConnectionLedger(
-                    connection.id(),
-                    connection.fullName(),
-                    connection.photoUrl(),
-                    connectionDue, // What they owe their parent
-                    0, // paid (not tracked separately anymore)
-                    connectionNetwork // What they expect from their network
-            ));
+            for (AccountDTO connection : connections) {
+                MemberId connectionMemberId = new MemberId(UUID.fromString(connection.id()));
+                Ledger connectionLedger = ledgerRepository.findByMemberId(connectionMemberId);
+                int connectionDueAmount = connectionLedger != null ? connectionLedger.getDueAmount().value() : 0;
+
+                List<ContributionDTO> connContributions = contributionsByUserId.getOrDefault(connection.id(),
+                        List.of());
+                int connectionPaid = calculateAmountByStatus(connContributions, STATUS_PAID);
+                int connectionConfirmed = calculateAmountByStatus(connContributions, STATUS_CONFIRMED);
+
+                // Same formula: pledged = dueAmount - paid
+                int connectionPledged = Math.max(0, connectionDueAmount - connectionPaid);
+
+                connectionLedgers.add(new LedgerSummaryDefaultResponse.ConnectionLedger(
+                        connection.id(),
+                        connection.fullName(),
+                        connection.photoUrl(),
+                        connectionPledged, // Pledged (unpaid amount owed)
+                        connectionPaid, // Paid (awaiting confirmation)
+                        connectionConfirmed // Confirmed
+                ));
+            }
         }
 
-        // Sort by due amount descending
+        // Sort by pledged amount descending
         connectionLedgers.sort((a, b) -> Integer.compare(b.pledged(), a.pledged()));
 
         return new LedgerSummaryDefaultResponse(
-                dueNetworkAmount, // User expects from network
-                dueAmount, // User owes to parent
-                0, // paid (not separately tracked)
+                confirmedAmount,
+                pledgedAmount,
+                paidAmount,
                 connectionLedgers);
+    }
+
+    private int calculateAmountByStatus(List<ContributionDTO> contributions, int status) {
+        return contributions.stream()
+                .filter(c -> c.status() == status)
+                .mapToInt(ContributionDTO::amount)
+                .sum();
     }
 
     private List<AccountDTO> getConnections(UUID userId) {
         Member member = membersNetworkRepo.getById(userId);
-        if (member == null) {
+        if (member == null || member.children().isEmpty()) {
             return new ArrayList<>();
         }
         return accountGateway.getAccounts(member.children()).stream().toList();
