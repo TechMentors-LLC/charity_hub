@@ -58,9 +58,11 @@ public class GetAllCasesHandler implements QueryHandler<GetAllCasesQuery, GetCas
                 conditions.add(
                         Filters.or(
                                 Filters.regex("title", Pattern.compile(".*" + query.content() + ".*")),
-                                Filters.regex("description", Pattern.compile(".*" + query.content() + ".*"))
-                        )
-                );
+                                Filters.regex("description", Pattern.compile(".*" + query.content() + ".*"))));
+            }
+
+            if (query.onlyZakat()) {
+                conditions.add(Filters.eq("acceptZakat", true));
             }
             return conditions.isEmpty() ? new Document() : Filters.and(conditions);
         };

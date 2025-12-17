@@ -24,14 +24,15 @@ public class GetAllCasesController {
     @GetMapping("/v1/cases")
     @Observed(name = "cases.get_all", contextualName = "get-all-cases")
     public ResponseEntity<GetCasesQueryResult> getCases(@ModelAttribute GetCasesRequest request) {
-        log.debug("Retrieving cases with offset: {}, limit: {}", request.offset(), request.limit());
+        log.debug("Retrieving cases with offset: {}, limit: {}, onlyZakat: {}", request.offset(), request.limit(),
+                request.onlyZakat());
         GetAllCasesQuery query = new GetAllCasesQuery(
                 request.code(),
                 request.tag(),
                 request.content(),
                 Math.max(request.offset(), 0),
-                Math.min(Math.max(request.limit(), 1), 100)
-        );
+                Math.min(Math.max(request.limit(), 1), 100),
+                request.onlyZakat());
         var result = getAllCasesHandler.handle(query);
         log.debug("Retrieved {} cases", result.cases().size());
         return ResponseEntity.ok(result);

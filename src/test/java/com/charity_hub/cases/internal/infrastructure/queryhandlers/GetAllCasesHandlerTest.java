@@ -42,7 +42,7 @@ class GetAllCasesHandlerTest {
         @DisplayName("should return cases with count")
         void shouldReturnCasesWithCount() {
             // Arrange
-            var query = new GetAllCasesQuery(null, null, null, 0, 10);
+            var query = new GetAllCasesQuery(null, null, null, 0, 10, false);
             var caseEntity1 = createCaseEntity(1, "Case 1", "OPEN");
             var caseEntity2 = createCaseEntity(2, "Case 2", "CLOSED");
 
@@ -63,7 +63,7 @@ class GetAllCasesHandlerTest {
         @DisplayName("should return empty list when no cases found")
         void shouldReturnEmptyListWhenNoCasesFound() {
             // Arrange
-            var query = new GetAllCasesQuery(null, null, null, 0, 10);
+            var query = new GetAllCasesQuery(null, null, null, 0, 10, false);
             when(caseRepo.search(anyInt(), anyInt(), any())).thenReturn(List.of());
             when(caseRepo.getCasesCount(any())).thenReturn(0);
 
@@ -79,7 +79,7 @@ class GetAllCasesHandlerTest {
         @DisplayName("should pass offset and limit to repository")
         void shouldPassOffsetAndLimitToRepository() {
             // Arrange
-            var query = new GetAllCasesQuery(null, null, null, 10, 20);
+            var query = new GetAllCasesQuery(null, null, null, 10, 20, false);
             when(caseRepo.search(anyInt(), anyInt(), any())).thenReturn(List.of());
             when(caseRepo.getCasesCount(any())).thenReturn(0);
 
@@ -94,7 +94,7 @@ class GetAllCasesHandlerTest {
         @DisplayName("should map case entity to query result correctly")
         void shouldMapCaseEntityToQueryResultCorrectly() {
             // Arrange
-            var query = new GetAllCasesQuery(null, null, null, 0, 10);
+            var query = new GetAllCasesQuery(null, null, null, 0, 10, false);
             long creationDate = System.currentTimeMillis();
             long lastUpdated = System.currentTimeMillis() + 1000;
             var caseEntity = new CaseEntity(
@@ -109,8 +109,7 @@ class GetAllCasesHandlerTest {
                     lastUpdated,
                     List.of(),
                     List.of("doc1.pdf"),
-                    0
-            );
+                    0);
 
             when(caseRepo.search(anyInt(), anyInt(), any())).thenReturn(List.of(caseEntity));
             when(caseRepo.getCasesCount(any())).thenReturn(1);
@@ -133,7 +132,7 @@ class GetAllCasesHandlerTest {
         @DisplayName("should filter by code when provided")
         void shouldFilterByCodeWhenProvided() {
             // Arrange
-            var query = new GetAllCasesQuery(12345, null, null, 0, 10);
+            var query = new GetAllCasesQuery(12345, null, null, 0, 10, false);
             when(caseRepo.search(anyInt(), anyInt(), any())).thenReturn(List.of());
             when(caseRepo.getCasesCount(any())).thenReturn(0);
 
@@ -164,8 +163,7 @@ class GetAllCasesHandlerTest {
                     System.currentTimeMillis(),
                     List.of(),
                     List.of(),
-                    0
-            );
+                    0);
         }
     }
 }
