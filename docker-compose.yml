@@ -38,15 +38,43 @@ services:
       "
     restart: "no"
 
+  # OpenTelemetry Collector (Agent pattern)
+  # Receives telemetry from app, batches, and forwards to SigNoz
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.130.1
+    container_name: charity-hub-otel-collector
+    restart: unless-stopped
+    command: [ "--config=/etc/otelcol-contrib/config.yaml" ]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - "14317:4317" # OTLP gRPC mapped to 14317
+      - "14318:4318" # OTLP HTTP mapped to 14318
+      - "13133:13133" # Health check
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:13133/" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
+      - signoz-net
+
 volumes:
   mongodb_data:
 
-  # Setup:
-  # 1. Create keyfile (run once):
-  #    openssl rand -base64 756 > mongo-keyfile
-  #    chmod 400 mongo-keyfile
-  #
-  # 2. Start containers (replica set initializes automatically):
-  #    docker-compose up -d
-  #
-  # Credentials: admin / charityhubpassword
+
+networks:
+  signoz-net:
+    external: true
+    # Setup:
+    # 1. Create keyfile (run once):
+    #    openssl rand -base64 756 > mongo-keyfile
+    #    chmod 400 mongo-keyfile
+    #
+    # 2. Start containers (replica set initializes automatically):
+    #    docker-compose up -d
+    #
+    # Credentials: admin / charityhubpassword
