@@ -1,0 +1,58 @@
+# OpenTelemetry Collector Configuration
+# Agent pattern: receives telemetry locally, forwards to SigNoz
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    # Batches telemetry data before exporting for efficiency
+    timeout: 5s
+    send_batch_size: 512
+
+  resource:
+    attributes:
+      - key: service.name
+        value: charity-hub
+        action: upsert
+      - key: deployment.environment
+        from_attribute: DEPLOY_ENV
+        action: upsert
+
+exporters:
+  # Local development: SigNoz otel-collector on signoz-net network
+  otlp/local:
+    endpoint: "signoz-otel-collector:4317"
+    tls:
+      insecure: true
+
+  # Debug exporter for troubleshooting (logs to collector stdout)
+  debug:
+    verbosity: basic
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  zpages:
+    endpoint: 0.0.0.0:55679
+
+service:
+  extensions: [health_check, zpages]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlp/local]
+    metrics:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlp/local]
+    logs:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlp/local]

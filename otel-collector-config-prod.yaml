@@ -1,0 +1,63 @@
+# OpenTelemetry Collector Configuration for GCP/Production
+# Used when deploying to GCP Cloud Run or GKE
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 512
+
+  resource:
+    attributes:
+      - key: service.name
+        value: charity-hub
+        action: upsert
+      - key: deployment.environment
+        value: production
+        action: upsert
+
+exporters:
+  # Option 1: SigNoz Cloud (recommended for production)
+  # Uncomment and configure with your credentials
+  # otlp/signoz-cloud:
+  #   endpoint: "ingest.<REGION>.signoz.cloud:443"
+  #   tls:
+  #     insecure: false
+  #   headers:
+  #     "signoz-ingestion-key": "${SIGNOZ_INGESTION_KEY}"
+
+  # Option 2: Self-hosted SigNoz on GCP
+  otlp/signoz:
+    endpoint: "${SIGNOZ_ENDPOINT:-signoz-otel-collector:4317}"
+    tls:
+      insecure: true
+
+  debug:
+    verbosity: basic
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlp/signoz]
+    metrics:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlp/signoz]
+    logs:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlp/signoz]
