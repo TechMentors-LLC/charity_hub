@@ -1,15 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>
-                %d{yyyy-MM-dd HH:mm:ss} %highlight([%thread]) %highlight(%-5level) %highlight(%logger{36}) - %msg%n
-            </pattern>
-        </encoder>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <appender name="OTEL" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+        <captureExperimentalAttributes>true</captureExperimentalAttributes>
+        <captureCodeAttributes>true</captureCodeAttributes>
+        <captureMarkerAttribute>true</captureMarkerAttribute>
+        <captureKeyValuePairAttributes>true</captureKeyValuePairAttributes>
     </appender>
-    <logger name="org.springframework.security" level="trace" additivity="false">
-        <appender-ref ref="Console" />
-    </logger>
-    <root level="info">
-        <appender-ref ref="CONSOLE" />
-    </root>
+
+    <springProfile name="default | dev | local | test">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>
+                    %d{yyyy-MM-dd HH:mm:ss.SSS} %highlight([%thread]) [%X{traceId:- },%X{spanId:- }] %highlight(%-5level) %cyan(%logger{36}) - %msg%n
+                </pattern>
+            </encoder>
+        </appender>
+
+        <logger name="com.charity_hub" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="OTEL"/> </logger>
+
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="org.mongodb" level="INFO"/>
+        <logger name="io.micrometer" level="INFO"/>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="OTEL"/> </root>
+    </springProfile>
+
+    <springProfile name="prod | production | staging">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ} | %-5level | %X{traceId:-NO_TRACE} | %X{spanId:-NO_SPAN} | %logger{40} | %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <logger name="com.charity_hub" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="OTEL"/> </logger>
+
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.mongodb" level="WARN"/>
+        <logger name="io.micrometer" level="WARN"/>
+        <logger name="org.apache" level="WARN"/>
+
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="OTEL"/> </root>
+    </springProfile>
 </configuration>

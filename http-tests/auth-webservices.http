@@ -1,8 +1,4 @@
-
-### Authenticate
-GET {{host}}/actuator
-
-### authenticate
+### Authenticate Main User (User A)
 POST {{host}}/v1/accounts/authenticate
 Content-Type: application/json
 
@@ -14,33 +10,12 @@ Content-Type: application/json
 
 > {%
     client.assert(response.status === 200)
+    // Capture Main User Token
     client.global.set("accessToken", response.body.accessToken)
     client.global.set("refreshToken", response.body.refreshToken)
-
 %}
 
-
-### Refresh Token
-POST {{host}}/v1/accounts/refresh-token
-Content-Type: application/json
-Authorization: Bearer {{refreshToken}}
-
-
-### Register FCM Token
-
-POST {{host}}/v1/accounts/register-fcm-token
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-{
-  "fcmToken": "ec-RVDOIQE8Cjx1sbZ4H_L:APA91bGM464Nv_BnV1r48C0bPhHLnRHNEGlg0NekUn1JW_slXy7t20eSMtPQNF8ZlwzOzNDWDiH0YmdTa3P0EGc3aWxbhUGxM584EAikK6xzRAlJqQTNSLPdJg7HmL2OVjkA5no71F6N"
-}
-> {%
-    client.assert(response.status === 201)
-%}
-
-### Invite user
-
+### Invite Target User (User B)
 POST {{host}}/v1/accounts/invite
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
@@ -52,9 +27,25 @@ Authorization: Bearer {{accessToken}}
     client.assert(response.status === 200)
 %}
 
-###
+### Authenticate Target User (User B) - To Create Account & Connection
+POST {{host}}/v1/accounts/authenticate
+Content-Type: application/json
 
-### Get connections
+{
+  "idToken": "+201260032633",
+  "deviceId": "target_user_device_id",
+  "deviceType": "android"
+}
+
+> {%
+    client.assert(response.status === 200)
+    // We don't strictly need to keep User B's token unless we want to act as them.
+    // But this step ensures the account is created and linked to User A.
+    client.global.set("accessToken", response.body.accessToken)
+    client.global.set("refreshToken", response.body.refreshToken)
+%}
+
+### Get connections (As User A)
 
 GET {{host}}/v1/accounts/connections
 Content-Type: application/json
@@ -62,10 +53,18 @@ Authorization: Bearer {{accessToken}}
 
 > {%
     client.assert(response.status === 200)
-%}
-### Get connections
+    // Verify we have connections
+    client.assert(response.body.connections.length > 0, "Expected at least one connection for User A");
 
-GET {{host}}/v1/accounts/85f494a5-b208-4274-b0ad-b4ec282ed555/connections
+    // Find User B in the connections list (assuming it's the one we just invited)
+    // Ideally we filter by mobile, but for now taking the first/last might work if it's a fresh env.
+    // Or simpler: just take the first one as before.
+    client.global.set("targetUserId", response.body.connections[0].uuid)
+%}
+
+### Get connections By Id
+
+GET {{host}}/v1/accounts/{{targetUserId}}/connections
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -73,22 +72,7 @@ Authorization: Bearer {{accessToken}}
     client.assert(response.status === 200)
 %}
 
-###
-###
-
-POST {{host}}/v1/accounts/refresh-token
-Content-Type: application/json
-Authorization: Bearer {{refreshToken}}
-
-{
-  "lang": "en"
-}
-> {%
-    client.assert(response.status === 200)
-    client.global.set("accessToken", response.body.accessToken)
-%}
-
-###
+### Update Basic Info
 POST {{host}}/v1/accounts/update-basic-info
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
@@ -103,9 +87,9 @@ Authorization: Bearer {{accessToken}}
 %}
 
 
-###
+### Block User Account
 
-POST {{host}}/v1/accounts/f793947f-8ebf-450a-a73a-bfc47f7cd016/block
+POST {{host}}/v1/accounts/{{targetUserId}}/block
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -113,10 +97,10 @@ Authorization: Bearer {{accessToken}}
     client.assert(response.status === 200)
 %}
 
-###
+### Un-Block User Account
 
 
-POST {{host}}/v1/accounts/f793947f-8ebf-450a-a73a-bfc47f7cd016/un-block
+POST {{host}}/v1/accounts/{{targetUserId}}/un-block
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -127,7 +111,7 @@ Authorization: Bearer {{accessToken}}
 
 ### Add permission
 
-POST {{host}}/v1/accounts/f793947f-8ebf-450a-a73a-bfc47f7cd016/permissions
+POST {{host}}/v1/accounts/{{targetUserId}}/permissions
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -139,11 +123,9 @@ Authorization: Bearer {{accessToken}}
     client.assert(response.status === 200)
 %}
 
-###
-
 ### Remove permission
 
-DELETE {{host}}/v1/accounts/f793947f-8ebf-450a-a73a-bfc47f7cd016/permissions
+DELETE {{host}}/v1/accounts/{{targetUserId}}/permissions
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -218,7 +200,7 @@ Authorization: Bearer {{accessToken}}
     client.assert(response.status === 200)
 %}
 
-### Search cases
+### Search cases (Zakat Only)
 
 GET {{host}}/v1/cases?limit=20&offset=0&onlyZakat=false
 Content-Type: application/json
@@ -325,9 +307,9 @@ Authorization: Bearer {{accessToken}}
     client.assert(response.status === 200)
 %}
 
-### Ledger summary
+### Ledger summary By Id
 
-GET {{host}}/v1/ledger/85f494a5-b208-4274-b0ad-b4ec282ed555
+GET {{host}}/v1/ledger/{{targetUserId}}
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 

@@ -4,5 +4,5 @@ import com.charity_hub.shared.abstractions.Command;
 
 import java.util.UUID;
 
-public record ConfirmContribution(UUID contributionId) implements Command {
+public record ConfirmContribution(UUID contributionId, UUID userId) implements Command {
 }

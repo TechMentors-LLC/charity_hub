@@ -4,6 +4,7 @@ import com.charity_hub.cases.shared.dtos.ContributionPaidDTO;
 import com.charity_hub.ledger.internal.domain.contracts.INotificationService;
 import com.charity_hub.ledger.internal.application.eventHandlers.loggers.ContributionPaidLogger;
 import com.charity_hub.shared.domain.IEventBus;
+import io.micrometer.observation.annotation.Observed;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
@@ -16,8 +17,7 @@ public class ContributionPaidHandler {
     public ContributionPaidHandler(
             IEventBus eventBus,
             INotificationService notificationService,
-            ContributionPaidLogger logger
-    ) {
+            ContributionPaidLogger logger) {
         this.eventBus = eventBus;
         this.notificationService = notificationService;
         this.logger = logger;
@@ -29,14 +29,20 @@ public class ContributionPaidHandler {
         eventBus.subscribe(this, ContributionPaidDTO.class, this::handle);
     }
 
+    @Observed(name = "ledger.event.contribution_paid", contextualName = "contribution-paid-handler")
     private void handle(ContributionPaidDTO contribution) {
         logger.processingEvent(contribution);
 
         try {
+            // ContributionPaid event only triggers notification
+            // No ledger state changes needed - status is tracked in contribution entity
+            // Real ledger settlement happens on ContributionConfirmed
+
             notificationService.notifyContributionPaid(contribution);
             logger.notificationSent(contribution.id(), contribution.contributorId());
         } catch (Exception e) {
             logger.notificationFailed(contribution.id(), contribution.contributorId(), e);
         }
     }
+
 }

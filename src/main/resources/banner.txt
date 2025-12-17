@@ -1,0 +1,8 @@
+${AnsiColor.BRIGHT_WHITE}
+   .   ____ _                _ _          _   _       _     
+ ${AnsiColor.GREEN}/\\${AnsiColor.BRIGHT_WHITE}  / ___| |__   __ _ _ __(_) |_ _   _ | | | |_   _| |__  ${AnsiColor.GREEN}\ \ \ \
+${AnsiColor.GREEN}( ( )${AnsiColor.BRIGHT_WHITE}| |   | '_ \ / _` | '__| | __| | | || |_| | | | | '_ \ ${AnsiColor.GREEN}\ \ \ \
+ ${AnsiColor.GREEN}\\/${AnsiColor.BRIGHT_WHITE} | |___| | | | (_| | |  | | |_| |_| ||  _  | |_| | |_) |${AnsiColor.GREEN} ) ) ) )
+  ${AnsiColor.GREEN}'${AnsiColor.BRIGHT_WHITE}   \____|_| |_|\__,_|_|  |_|\__|\__, ||_| |_|\__,_|_.__/ ${AnsiColor.GREEN}/ / / /
+  ${AnsiColor.GREEN}=================================${AnsiColor.BRIGHT_WHITE}|___/${AnsiColor.GREEN}====================${AnsiColor.GREEN}/_/_/_/
+${AnsiColor.DEFAULT}

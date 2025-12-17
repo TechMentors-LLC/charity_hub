@@ -9,4 +9,6 @@ public interface IAccountsAPI {
     AccountDTO getById(UUID id);
 
     List<AccountDTO> getAccountsByIds(List<UUID> idsList);
+
+    boolean isAdmin(UUID userId);
 }

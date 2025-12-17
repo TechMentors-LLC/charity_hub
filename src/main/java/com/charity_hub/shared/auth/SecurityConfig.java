@@ -1,8 +1,6 @@
 package com.charity_hub.shared.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,7 +17,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
-    protected final Logger log = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
@@ -31,31 +28,29 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable());
 
         // Set session management to stateless (for JWT authentication)
-        http.sessionManagement(session -> 
-            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        );
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         http.authorizeHttpRequests(auth -> {
             try {
                 auth
-                    .requestMatchers(new AntPathRequestMatcher("/actuator")).permitAll()
-                    .requestMatchers(new AntPathRequestMatcher("/v1/accounts/authenticate")).permitAll()
-                    .requestMatchers(new AntPathRequestMatcher("/error")).permitAll()
-                    .anyRequest().authenticated();
+                        .requestMatchers(new AntPathRequestMatcher("/actuator/**")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/v1/accounts/authenticate")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/error")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/swagger-ui/**")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/v3/api-docs/**")).permitAll()
+                        .requestMatchers(new AntPathRequestMatcher("/swagger-ui.html")).permitAll()
+                        .anyRequest().authenticated();
             } catch (Exception e) {
                 throw new RuntimeException("Error configuring security rules", e);
             }
         });
 
         // Configure async security
-        http.securityContext(securityContext ->
-            securityContext.requireExplicitSave(false)
-        );
+        http.securityContext(securityContext -> securityContext.requireExplicitSave(false));
 
         http.addFilterBefore(
-            new JwtAuthFilter(jwtVerifier, new ObjectMapper()),
-            AnonymousAuthenticationFilter.class
-        );
+                new JwtAuthFilter(jwtVerifier, new ObjectMapper()),
+                AnonymousAuthenticationFilter.class);
 
         return http.build();
     }

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.UUID;
 
-@Component
+@Component("casesAccountsGateway")
 public class AccountsGateway {
     private final IAccountsAPI accountsAPI;
 
@@ -17,5 +17,9 @@ public class AccountsGateway {
 
     public List<AccountDTO> getAccountsByIds(List<UUID> idsList) {
         return accountsAPI.getAccountsByIds(idsList);
+    }
+
+    public boolean isAdmin(UUID userId) {
+        return accountsAPI.isAdmin(userId);
     }
 }

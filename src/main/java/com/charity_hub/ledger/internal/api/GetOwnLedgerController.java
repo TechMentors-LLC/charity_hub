@@ -20,10 +20,9 @@ public class GetOwnLedgerController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/v1/ledger/me")
+    @GetMapping({ "/v1/ledger", "/v1/ledger/me" })
     public ResponseEntity<?> handle(
-            @AuthenticationPrincipal AccessTokenPayload payload
-    ) {
+            @AuthenticationPrincipal AccessTokenPayload payload) {
         UUID userId = UUID.fromString(payload.getUuid());
         GetLedger command = new GetLedger(userId);
         var result = getLedgerHandler.handle(command);

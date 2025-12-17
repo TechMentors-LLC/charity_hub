@@ -1,24 +1,22 @@
 package com.charity_hub.notifications.internal;
 
-import com.charity_hub.notifications.NotificationApi;
+import com.charity_hub.notifications.shared.INotificationsAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
- * Stub implementation of NotificationApi for test mode.
- * This is used when firebase.test-mode=true to avoid requiring
- * real Firebase credentials during development/testing.
+ * Stub implementation of INotificationsAPI for test mode.
+ * Loads when app.firebase.enabled=false
  */
-@Component
-@ConditionalOnProperty(
-        name = "firebase.test-mode",
-        havingValue = "true"
-)
-public class FCMServiceStub implements NotificationApi {
+@Service
+@Primary
+@ConditionalOnProperty(name = "app.firebase.enabled", havingValue = "false", matchIfMissing = true)
+public class FCMServiceStub implements INotificationsAPI {
     private static final Logger logger = LoggerFactory.getLogger(FCMServiceStub.class);
 
     public FCMServiceStub() {
@@ -27,13 +25,13 @@ public class FCMServiceStub implements NotificationApi {
 
     @Override
     public void notifyDevices(List<String> tokens, String title, String body) {
-        logger.debug("[TEST MODE] Would send notification to {} devices - Title: {}, Body: {}", 
+        logger.debug("[TEST MODE] Would send notification to {} devices - Title: {}, Body: {}",
                 tokens.size(), title, body);
     }
 
     @Override
     public void notifyTopicSubscribers(String topic, String event, Object extraJsonData, String title, String body) {
-        logger.debug("[TEST MODE] Would send topic notification - Topic: {}, Event: {}, Title: {}", 
+        logger.debug("[TEST MODE] Would send topic notification - Topic: {}, Event: {}, Title: {}",
                 topic, event, title);
     }
 

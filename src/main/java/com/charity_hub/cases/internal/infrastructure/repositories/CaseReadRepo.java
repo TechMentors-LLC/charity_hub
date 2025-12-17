@@ -7,6 +7,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
+import io.micrometer.observation.annotation.Observed;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,12 +34,14 @@ public class CaseReadRepo implements ICaseReadRepo {
     }
 
     @Override
+    @Observed(name = "charity_hub.repo.case_read.get_by_code", contextualName = "case-read-repo-get-by-code")
     public CaseEntity getByCode(int code) {
         logger.debug("Looking up case by code: {}", code);
         return cases.find(Filters.eq("code", code)).first();
     }
 
     @Override
+    @Observed(name = "charity_hub.repo.case_read.get_by_codes", contextualName = "case-read-repo-get-by-codes")
     public List<CaseEntity> getByCodes(List<Integer> codes) {
         logger.debug("Looking up cases by codes: {}", codes);
         List<CaseEntity> result = cases.find(Filters.in("code", codes))
@@ -48,6 +51,7 @@ public class CaseReadRepo implements ICaseReadRepo {
     }
 
     @Override
+    @Observed(name = "charity_hub.repo.case_read.get_contributions", contextualName = "case-read-repo-get-contributions")
     public List<ContributionEntity> getContributionsByCaseCode(int caseCode) {
         logger.debug("Looking up contributions for case code: {}", caseCode);
         List<ContributionEntity> result = contributions.find(Filters.eq("caseCode", caseCode))
@@ -57,6 +61,7 @@ public class CaseReadRepo implements ICaseReadRepo {
     }
 
     @Override
+    @Observed(name = "charity_hub.repo.case_read.count", contextualName = "case-read-repo-count")
     public int getCasesCount(Supplier<Bson> filter) {
         logger.debug("Counting cases with filter");
         Bson query = Filters.ne("status", CaseEntity.STATUS_DRAFT);
@@ -69,6 +74,7 @@ public class CaseReadRepo implements ICaseReadRepo {
     }
 
     @Override
+    @Observed(name = "charity_hub.repo.case_read.search", contextualName = "case-read-repo-search")
     public List<CaseEntity> search(
             int offset,
             int limit,

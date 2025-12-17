@@ -4,6 +4,7 @@ import com.charity_hub.cases.internal.api.dtos.UpdateCaseRequest;
 import com.charity_hub.cases.internal.application.commands.UpdateCase.UpdateCase;
 import com.charity_hub.cases.internal.application.commands.UpdateCase.UpdateCaseHandler;
 import com.charity_hub.shared.exceptions.GlobalExceptionHandler;
+import com.charity_hub.shared.observability.TestObservabilityConfiguration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UpdateCaseController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, TestObservabilityConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
 class UpdateCaseControllerTest {
 

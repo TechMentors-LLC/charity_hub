@@ -7,7 +7,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 @Component
 public class EventBus implements IEventBus {
-    // CopyOnWriteArrayList is thread-safe and doesn't require synchronization for iteration.
+    // CopyOnWriteArrayList is thread-safe and doesn't require synchronization for
+    // iteration.
     // This avoids virtual thread pinning when handlers perform blocking I/O.
     private final List<EventListener<?>> listeners = new CopyOnWriteArrayList<>();
 
@@ -38,5 +39,3 @@ public class EventBus implements IEventBus {
 
 record EventListener<T>(Object owner, Class<T> event, IEventBus.EventCallback<T> callback) {
 }
-
-

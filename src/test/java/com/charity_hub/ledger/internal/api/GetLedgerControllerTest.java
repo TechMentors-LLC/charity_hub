@@ -5,6 +5,7 @@ import com.charity_hub.ledger.internal.application.queries.GetLedger.GetLedger;
 import com.charity_hub.ledger.internal.application.queries.GetLedger.GetLedgerHandler;
 import com.charity_hub.ledger.internal.application.queries.GetLedger.LedgerResponse;
 import com.charity_hub.shared.exceptions.GlobalExceptionHandler;
+import com.charity_hub.shared.observability.TestObservabilityConfiguration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(GetLedgerController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, TestObservabilityConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
 class GetLedgerControllerTest {
 

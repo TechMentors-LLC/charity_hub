@@ -4,6 +4,7 @@ import com.charity_hub.cases.internal.application.queries.GetAllCases.GetAllCase
 import com.charity_hub.cases.internal.application.queries.GetAllCases.GetCasesQueryResult;
 import com.charity_hub.cases.internal.infrastructure.queryhandlers.GetAllCasesHandler;
 import com.charity_hub.shared.exceptions.GlobalExceptionHandler;
+import com.charity_hub.shared.observability.TestObservabilityConfiguration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(GetAllCasesController.class)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class, TestObservabilityConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
 class GetAllCasesControllerTest {
 

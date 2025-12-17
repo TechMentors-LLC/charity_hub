@@ -42,6 +42,19 @@ jobs:
           firebase.test-mode=true
           logging.structured.format.console=ecs
           cases.initial-code=20039
+          
+          # Observability Configuration for GCP
+          management.endpoints.web.exposure.include=health,info,metrics,prometheus
+          management.endpoint.health.probes.enabled=true
+          management.health.livenessstate.enabled=true
+          management.health.readinessstate.enabled=true
+          management.metrics.tags.application=charity_hub
+          management.metrics.tags.environment=production
+          management.prometheus.metrics.export.enabled=true
+          
+          # Tracing - Cloud Run auto-exports to Cloud Trace
+          management.tracing.enabled=true
+          management.tracing.sampling.probability=0.1
           EOF
 
 
@@ -72,6 +85,9 @@ jobs:
           service: '${{ env.SERVICE }}'
           region: '${{ env.REGION }}'
           image: '${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/charity-hub/${{ env.SERVICE }}:${{ github.sha }}'
+          env_vars: |
+            SPRING_PROFILES_ACTIVE=prod
+            ENVIRONMENT=production
 
 
       - name: 'Show output'

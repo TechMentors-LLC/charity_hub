@@ -4,7 +4,7 @@ import com.charity_hub.cases.shared.dtos.ContributionMadeDTO;
 import com.charity_hub.shared.domain.ILogger;
 import org.springframework.stereotype.Component;
 
-@Component
+@Component("casesContributionMadeLogger")
 public class ContributionMadeLogger {
     private final ILogger logger;
 
@@ -17,17 +17,17 @@ public class ContributionMadeLogger {
     }
 
     public void processingEvent(ContributionMadeDTO contribution) {
-        logger.info("Processing ContributionMadeEvent - Case Code: {}, Amount: {}", 
-            contribution.caseCode(), contribution.amount());
+        logger.info("Processing ContributionMadeEvent - Case Code: {}, Amount: {}",
+                contribution.caseCode(), contribution.amount());
     }
 
     public void notificationSent(int caseCode, int amount) {
-        logger.info("Successfully sent notification for contribution - Case Code: {}, Amount: {}", 
-            caseCode, amount);
+        logger.info("Successfully sent notification for contribution - Case Code: {}, Amount: {}",
+                caseCode, amount);
     }
 
     public void notificationFailed(int caseCode, int amount, Exception e) {
         logger.error("Failed to send notification for contribution - Case Code: {}, Amount: {} - Error: {}",
-            caseCode, amount, e.getMessage(), e);
+                caseCode, amount, e.getMessage(), e);
     }
-} 
+}

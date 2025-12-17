@@ -7,6 +7,7 @@ import com.charity_hub.cases.internal.infrastructure.db.CaseEntity;
 import com.charity_hub.cases.internal.application.contracts.ICaseReadRepo;
 import com.charity_hub.shared.abstractions.QueryHandler;
 import com.mongodb.client.model.Filters;
+import io.micrometer.observation.annotation.Observed;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class GetAllCasesHandler implements QueryHandler<GetAllCasesQuery, GetCas
     }
 
     @Override
+    @Observed(name = "handler.get_all_cases", contextualName = "get-all-cases-handler")
     public GetCasesQueryResult handle(GetAllCasesQuery query) {
         Supplier<Bson> filter = filtersFrom(query);
 
@@ -56,9 +58,11 @@ public class GetAllCasesHandler implements QueryHandler<GetAllCasesQuery, GetCas
                 conditions.add(
                         Filters.or(
                                 Filters.regex("title", Pattern.compile(".*" + query.content() + ".*")),
-                                Filters.regex("description", Pattern.compile(".*" + query.content() + ".*"))
-                        )
-                );
+                                Filters.regex("description", Pattern.compile(".*" + query.content() + ".*"))));
+            }
+
+            if (query.onlyZakat()) {
+                conditions.add(Filters.eq("acceptZakat", true));
             }
             return conditions.isEmpty() ? new Document() : Filters.and(conditions);
         };

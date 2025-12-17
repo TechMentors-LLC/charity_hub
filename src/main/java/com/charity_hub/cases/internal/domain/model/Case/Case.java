@@ -32,8 +32,7 @@ public class Case extends AggregateRoot<CaseCode> {
             CaseDocuments documents,
             Contributions contributions,
             Date creationDate,
-            Date lastUpdated
-    ) {
+            Date lastUpdated) {
         super(caseCode);
         this.caseCode = caseCode;
         this.details = details;
@@ -61,14 +60,12 @@ public class Case extends AggregateRoot<CaseCode> {
                         caseProps.description(),
                         caseProps.goal(),
                         caseProps.acceptZakat(),
-                        caseProps.tags()
-                ),
+                        caseProps.tags()),
                 CaseStatus.of(caseProps.status()),
                 CaseDocuments.of(caseProps.documents()),
                 Contributions.of(caseProps.contributions()),
                 caseProps.creationDate(),
-                caseProps.lastUpdated()
-        );
+                caseProps.lastUpdated());
     }
 
     public void update(
@@ -76,12 +73,10 @@ public class Case extends AggregateRoot<CaseCode> {
             String description,
             int goal,
             boolean acceptZakat,
-            List<String> documentUrls
-    ) {
+            List<String> documentUrls) {
         this.details = this.details.update(title, description, goal, acceptZakat);
         this.documents = this.documents.update(documentUrls);
         this.lastUpdated = new Date();
-//        raiseEvent(new CaseUpdated(this));
     }
 
     public void delete(ICaseRepo caseRepo) {

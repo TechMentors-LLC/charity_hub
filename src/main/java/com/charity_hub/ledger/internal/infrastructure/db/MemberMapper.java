@@ -14,7 +14,7 @@ public class MemberMapper {
     public static Member toDomain(MemberEntity entity) {
         return new Member(
                 new MemberId(UUID.fromString(entity._id())),
-                new MemberId(UUID.fromString(entity.parent())),
+                entity.parent() != null ? new MemberId(UUID.fromString(entity.parent())) : null,
                 entity.ancestors().stream()
                         .map(UUID::fromString)
                         .map(MemberId::new)
@@ -22,16 +22,14 @@ public class MemberMapper {
                 entity.children().stream()
                         .map(UUID::fromString)
                         .map(MemberId::new)
-                        .collect(Collectors.toList())
-        );
+                        .collect(Collectors.toList()));
     }
 
     public static MemberEntity toDB(Member domain) {
         return new MemberEntity(
                 domain.memberIdValue(),
-                domain.childrenIds(),
+                domain.ancestorsIds(),
                 domain.parentId(),
-                domain.ancestorsIds()
-        );
+                domain.childrenIds());
     }
 }

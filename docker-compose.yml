@@ -1,0 +1,52 @@
+services:
+  # MongoDB with Replica Set support (required for transactions)
+  mongodb:
+    image: mongo:7
+    container_name: charity-hub-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: charityhubpassword
+    command: [ "--replSet", "rs0", "--bind_ip_all", "--keyFile", "/etc/mongo-keyfile" ]
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-keyfile:/etc/mongo-keyfile:ro
+    healthcheck:
+      test: [ "CMD", "mongosh", "-u", "admin", "-p", "charityhubpassword", "--authenticationDatabase", "admin", "--quiet", "--eval", "db.adminCommand('ping').ok" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  # Auto-initialize replica set (runs once then exits)
+  mongo-init:
+    image: mongo:7
+    container_name: charity-hub-mongo-init
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    entrypoint: >
+      mongosh --host mongodb -u admin -p charityhubpassword --authenticationDatabase admin --eval "
+        try {
+          rs.status();
+          print('Replica set already initialized');
+        } catch(e) {
+          rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'mongodb:27017'}]});
+          print('Replica set initialized successfully');
+        }
+      "
+    restart: "no"
+
+volumes:
+  mongodb_data:
+
+  # Setup:
+  # 1. Create keyfile (run once):
+  #    openssl rand -base64 756 > mongo-keyfile
+  #    chmod 400 mongo-keyfile
+  #
+  # 2. Start containers (replica set initializes automatically):
+  #    docker-compose up -d
+  #
+  # Credentials: admin / charityhubpassword
