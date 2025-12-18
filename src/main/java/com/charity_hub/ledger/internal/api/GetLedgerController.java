@@ -1,5 +1,6 @@
 package com.charity_hub.ledger.internal.api;
 
+import com.charity_hub.ledger.internal.application.contracts.IMembersNetworkRepo;
 import com.charity_hub.ledger.internal.application.queries.GetLedger.GetLedger;
 import com.charity_hub.ledger.internal.application.queries.GetLedger.GetLedgerHandler;
 import com.charity_hub.shared.auth.AccessTokenPayload;
@@ -20,9 +21,11 @@ import java.util.UUID;
 public class GetLedgerController {
     private static final Logger log = LoggerFactory.getLogger(GetLedgerController.class);
     private final GetLedgerHandler getLedgerHandler;
+    private final IMembersNetworkRepo membersNetworkRepo;
 
-    public GetLedgerController(GetLedgerHandler getLedgerHandler) {
+    public GetLedgerController(GetLedgerHandler getLedgerHandler, IMembersNetworkRepo membersNetworkRepo) {
         this.getLedgerHandler = getLedgerHandler;
+        this.membersNetworkRepo = membersNetworkRepo;
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -33,11 +36,14 @@ public class GetLedgerController {
             @AuthenticationPrincipal AccessTokenPayload accessTokenPayload) {
         log.info("Retrieving ledger for user: {}", userId);
 
-        // Allow if admin OR if user is accessing their own ledger
+        // Allow if admin OR if user is accessing their own ledger OR if parent is
+        // accessing child's ledger
         boolean isAdmin = accessTokenPayload.hasFullAccess();
         boolean isOwnLedger = userId.toString().equals(accessTokenPayload.getUuid());
+        boolean isParent = membersNetworkRepo.isParentOf(
+                UUID.fromString(accessTokenPayload.getUuid()), userId);
 
-        if (!isAdmin && !isOwnLedger) {
+        if (!isAdmin && !isOwnLedger && !isParent) {
             log.warn("Access denied: user {} attempted to access ledger of user {}", accessTokenPayload.getUuid(),
                     userId);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();

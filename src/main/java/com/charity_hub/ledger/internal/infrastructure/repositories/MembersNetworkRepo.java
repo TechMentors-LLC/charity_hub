@@ -52,10 +52,19 @@ public class MembersNetworkRepo implements IMembersNetworkRepo {
         logger.info("Saving member with id: {}", member.memberId().value());
         MemberEntity entity = MemberMapper.toDB(member);
         collection.replaceOne(
-            eq("_id", entity._id()),
-            entity,
-            new ReplaceOptions().upsert(true)
-        );
+                eq("_id", entity._id()),
+                entity,
+                new ReplaceOptions().upsert(true));
         logger.debug("Member saved successfully: {}", member.memberId().value());
+    }
+
+    @Override
+    @Observed(name = "charity_hub.repo.member.is_parent_of", contextualName = "member-repo-is-parent-of")
+    public boolean isParentOf(UUID parentId, UUID childId) {
+        Member child = getById(childId);
+        if (child == null || child.parent() == null) {
+            return false;
+        }
+        return child.parent().value().equals(parentId);
     }
 }

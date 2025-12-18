@@ -3,7 +3,7 @@ POST {{host}}/v1/accounts/authenticate
 Content-Type: application/json
 
 {
-  "idToken": "+201260032632",
+  "idToken": "+201150030538",
   "deviceId": "91235778sd412qwwtest",
   "deviceType": "android"
 }
@@ -21,7 +21,7 @@ Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "mobileNumber": "201260032633"
+  "mobileNumber": "201060622922"
 }
 > {%
     client.assert(response.status === 200)
@@ -32,7 +32,7 @@ POST {{host}}/v1/accounts/authenticate
 Content-Type: application/json
 
 {
-  "idToken": "+201260032633",
+  "idToken": "+201060622922",
   "deviceId": "target_user_device_id",
   "deviceType": "android"
 }
@@ -310,6 +310,15 @@ Authorization: Bearer {{accessToken}}
 ### Ledger summary By Id
 
 GET {{host}}/v1/ledger/{{targetUserId}}
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.assert(response.status === 200)
+%}
+### Ledger own
+
+GET {{host}}/v1/ledger/me
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 

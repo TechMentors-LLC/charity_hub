@@ -3,6 +3,9 @@ package com.charity_hub.ledger.internal.application.queries.GetLedger;
 import com.charity_hub.cases.shared.dtos.CaseDTO;
 import com.charity_hub.cases.shared.dtos.ContributionDTO;
 import com.charity_hub.ledger.internal.application.contracts.ICasesGateway;
+import com.charity_hub.ledger.internal.application.contracts.ILedgerRepository;
+import com.charity_hub.ledger.internal.domain.model.Ledger;
+import com.charity_hub.ledger.internal.domain.model.MemberId;
 import com.charity_hub.shared.abstractions.QueryHandler;
 import io.micrometer.observation.annotation.Observed;
 import org.springframework.stereotype.Service;
@@ -15,24 +18,31 @@ import java.util.stream.Collectors;
 @Service
 public class GetLedgerHandler implements QueryHandler<GetLedger, LedgerResponse> {
     private final ICasesGateway casesGateway;
+    private final ILedgerRepository ledgerRepository;
 
     // From ContributionEntity: PLEDGED=1, PAID=2, CONFIRMED=3
     private static final int STATUS_PLEDGED = 1;
     private static final int STATUS_PAID = 2;
     private static final int STATUS_CONFIRMED = 3;
 
-    public GetLedgerHandler(ICasesGateway casesGateway) {
+    public GetLedgerHandler(ICasesGateway casesGateway, ILedgerRepository ledgerRepository) {
         this.casesGateway = casesGateway;
+        this.ledgerRepository = ledgerRepository;
     }
 
     @Override
     @Observed(name = "handler.get_ledger", contextualName = "get-ledger-handler")
     public LedgerResponse handle(GetLedger command) {
+        // Fetch user's ledger to get due amounts
+        Ledger userLedger = ledgerRepository.findByMemberId(new MemberId(command.userId()));
+        long dueAmount = userLedger != null ? userLedger.getDueAmount().value() : 0;
+        long dueNetworkAmount = userLedger != null ? userLedger.getDueNetworkAmount().value() : 0;
+
         // Fetch all contributions for the user
         List<ContributionDTO> contributions = casesGateway.getContributions(command.userId());
 
         if (contributions.isEmpty()) {
-            return new LedgerResponse(List.of());
+            return new LedgerResponse(List.of(), dueAmount, dueNetworkAmount);
         }
 
         // Collect case codes to fetch titles
@@ -58,7 +68,7 @@ public class GetLedgerHandler implements QueryHandler<GetLedger, LedgerResponse>
                 .sorted(Comparator.comparing(Contribution::contributionDate).reversed())
                 .collect(Collectors.toList());
 
-        return new LedgerResponse(responseContributions);
+        return new LedgerResponse(responseContributions, dueAmount, dueNetworkAmount);
     }
 
     private String mapStatus(int status) {

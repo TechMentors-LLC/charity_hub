@@ -2,12 +2,12 @@ package com.charity_hub.ledger.internal.application.queries.GetLedger;
 
 import com.charity_hub.cases.shared.dtos.CaseDTO;
 import com.charity_hub.cases.shared.dtos.ContributionDTO;
+import com.charity_hub.ledger.internal.application.contracts.ILedgerRepository;
 import com.charity_hub.ledger.internal.infrastructure.gateways.CasesGateway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,7 +26,9 @@ class GetLedgerHandlerTest {
     @Mock
     private CasesGateway casesGateway;
 
-    @InjectMocks
+    @Mock
+    private ILedgerRepository ledgerRepository;
+
     private GetLedgerHandler handler;
 
     private UUID userId;
@@ -35,6 +36,7 @@ class GetLedgerHandlerTest {
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
+        handler = new GetLedgerHandler(casesGateway, ledgerRepository);
     }
 
     @Test

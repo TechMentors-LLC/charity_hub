@@ -11,4 +11,6 @@ public interface IMembersNetworkRepo {
     void delete(MemberId id);
 
     void save(Member member);
+
+    boolean isParentOf(UUID parentId, UUID childId);
 }

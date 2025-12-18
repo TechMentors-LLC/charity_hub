@@ -39,8 +39,9 @@ out/
 ### Kotlin ###
 .kotlin
 /node_modules/
+oldSystem/
 
 ### Secrets ###
-secrets.properties
+# secrets.properties
 cert/
 mongo-keyfile
