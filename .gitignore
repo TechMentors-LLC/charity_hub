@@ -39,3 +39,12 @@ out/
 ### Kotlin ###
 .kotlin
 /node_modules/
+
+### Secrets ###
+# DO NOT remove. Restored in GH-30 after the original block (added in
+# 9339fb27, 2025-12-08) was accidentally removed. The Cloud Run workflow
+# (.github/workflows/google-cloudrun-docker.yml) injects these from GitHub
+# secrets at deploy time — they must never be tracked in the repo.
+secrets.properties
+cert/
+deployment/kubernetes/cert/
